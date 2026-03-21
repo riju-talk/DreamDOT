@@ -29,6 +29,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
+import { cn } from "@/lib/utils"
 
 export function AppSidebar() {
   const router = useRouter()

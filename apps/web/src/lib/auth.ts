@@ -1,14 +1,12 @@
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
-import { prismaUser } from "./prisma_user" // your custom generated Prisma client
+import { prismaUser } from "./prisma_user"
 import { getServerSession } from "next-auth"
 import type { NextAuthOptions } from "next-auth"
-import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import jwt from "jsonwebtoken"
 import GoogleProvider from "next-auth/providers/google"
 import GitHubProvider from "next-auth/providers/github"
 import DiscordProvider from "next-auth/providers/discord"
-
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -36,7 +34,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.user_profile?.display_name ?? "",
           avatar: user.user_profile?.avatar_url ?? "/placeholder.svg",
-          handle: user.user_profile?.username ?? "",
+          username: user.user_profile?.username ?? "",
           verified: user.is_verified,
         }
       },
@@ -61,7 +59,7 @@ export const authOptions: NextAuthOptions = {
       : []),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account?.provider === "google" || account?.provider === "github" || account?.provider === "discord") {
         if (!user.email) return false;
         
@@ -92,9 +90,9 @@ export const authOptions: NextAuthOptions = {
 
           // Map the database user object to the next-auth user object for the jwt token
           user.id = dbUser.id;
-          (user as any).username = dbUser.user_profile?.username;
-          (user as any).avatar = dbUser.user_profile?.avatar_url;
-          (user as any).verified = dbUser.is_verified;
+          user.username = dbUser.user_profile?.username ?? undefined;
+          user.avatar = dbUser.user_profile?.avatar_url ?? undefined;
+          user.verified = dbUser.is_verified ?? undefined;
 
           return true;
         } catch (error) {
@@ -104,10 +102,9 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user }) {
       if (user) {
         token.user = user
-        // Generate chat token for socket.io server
         if (process.env.JWT_SECRET) {
           token.chatToken = jwt.sign(
             { 
@@ -124,13 +121,13 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token.user) {
         session.user = {
-          ...token.user as any,
-          username: (token.user as any).username,
+          ...token.user,
+          username: token.user.username,
           name: token.user.name,
           email: token.user.email,
-          image: (token.user as any).avatar,
+          image: token.user.avatar,
         }
-        session.chatToken = token.chatToken as string
+        session.chatToken = token.chatToken
       }
       return session
     },
@@ -145,26 +142,6 @@ export const authOptions: NextAuthOptions = {
     newUser: "/auth/register",
   },
   secret: process.env.NEXTAUTH_SECRET,
-  cookies: {
-    sessionToken: {
-      name:
-        process.env.NODE_ENV === "production"
-          ? "__Secure-next-auth.session-token"
-          : "next-auth.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
 }
-
-// Export handler for App Router (/api/auth/[...nextauth]/route.ts)
-import NextAuth from "next-auth"
-
-const handler = NextAuth(authOptions)
-export { handler as GET, handler as POST }
 
 export const auth = () => getServerSession(authOptions)

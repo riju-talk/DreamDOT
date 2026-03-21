@@ -1,4 +1,12 @@
+"use client";
+
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { RefreshCw } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { fetchUnifiedFeed } from "@/lib/feed-logic/feed"
+import { FeedPost } from "./feed-post"
+import { DatabaseErrorFallback } from "./database-error-fallback"
 
 interface FeedData {
   feed: any[]

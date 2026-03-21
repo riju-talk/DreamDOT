@@ -34,13 +34,13 @@ export function CreatePostPrompt() {
 
   const { data: session } = useSession()
   const sessionUser = session?.user
-  const accessToken = (session as any)?.accessToken
+  const accessToken = session?.accessToken
 
   function handleContentChange(e: ChangeEvent<HTMLTextAreaElement>) {
     setContent(e.target.value)
   }
 
-  function handleMediaChange(e: ChangeEvent<HTMLInputElement>) {
+  async function handleMediaChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null
     setMediaError(null)
 
@@ -50,7 +50,7 @@ export function CreatePostPrompt() {
       return
     }
 
-    const validation = validateMediaFile(file)
+    const validation = await validateMediaFile(file)
     if (!validation.isValid) {
       setMediaError(validation.error || "Invalid file")
       toast.error(`File Validation Error: ${validation.error}`)
@@ -195,7 +195,7 @@ export function CreatePostPrompt() {
                       animate={{ opacity: 1, y: 0 }}
                       className="relative rounded-[32px] overflow-hidden border border-white/10 bg-white/5 group/preview"
                     >
-                      {media?.type.startsWith("video") ? (
+                      {media?.type?.startsWith("video") ? (
                         <video src={mediaPreview} controls className="w-full max-h-[500px] object-contain shadow-2xl" />
                       ) : (
                         <img src={mediaPreview} alt="preview" className="w-full max-h-[500px] object-contain shadow-2xl" />
