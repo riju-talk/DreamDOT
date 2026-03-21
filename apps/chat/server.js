@@ -284,7 +284,7 @@ io.on('connection', (socket) => {
         ciphertext,
         nonce,
         keyId,
-        type: 'text',
+        type: attachments.length > 0 ? (attachments[0].type.startsWith('image/') ? 'image' : attachments[0].type.startsWith('video/') ? 'video' : 'file') : 'text',
         attachments,
         readBy: [socket.userId],
         timestamp: new Date()

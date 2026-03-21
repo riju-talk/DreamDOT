@@ -54,6 +54,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         senderAvatar: data.sender?.avatar || '',
         timestamp: data.timestamp || new Date().toISOString(),
         type: data.type || 'text',
+        attachments: data.attachments || [],
         isRead: data.readBy?.includes((session as any)?.user?.id) || false
       }
 
@@ -138,6 +139,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           senderAvatar: msg.sender?.avatar || '',
           timestamp: msg.timestamp,
           type: msg.type || 'text',
+          attachments: msg.attachments || [],
           isRead: msg.readBy?.includes((session as any).user.name) || false
         }))
 
@@ -161,15 +163,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const sendMessage = (content: string, conversationId: string) => {
+  const sendMessage = (content: string, conversationId: string, attachments?: any[]) => {
     if (!socket || !isConnected || !session?.user) return
+
+    const messageType = attachments && attachments.length > 0 
+      ? (attachments[0].type.startsWith('image/') ? 'image' : attachments[0].type.startsWith('video/') ? 'video' : 'file') 
+      : 'text'
 
     const message = {
       conversationId,
       content,
       senderId: (session as any).user.name,
       timestamp: new Date().toISOString(),
-      type: 'text' as const
+      type: messageType,
+      attachments: attachments || []
     }
 
     socketSendMessage(message, (response: any) => {
@@ -182,7 +189,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           senderName: (session as any).user.name || 'You',
           senderAvatar: (session as any).user.image || '',
           timestamp: new Date().toISOString(),
-          type: 'text',
+          type: messageType as "text" | "image" | "file" | "audio" | "video",
+          attachments: attachments || [],
           isRead: true
         }
 

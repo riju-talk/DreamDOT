@@ -1,7 +1,7 @@
 "use client"
+
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { RichTextEditor } from "@/components/rich-text-editor"
 import { Switch } from "@/components/ui/switch"
-import { Upload, ImageIcon, FileText, Music, X, Loader2 } from "lucide-react"
+import { Upload, ImageIcon, FileText, Music, X, Loader2, Sparkles, Plus } from "lucide-react"
 import { ProtectedRoute } from "../../../components/protected-route"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "../../../components/app-sidebar"
@@ -19,6 +19,8 @@ import { MobileNav } from "../../../components/mobile-nav"
 import { createItem } from "@/app/actions"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
+import { cn } from "@/lib/utils"
 
 export default function CreatePage() {
   const router = useRouter()
@@ -26,6 +28,7 @@ export default function CreatePage() {
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [activeTab, setActiveTab] = useState("upload")
 
   // Form states
   const [title, setTitle] = useState("")
@@ -73,403 +76,239 @@ export default function CreatePage() {
 
   return (
     <ProtectedRoute>
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <TopNav />
-          <div className="flex-1 min-h-[calc(100vh-4rem)] relative">
-            <div className="absolute inset-0 overflow-y-auto overflow-x-hidden">
-              <main className="container mx-auto px-6 py-8">
-                <div className="max-w-7xl mx-auto">
-                  <div className="mb-10">
-                    <h1 className="text-4xl font-serif font-bold text-foreground mb-2">Create New Dream</h1>
-                    <p className="text-lg text-muted-foreground">Professional content creation studio for dreamers and creators.</p>
-                  </div>
+      <SidebarProvider defaultOpen>
+        <div className="flex w-full h-screen overflow-hidden bg-background">
+          <AppSidebar />
+          <SidebarInset className="flex-1 overflow-auto relative">
+            <TopNav />
+            
+            <main className="p-8 md:p-16 max-w-[1400px] mx-auto space-y-16 pb-32">
+              {/* Header Section */}
+              <header className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-primary shadow-glow" />
+                  <span className="text-[10px] font-mono text-primary uppercase tracking-[0.4em]">Node: Synthesis Engine</span>
+                </div>
+                <h1 className="text-5xl md:text-7xl font-serif italic tracking-tighter text-foreground">
+                  Craft <span className="text-foreground/30 not-italic">Artifact.</span>
+                </h1>
+                <p className="text-lg text-foreground/40 font-light max-w-xl">
+                  Transform your ephemeral visions into persistent digital artifacts. 
+                  Select your modality of creation below.
+                </p>
+              </header>
 
-                  <Tabs defaultValue="upload" className="w-full">
-                    <TabsList className="grid grid-cols-3 md:grid-cols-3 rounded-xl">
-                      <TabsTrigger value="upload" className="rounded-l-xl">
-                        Upload
-                      </TabsTrigger>
-                      <TabsTrigger value="write">Write</TabsTrigger>
-                      <TabsTrigger value="bundle">Bundle</TabsTrigger>
-                    </TabsList>
+              <Tabs defaultValue="upload" className="w-full space-y-12" onValueChange={setActiveTab}>
+                <TabsList className="inline-flex h-14 items-center justify-center rounded-[20px] bg-foreground/[0.03] p-1.5 backdrop-blur-3xl border border-foreground/[0.05]">
+                  {[
+                    { value: "upload", label: "Materialize", icon: Upload },
+                    { value: "write", label: "Inscribe", icon: FileText },
+                    { value: "bundle", label: "Coalesce", icon: Sparkles }
+                  ].map((tab) => (
+                    <TabsTrigger 
+                      key={tab.value}
+                      value={tab.value} 
+                      className={cn(
+                        "inline-flex items-center justify-center whitespace-nowrap rounded-[14px] px-8 py-2.5 text-[10px] font-mono uppercase tracking-[0.2em] transition-all duration-500",
+                        "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-glow",
+                        "text-foreground/40 hover:text-foreground/60"
+                      )}
+                    >
+                      <tab.icon className="mr-2 h-3.5 w-3.5" />
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
 
-                    <TabsContent value="upload" className="mt-6">
-                      <Card className="border-border/60 shadow-md">
-                        <CardHeader>
-                          <CardTitle>Upload Dream</CardTitle>
-                          <CardDescription>Upload images, videos, audio files, or other digital content</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                          <div className="grid lg:grid-cols-3 gap-6">
-                            {/* Main Upload Column */}
-                            <div className="lg:col-span-2 space-y-4">
-                              <div className="grid gap-2">
-                                <Label htmlFor="upload-title">Title</Label>
-                                <Input
-                                  id="upload-title"
-                                  placeholder="Enter a compelling title"
-                                  className="rounded-xl"
-                                  value={title}
-                                  onChange={(e) => setTitle(e.target.value)}
-                                />
-                              </div>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <TabsContent value="upload" className="mt-0 focus-visible:outline-none">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                        {/* Main Interaction Area */}
+                        <div className="lg:col-span-2 space-y-10">
+                          <div className="space-y-8">
+                            <div className="grid gap-4">
+                              <Label className="text-[10px] font-mono uppercase tracking-widest text-foreground/30 ml-1">Artifact Designation</Label>
+                              <Input
+                                placeholder="Whispers of the Eternal Grid..."
+                                className="h-20 text-2xl font-serif bg-foreground/[0.01] border-foreground/5 rounded-[24px] px-8 focus:border-primary/50 focus:ring-0 transition-all placeholder:text-foreground/10"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                              />
+                            </div>
 
-                              <div className="grid gap-2">
-                                <Label htmlFor="upload-description">Description</Label>
-                                <Textarea
-                                  id="upload-description"
-                                  placeholder="Describe your creation in detail"
-                                  className="rounded-xl resize-none"
-                                  rows={4}
-                                  value={description}
-                                  onChange={(e) => setDescription(e.target.value)}
-                                />
-                              </div>
+                            <div className="grid gap-4">
+                              <Label className="text-[10px] font-mono uppercase tracking-widest text-foreground/30 ml-1">Contextual Description</Label>
+                              <Textarea
+                                placeholder="Detail the essence of this synthesis..."
+                                className="min-h-[160px] text-lg font-light bg-foreground/[0.01] border-foreground/5 rounded-[32px] p-8 resize-none focus:border-primary/50 focus:ring-0 transition-all placeholder:text-foreground/10"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                              />
+                            </div>
 
-                              <div className="grid gap-2">
-                                <Label>Upload Files</Label>
-                                <div className="flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl p-16 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer">
-                                  <Upload className="h-12 w-12 text-muted-foreground mb-4" />
+                            <div className="grid gap-4">
+                              <Label className="text-[10px] font-mono uppercase tracking-widest text-foreground/30 ml-1">Material Feed</Label>
+                              <div className="group relative border-2 border-dashed border-foreground/5 rounded-[48px] p-24 text-center bg-foreground/[0.01] hover:bg-foreground/[0.02] hover:border-primary/20 transition-all duration-1000 cursor-pointer overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                                <div className="relative z-10 space-y-6">
+                                  <div className="w-20 h-20 rounded-[32px] bg-foreground/[0.03] border border-white/5 mx-auto flex items-center justify-center transition-transform duration-700 group-hover:scale-110 group-hover:rotate-6">
+                                    <Upload className="h-8 w-8 text-primary/60" />
+                                  </div>
                                   <div className="space-y-2">
-                                    <h3 className="font-medium text-lg">Drag files here or click to upload</h3>
-                                    <p className="text-sm text-muted-foreground">
-                                      Support for images, videos, audio, and documents up to 100MB
+                                    <h3 className="text-xl font-serif text-foreground/80">Inject Material.</h3>
+                                    <p className="text-xs font-mono text-foreground/20 uppercase tracking-[0.2em]">
+                                      MP4, MOV, WAV, FLAC, PNG, JPG (MAX 500MB)
                                     </p>
                                   </div>
-                                  <Button className="mt-6" variant="outline" size="lg">Select Files</Button>
+                                  <Button variant="outline" className="h-12 px-8 rounded-full border-foreground/10 text-[10px] font-mono uppercase tracking-widest transition-all group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary">
+                                    Select Source
+                                  </Button>
                                 </div>
                               </div>
                             </div>
+                          </div>
+                        </div>
 
-                            {/* Sidebar Column */}
-                            <div className="space-y-4">
-                              <div className="grid gap-2">
-                                <Label>Thumbnail</Label>
-                                <div className="border-2 border-dashed border-border/50 rounded-xl overflow-hidden">
+                        {/* Metadata / Configuration */}
+                        <aside className="space-y-10">
+                          <div className="bg-foreground/[0.02] border border-foreground/[0.03] rounded-[48px] p-10 space-y-10">
+                            <div className="space-y-8">
+                              <div className="grid gap-4">
+                                <Label className="text-[10px] font-mono uppercase tracking-widest text-foreground/30 ml-1">Resonance Cover</Label>
+                                <div className="relative aspect-square rounded-[36px] overflow-hidden border border-foreground/5 bg-foreground/[0.01] active:scale-[0.98] transition-all cursor-pointer group">
                                   {thumbnailPreview ? (
-                                    <div className="relative aspect-video">
-                                      <img
-                                        src={thumbnailPreview}
-                                        alt="Thumbnail preview"
-                                        className="w-full h-full object-cover"
-                                      />
-                                      <Button
-                                        type="button"
-                                        variant="destructive"
-                                        size="icon"
-                                        className="absolute top-2 right-2 h-8 w-8 rounded-full"
-                                        onClick={() => {
+                                    <>
+                                      <img src={thumbnailPreview} alt="Preview" className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110" />
+                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                                        <X className="h-10 w-10 text-white cursor-pointer" onClick={(e) => {
+                                          e.stopPropagation()
                                           setThumbnailFile(null)
                                           setThumbnailPreview(null)
-                                        }}
-                                      >
-                                        <X className="h-4 w-4" />
-                                      </Button>
-                                    </div>
+                                        }} />
+                                      </div>
+                                    </>
                                   ) : (
-                                    <label className="flex flex-col items-center justify-center aspect-video cursor-pointer hover:bg-muted/30 transition-colors">
-                                      <ImageIcon className="h-10 w-10 text-muted-foreground mb-2" />
-                                      <span className="text-sm text-muted-foreground">Upload thumbnail</span>
-                                      <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={(e) => {
-                                          const file = e.target.files?.[0]
-                                          if (file) {
-                                            setThumbnailFile(file)
-                                            setThumbnailPreview(URL.createObjectURL(file))
-                                          }
-                                        }}
-                                      />
+                                    <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer">
+                                      <ImageIcon className="h-12 w-12 text-foreground/10 mb-4 group-hover:text-primary/40 transition-colors" />
+                                      <span className="text-[10px] font-mono uppercase tracking-widest text-foreground/20">Set Iconography</span>
+                                      <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                        const file = e.target.files?.[0]
+                                        if (file) {
+                                          setThumbnailFile(file)
+                                          setThumbnailPreview(URL.createObjectURL(file))
+                                        }
+                                      }}/>
                                     </label>
                                   )}
                                 </div>
-                                <p className="text-xs text-muted-foreground">Recommended: 16:9 ratio</p>
                               </div>
 
-                              <div className="grid gap-2">
-                                <Label htmlFor="category">Category</Label>
+                              <div className="grid gap-4">
+                                <Label className="text-[10px] font-mono uppercase tracking-widest text-foreground/30 ml-1">Ecosystem Sphere</Label>
                                 <Select value={category} onValueChange={setCategory}>
-                                  <SelectTrigger id="category" className="rounded-xl">
-                                    <SelectValue placeholder="Select category" />
+                                  <SelectTrigger className="h-14 bg-foreground/[0.01] border-foreground/5 rounded-2xl px-6 font-serif text-lg focus:ring-0">
+                                    <SelectValue placeholder="Select Modality" />
                                   </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="art">Art</SelectItem>
-                                    <SelectItem value="photography">Photography</SelectItem>
-                                    <SelectItem value="music">Music</SelectItem>
-                                    <SelectItem value="video">Video</SelectItem>
-                                    <SelectItem value="course">Course</SelectItem>
-                                    <SelectItem value="digital-asset">Digital Asset</SelectItem>
-                                    <SelectItem value="other">Other</SelectItem>
+                                  <SelectContent className="bg-background/80 backdrop-blur-3xl border-foreground/5 rounded-2xl">
+                                    <SelectItem value="art">Fine Art</SelectItem>
+                                    <SelectItem value="photography">Light Capture</SelectItem>
+                                    <SelectItem value="music">Sonic Waves</SelectItem>
+                                    <SelectItem value="video">Temporal Motion</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
 
-                              <div className="grid gap-2">
-                                <Label htmlFor="tags">Tags</Label>
-                                <Input
-                                  id="tags"
-                                  placeholder="e.g. art, digital, abstract"
-                                  className="rounded-xl"
-                                />
-                                <p className="text-xs text-muted-foreground">Separate with commas</p>
-                              </div>
-
-                              <div className="space-y-3">
-                                <Label>Monetization</Label>
-                                <RadioGroup defaultValue="free">
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="free" id="free" />
-                                    <Label htmlFor="free" className="font-normal cursor-pointer">Free</Label>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="one-time" id="one-time" />
-                                    <Label htmlFor="one-time" className="font-normal cursor-pointer">One-time purchase</Label>
-                                  </div>
-                                </RadioGroup>
-                              </div>
-
-                              <div className="grid gap-2">
-                                <Label htmlFor="price">Price</Label>
+                              <div className="grid gap-4">
+                                <Label className="text-[10px] font-mono uppercase tracking-widest text-foreground/30 ml-1">Monetization Node</Label>
                                 <div className="relative">
-                                  <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                                  <span className="absolute left-6 top-1/2 -translate-y-1/2 text-foreground/20 font-serif text-xl">$</span>
                                   <Input
-                                    id="price"
-                                    placeholder="0.00"
                                     type="number"
-                                    step="0.01"
-                                    min="0"
-                                    className="rounded-xl pl-8"
+                                    placeholder="0.00"
+                                    className="h-14 pl-12 bg-foreground/[0.01] border-foreground/5 rounded-2xl font-serif text-xl focus:ring-0"
                                     value={price}
                                     onChange={(e) => setPrice(e.target.value)}
                                   />
                                 </div>
                               </div>
 
-                              <div className="flex items-center justify-between rounded-xl border border-border p-3">
-                                <Label htmlFor="upload-visibility" className="font-normal">Make private</Label>
-                                <Switch id="upload-visibility" />
+                              <div className="flex items-center justify-between p-4 rounded-3xl bg-foreground/[0.02] border border-foreground/5">
+                                <Label className="text-xs text-foreground/40 font-light">Encrypted (Private)</Label>
+                                <Switch className="data-[state=checked]:bg-primary" />
                               </div>
                             </div>
                           </div>
-                        </CardContent>
-                        <CardFooter className="flex justify-between border-t border-border/50 pt-6">
-                          <Button variant="outline" className="rounded-xl" size="lg">
-                            Save Draft
-                          </Button>
-                          <Button
-                            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-10"
-                            onClick={handlePublish}
-                            disabled={isSubmitting}
-                            size="lg"
-                          >
-                            {isSubmitting ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Publishing...
-                              </>
-                            ) : "Publish Dream"}
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    </TabsContent>
-
-                    <TabsContent value="write" className="mt-6">
-                      <Card className="border-border/60 shadow-md">
-                        <CardHeader>
-                          <CardTitle>Write Your Dream</CardTitle>
-                          <CardDescription>Create written content with our rich text editor</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                          <div className="grid lg:grid-cols-3 gap-6">
-                            {/* Main Content Column */}
-                            <div className="lg:col-span-2 space-y-4">
-                              <div className="grid gap-2">
-                                <Label htmlFor="write-title">Title</Label>
-                                <Input
-                                  id="write-title"
-                                  placeholder="Enter a compelling title"
-                                  className="rounded-xl"
-                                  value={title}
-                                  onChange={(e) => setTitle(e.target.value)}
-                                />
-                              </div>
-
-                              <div className="grid gap-2">
-                                <Label htmlFor="write-description">Short Description</Label>
-                                <Textarea
-                                  id="write-description"
-                                  placeholder="A brief description to appear in previews (max 200 characters)"
-                                  className="rounded-xl resize-none"
-                                  rows={3}
-                                  maxLength={200}
-                                  value={description}
-                                  onChange={(e) => setDescription(e.target.value)}
-                                />
-                                <p className="text-xs text-muted-foreground text-right">
-                                  {description.length}/200
-                                </p>
-                              </div>
-
-                              <div className="grid gap-2">
-                                <Label>Content</Label>
-                                <RichTextEditor
-                                  content={writeContent}
-                                  onChange={setWriteContent}
-                                  placeholder="Start writing your dream..."
-                                />
-                              </div>
-                            </div>
-
-                            {/* Sidebar Column */}
-                            <div className="space-y-4">
-                              <div className="grid gap-2">
-                                <Label>Thumbnail</Label>
-                                <div className="border-2 border-dashed border-border/50 rounded-xl overflow-hidden">
-                                  {thumbnailPreview ? (
-                                    <div className="relative aspect-video">
-                                      <img
-                                        src={thumbnailPreview}
-                                        alt="Thumbnail preview"
-                                        className="w-full h-full object-cover"
-                                      />
-                                      <Button
-                                        type="button"
-                                        variant="destructive"
-                                        size="icon"
-                                        className="absolute top-2 right-2 h-8 w-8 rounded-full"
-                                        onClick={() => {
-                                          setThumbnailFile(null)
-                                          setThumbnailPreview(null)
-                                        }}
-                                      >
-                                        <X className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  ) : (
-                                    <label className="flex flex-col items-center justify-center aspect-video cursor-pointer hover:bg-muted/30 transition-colors">
-                                      <ImageIcon className="h-10 w-10 text-muted-foreground mb-2" />
-                                      <span className="text-sm text-muted-foreground">Upload thumbnail</span>
-                                      <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={(e) => {
-                                          const file = e.target.files?.[0]
-                                          if (file) {
-                                            setThumbnailFile(file)
-                                            setThumbnailPreview(URL.createObjectURL(file))
-                                          }
-                                        }}
-                                      />
-                                    </label>
-                                  )}
-                                </div>
-                                <p className="text-xs text-muted-foreground">Recommended: 16:9 ratio</p>
-                              </div>
-
-                              <div className="grid gap-2">
-                                <Label htmlFor="write-category">Category</Label>
-                                <Select value={category} onValueChange={setCategory}>
-                                  <SelectTrigger id="write-category" className="rounded-xl">
-                                    <SelectValue placeholder="Select category" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="story">Story</SelectItem>
-                                    <SelectItem value="article">Article</SelectItem>
-                                    <SelectItem value="poetry">Poetry</SelectItem>
-                                    <SelectItem value="tutorial">Tutorial</SelectItem>
-                                    <SelectItem value="essay">Essay</SelectItem>
-                                    <SelectItem value="guide">Guide</SelectItem>
-                                    <SelectItem value="other">Other</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-
-                              <div className="grid gap-2">
-                                <Label htmlFor="write-tags">Tags</Label>
-                                <Input
-                                  id="write-tags"
-                                  placeholder="e.g. fiction, sci-fi, adventure"
-                                  className="rounded-xl"
-                                />
-                                <p className="text-xs text-muted-foreground">Separate with commas</p>
-                              </div>
-
-                              <div className="space-y-3">
-                                <Label>Monetization</Label>
-                                <RadioGroup defaultValue="free">
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="free" id="write-free" />
-                                    <Label htmlFor="write-free" className="font-normal cursor-pointer">Free</Label>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="paid" id="write-paid" />
-                                    <Label htmlFor="write-paid" className="font-normal cursor-pointer">Paid</Label>
-                                  </div>
-                                </RadioGroup>
-                              </div>
-
-                              <div className="grid gap-2">
-                                <Label htmlFor="write-price">Price</Label>
-                                <div className="relative">
-                                  <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
-                                  <Input
-                                    id="write-price"
-                                    placeholder="0.00"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    className="rounded-xl pl-8"
-                                    value={price}
-                                    onChange={(e) => setPrice(e.target.value)}
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="flex items-center justify-between rounded-xl border border-border p-3">
-                                <Label htmlFor="write-visibility" className="font-normal">Make private</Label>
-                                <Switch id="write-visibility" />
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                        <CardFooter className="flex justify-between border-t border-border/50 pt-6">
-                          <Button variant="outline" className="rounded-xl" size="lg">
-                            Save Draft
-                          </Button>
-                          <Button
-                            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-10"
-                            onClick={handlePublish}
-                            disabled={isSubmitting}
-                            size="lg"
-                          >
-                            {isSubmitting ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Publishing...
-                              </>
-                            ) : "Publish Dream"}
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    </TabsContent>
-
-                    <TabsContent value="bundle" className="mt-6">
-                      <div className="text-center py-12 text-muted-foreground">
-                        Bundles coming soon...
+                        </aside>
                       </div>
                     </TabsContent>
-                  </Tabs>
-                </div>
-              </main>
+
+                    <TabsContent value="write" className="mt-0 focus-visible:outline-none">
+                      <div className="max-w-4xl mx-auto space-y-12">
+                        <div className="space-y-8">
+                          <Input
+                            placeholder="A New Philosophy of Digital Dreams..."
+                            className="h-24 text-4xl md:text-6xl font-serif italic text-center bg-transparent border-none rounded-none focus:ring-0 transition-all placeholder:text-foreground/5 p-0"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                          />
+                          <div className="h-[1px] w-40 bg-primary/20 mx-auto" />
+                          <RichTextEditor
+                            value={writeContent}
+                            onChange={setWriteContent}
+                            placeholder="Inscribe the vision..."
+                          />
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="bundle" className="mt-0 focus-visible:outline-none">
+                       <div className="min-h-[400px] flex flex-col items-center justify-center space-y-8 bg-foreground/[0.01] border border-foreground/[0.03] rounded-[64px] p-24 text-center">
+                         <div className="w-24 h-24 rounded-[40px] bg-primary/10 border border-primary/20 flex items-center justify-center animate-pulse">
+                           <Sparkles className="h-10 w-10 text-primary" />
+                         </div>
+                         <div className="space-y-4 max-w-md">
+                           <h3 className="text-3xl font-serif italic">Coalescence Logic.</h3>
+                           <p className="text-foreground/40 font-light leading-relaxed">
+                             Neural networks are currently calibrating for the multi-modality bundling engine.
+                             Expected activation: Phase 4.
+                           </p>
+                         </div>
+                         <Button variant="outline" className="h-12 px-10 rounded-full border-foreground/10 text-[10px] font-mono uppercase tracking-[0.2em] opacity-40 hover:opacity-100 transition-opacity">Return to Hub</Button>
+                       </div>
+                    </TabsContent>
+                  </motion.div>
+                </AnimatePresence>
+              </Tabs>
+            </main>
+
+            {/* Sticky Actions Bar */}
+            <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-50 overflow-hidden">
+               <div className="absolute inset-x-0 bottom-0 p-8 flex justify-center pointer-events-auto">
+                 <div className="flex items-center gap-4 bg-foreground/[0.02] backdrop-blur-3xl border border-white/5 rounded-full p-2 pr-2 shadow-glow-strong">
+                   <Button variant="ghost" className="h-14 px-8 rounded-full text-[10px] font-mono uppercase tracking-widest text-foreground/40 hover:text-foreground hover:bg-white/5 transition-all">
+                     Snapshot
+                   </Button>
+                   <Button 
+                     onClick={handlePublish}
+                     disabled={isSubmitting}
+                     className="h-14 px-12 rounded-full bg-primary text-primary-foreground font-serif text-xl italic tracking-tighter shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
+                   >
+                     {isSubmitting ? <Loader2 className="animate-spin" /> : <><Plus className="w-5 h-5" /> Manifest Dream</>}
+                   </Button>
+                 </div>
+               </div>
             </div>
-          </div>
-          <MobileNav />
-        </SidebarInset>
+            
+            <MobileNav />
+          </SidebarInset>
+        </div>
       </SidebarProvider>
     </ProtectedRoute>
   )

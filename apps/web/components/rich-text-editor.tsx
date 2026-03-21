@@ -5,11 +5,13 @@ import React, { useEffect, useRef } from "react";
 interface RichTextEditorProps {
   value: string;
   onChange: (content: string) => void;
+  placeholder?: string;
 }
 
 export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   value,
   onChange,
+  placeholder,
 }) => {
   const editorRef = useRef<HTMLDivElement | null>(null);
   const quillRef = useRef<any>(null);
@@ -31,7 +33,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
       const quill = new Quill(editorRef.current, {
         theme: "snow",
-        placeholder: "Start writing your dream...",
+        placeholder: placeholder || "Start writing your dream...",
         modules: {
           toolbar: [
             ["bold", "italic", "underline", "strike"],
@@ -103,92 +105,104 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         ================================= */
 
         .ql-toolbar.ql-snow {
-          background: hsl(var(--background));
-          border: 1px solid hsl(var(--border));
-          border-radius: 12px 12px 0 0;
+          background: var(--background-atelier, rgba(255, 255, 255, 0.02));
+          backdrop-blur: 40px;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 24px 24px 0 0;
+          padding: 12px;
+          margin-bottom: 0;
         }
 
         .ql-container.ql-snow {
-          background: hsl(var(--background));
-          border: 1px solid hsl(var(--border));
+          background: var(--background-atelier, rgba(255, 255, 255, 0.01));
+          backdrop-blur: 40px;
+          border: 1px solid rgba(255, 255, 255, 0.05);
           border-top: none;
-          border-radius: 0 0 12px 12px;
+          border-radius: 0 0 32px 32px;
         }
 
         /* Toolbar buttons */
         .ql-toolbar button {
-          width: 36px;
-          height: 36px;
-          border-radius: 8px;
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
+          transition: all 0.3s ease;
         }
 
         .ql-toolbar button:hover {
-          background: hsl(var(--accent));
+          background: rgba(153, 255, 51, 0.1);
         }
 
         .ql-toolbar button.ql-active {
-          background: hsl(var(--primary));
+          background: var(--primary);
         }
 
         .ql-toolbar button.ql-active .ql-stroke {
-          stroke: hsl(var(--primary-foreground));
+          stroke: var(--primary-foreground);
         }
 
         .ql-toolbar button.ql-active .ql-fill {
-          fill: hsl(var(--primary-foreground));
+          fill: var(--primary-foreground);
         }
 
         /* Icons */
         .ql-stroke {
-          stroke: hsl(var(--foreground));
+          stroke: rgba(255, 255, 255, 0.4);
         }
 
         .ql-fill {
-          fill: hsl(var(--foreground));
+          fill: rgba(255, 255, 255, 0.4);
         }
 
         /* Pickers */
         .ql-picker-label {
-          color: hsl(var(--foreground));
-          border-radius: 8px;
+          color: rgba(255, 255, 255, 0.4);
+          border-radius: 12px;
+          transition: all 0.3s ease;
         }
 
         .ql-picker-label:hover {
-          background: hsl(var(--accent));
+          background: rgba(153, 255, 51, 0.1);
         }
 
         .ql-picker-options {
-          background: hsl(var(--background));
-          border: 1px solid hsl(var(--border));
-          border-radius: 8px;
+          background: var(--background);
+          backdrop-blur: 3xl;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 20px;
+          padding: 8px;
         }
 
         .ql-picker-item {
-          color: hsl(var(--foreground));
+          color: rgba(255, 255, 255, 0.4);
+          border-radius: 8px;
         }
 
         .ql-picker-item:hover {
-          background: hsl(var(--accent));
+          background: rgba(153, 255, 51, 0.1);
+          color: var(--primary);
         }
 
         .ql-picker-item.ql-selected {
-          background: hsl(var(--primary));
-          color: hsl(var(--primary-foreground));
+          background: var(--primary);
+          color: var(--primary-foreground);
         }
 
         /* Editor */
         .ql-editor {
-          min-height: 400px;
-          padding: 24px;
-          font-size: 16px;
+          min-height: 500px;
+          padding: 40px;
+          font-family: var(--font-serif);
+          font-size: 20px;
           line-height: 1.8;
-          color: hsl(var(--foreground));
+          color: var(--foreground);
         }
 
         .ql-editor.ql-blank::before {
-          color: hsl(var(--muted-foreground));
-          opacity: 0.6;
-          font-style: normal;
+          color: rgba(255, 255, 255, 0.1);
+          opacity: 1;
+          font-style: italic;
+          left: 40px;
         }
       `}</style>
 

@@ -1,11 +1,4 @@
-"use client"
-
-import { FeedPost } from "./feed-post"
-import { Button } from "@/components/ui/button"
-import { RefreshCw } from "lucide-react"
-import { fetchUnifiedFeed } from "@/lib/feed-logic/feed"
-import { DatabaseErrorFallback } from "./database-error-fallback"
-import { useState, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 
 interface FeedData {
   feed: any[]
@@ -80,44 +73,60 @@ export function UnifiedFeed() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10 relative">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Latest Dreams</h2>
+        <h2 className="text-2xl font-serif tracking-tight text-foreground/90">
+          Latest <span className="text-primary/80">Manifestations</span>
+        </h2>
         <Button
           variant="outline"
           size="sm"
-          className="gap-2 rounded-full"
+          className="gap-2 rounded-full border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all duration-500"
           onClick={loadFeed}
           disabled={isLoading}
         >
           <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          {isLoading ? 'Refreshing...' : 'Refresh'}
+          {isLoading ? 'Syncing...' : 'Sync Feed'}
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {feedData.feed.length > 0 ? (
-          feedData.feed.map((item, idx) => (
-            // IDs already have type prefixes (e.g., "post:abc123", "item:def456")
-            // so we can use them directly without adding another prefix
-            <FeedPost key={item.id ?? `fallback-${idx}`} post={item} />
-          ))
-        ) : (
-          <div className="text-center py-12">
-            <div className="space-y-2">
-              <p className="text-muted-foreground">No dreams found</p>
-              <p className="text-sm text-muted-foreground">
-                Be the first to share your dreams with the community!
-              </p>
+      <AnimatePresence mode="popLayout">
+        <motion.div 
+          layout
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8"
+        >
+          {feedData.feed.length > 0 ? (
+            feedData.feed.map((item, idx) => (
+              <motion.div
+                key={item.id ?? `fallback-${idx}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.5, delay: idx * 0.05 }}
+              >
+                <FeedPost post={item} />
+              </motion.div>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-20 bg-white/5 backdrop-blur-xl rounded-[40px] border border-white/10">
+              <div className="space-y-4">
+                <p className="text-xl font-serif text-foreground/60 italic">No dreams found in this sector</p>
+                <p className="text-sm text-muted-foreground/40 max-w-md mx-auto">
+                  The atelier is quiet. Be the first to manifest a new artifact and inspire the collective.
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
 
       {feedData.pagination.hasMore && (
-        <div className="text-center py-8">
-          <Button variant="outline" className="rounded-full">
-            Load More Dreams
+        <div className="text-center py-12">
+          <Button 
+            variant="outline" 
+            className="rounded-full px-8 py-6 border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all duration-500 text-lg font-serif"
+          >
+            Explore Deeper
           </Button>
         </div>
       )}

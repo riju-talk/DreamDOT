@@ -16,6 +16,7 @@ import {
 import { ImageIcon, X, Loader2 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { toast } from "sonner"
+import { motion } from "framer-motion"
 import {
   uploadMediaFile,
   validateMediaFile,
@@ -128,124 +129,128 @@ export function CreatePostPrompt() {
 
   return (
     <>
-      <Card className="dream-card mb-6">
-        <CardContent className="p-4">
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-10 w-10 ring-2 ring-background">
-              <AvatarImage src={sessionUser?.image || ""} alt="Your avatar" />
-              <AvatarFallback className="bg-primary text-primary-foreground">YU</AvatarFallback>
-            </Avatar>
+      <Card className="dream-card bg-white/[0.02] backdrop-blur-3xl border-white/[0.05] p-6 mb-10 group cursor-pointer transition-all duration-500 hover:bg-white/[0.04]">
+        <div className="flex items-center space-x-6">
+          <Avatar className="h-14 w-14 border border-white/10 ring-offset-background transition-transform duration-500 group-hover:scale-105">
+            <AvatarImage src={sessionUser?.image || ""} alt="Your avatar" />
+            <AvatarFallback className="bg-primary/20 text-primary font-serif">YU</AvatarFallback>
+          </Avatar>
 
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <div className="flex-1 bg-muted/50 rounded-full px-4 py-3 text-muted-foreground hover:bg-muted transition-colors cursor-pointer">
-                  What's on your mind?
-                </div>
-              </DialogTrigger>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <div className="flex-1 bg-white/[0.03] border border-white/[0.05] rounded-[24px] px-8 py-4 text-white/40 hover:text-white/60 transition-all duration-500 group-hover:border-white/10 font-serif text-lg italic tracking-wide">
+                Manifest a new dream...
+              </div>
+            </DialogTrigger>
 
-              <DialogContent className="w-[95vw] max-w-3xl p-0 overflow-hidden flex flex-col">
-                <DialogHeader className="border-b p-4">
-                  <div className="flex items-center justify-between">
-                    <DialogTitle className="text-xl font-semibold">Create Post</DialogTitle>
-                    <DialogClose asChild>
-                      <Button variant="ghost" size="icon">
-                        <X className="h-5 w-5" />
-                      </Button>
-                    </DialogClose>
+            <DialogContent className="w-[95vw] max-w-3xl p-0 bg-[#0A0A0A]/90 backdrop-blur-3xl border-white/[0.05] rounded-[40px] overflow-hidden flex flex-col shadow-2xl">
+              <DialogHeader className="p-8 border-b border-white/[0.05]">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <DialogTitle className="text-3xl font-serif text-white/90">New <span className="text-primary/60">Manifestation</span></DialogTitle>
+                    <p className="text-[10px] text-white/20 uppercase tracking-[0.3em] font-bold mt-2">Inscribe your vision into the collective</p>
                   </div>
-                </DialogHeader>
+                  <DialogClose asChild>
+                    <Button variant="ghost" size="icon" className="text-white/20 hover:text-white/90 hover:bg-white/5 rounded-full">
+                      <X className="h-6 w-6" />
+                    </Button>
+                  </DialogClose>
+                </div>
+              </DialogHeader>
 
-                {/* Scrollable body */}
-                <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    <div className="flex items-start space-x-4">
-                      <Avatar className="h-12 w-12 mt-1">
-                        <AvatarImage src={sessionUser?.image || ""} alt="Your avatar" />
-                        <AvatarFallback className="bg-primary text-primary-foreground">YU</AvatarFallback>
-                      </Avatar>
+              {/* Scrollable body */}
+              <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+                <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                  <div className="flex items-start space-x-6">
+                    <Avatar className="h-16 w-16 border border-white/10">
+                      <AvatarImage src={sessionUser?.image || ""} alt="Your avatar" />
+                      <AvatarFallback className="bg-primary/20 text-primary font-serif">YU</AvatarFallback>
+                    </Avatar>
 
-                      <textarea
+                    <div className="flex-1 space-y-2">
+                       <textarea
                         value={content}
                         onChange={handleContentChange}
-                        placeholder="What's on your mind?"
-                        className="w-full h-full p-3 border-0 rounded-md resize-none focus:outline-none focus:ring-0 text-lg placeholder:text-muted-foreground min-h-[150px]"
+                        placeholder="What frequency are you vibrating at today?"
+                        className="w-full bg-transparent border-none p-0 resize-none focus:outline-none focus:ring-0 text-2xl font-serif text-white/90 placeholder:text-white/10 min-h-[200px] leading-relaxed"
                         required
                         autoFocus
                       />
                     </div>
-
-                    {mediaError && (
-                      <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-                        <p className="text-sm text-destructive">{mediaError}</p>
-                      </div>
-                    )}
-
-                    {media && (
-                      <div className="p-2 bg-muted/20 rounded-md text-xs text-muted-foreground">
-                        📎 {media.name} ({formatFileSize(media.size)})
-                      </div>
-                    )}
-
-                    {mediaPreview && (
-                      <div className="relative rounded-lg overflow-hidden border">
-                        {media?.type.startsWith("video") ? (
-                          <video src={mediaPreview} controls className="w-full max-h-[400px] object-contain bg-black" />
-                        ) : (
-                          <img src={mediaPreview} alt="preview" className="w-full max-h-[400px] object-contain" />
-                        )}
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-2 right-2"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            revokeObjectURL(mediaPreview)
-                            setMedia(null)
-                            setMediaPreview(null)
-                            setMediaError(null)
-                          }}
-                          disabled={isLoading}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
                   </div>
 
-                  {/* Footer */}
-                  <DialogFooter className="border-t p-4 flex items-center justify-between">
-                    <label className="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
-                      <ImageIcon className="h-5 w-5 text-primary" />
-                      <span className="text-sm font-medium">Add Media</span>
-                      <input
-                        type="file"
-                        accept="image/*,video/*"
-                        onChange={handleMediaChange}
-                        className="hidden"
-                      />
-                    </label>
-
-                    <Button
-                      type="submit"
-                      disabled={isLoading || (!content.trim() && !media) || !!mediaError}
-                      className="px-8 py-2 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground font-medium rounded-md transition-colors"
-                      size="lg"
+                  {mediaError && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-4 bg-destructive/10 border border-destructive/20 rounded-2xl"
                     >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          {media ? "Uploading..." : "Posting..."}
-                        </>
+                      <p className="text-sm text-destructive font-bold uppercase tracking-widest text-center">{mediaError}</p>
+                    </motion.div>
+                  )}
+
+                  {mediaPreview && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="relative rounded-[32px] overflow-hidden border border-white/10 bg-white/5 group/preview"
+                    >
+                      {media?.type.startsWith("video") ? (
+                        <video src={mediaPreview} controls className="w-full max-h-[500px] object-contain shadow-2xl" />
                       ) : (
-                        "Post"
+                        <img src={mediaPreview} alt="preview" className="w-full max-h-[500px] object-contain shadow-2xl" />
                       )}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardContent>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-4 right-4 rounded-full opacity-0 group-hover/preview:opacity-100 transition-opacity duration-300"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          revokeObjectURL(mediaPreview)
+                          setMedia(null)
+                          setMediaPreview(null)
+                          setMediaError(null)
+                        }}
+                        disabled={isLoading}
+                      >
+                        <X className="h-5 w-5" />
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <DialogFooter className="p-8 border-t border-white/[0.05] bg-white/[0.01] flex items-center justify-between gap-4">
+                  <label className="flex items-center gap-3 cursor-pointer text-white/40 hover:text-primary transition-all duration-500 group/upload px-6 py-3 rounded-2xl bg-white/[0.03] border border-white/[0.05] hover:border-primary/20">
+                    <ImageIcon className="h-5 w-5 group-hover/upload:scale-110 transition-transform" />
+                    <span className="text-[11px] font-bold uppercase tracking-widest">Attach Media</span>
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      onChange={handleMediaChange}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading || (!content.trim() && !media) || !!mediaError}
+                    className="px-12 h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-2xl transition-all duration-500 hover:scale-105 active:scale-95 disabled:grayscale disabled:opacity-50 shadow-[0_0_30px_rgba(153,255,51,0.2)] text-[11px] uppercase tracking-[0.2em]"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-3">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>{media ? "Uploading Asset" : "Manifesting"}</span>
+                      </div>
+                    ) : (
+                      "Manifest Dream"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </Card>
     </>
   )

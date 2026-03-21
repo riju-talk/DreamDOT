@@ -1,0 +1,66 @@
+name: Database Keep-Alive
+
+on:
+  # Run every 5 minutes during active hours (to avoid hitting rate limits)
+  schedule:
+    # Every 5 minutes from 6 AM to 11 PM UTC
+    - cron: '*/5 6-23 * * *'
+    # Every 30 minutes from midnight to 6 AM UTC (quieter hours)
+    - cron: '*/30 0-5 * * *'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+# Prevent concurrent runs
+concurrency:
+  group: database-keep-alive
+  cancel-in-progress: false
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install minimal dependencies
+        run: npm install mongoose
+      
+      - name: Ping Database
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: |
+          node -e "
+          import('mongoose').then(async (mongoose) => {
+            try {
+              console.log('🔌 Connecting...');
+              await mongoose.default.connect(process.env.MONGODB_URI, {
+                serverSelectionTimeoutMS: 5000,
+                socketTimeoutMS: 10000
+              });
+              console.log('✅ Connected');
+              
+              const start = Date.now();
+              await mongoose.default.connection.db.admin().ping();
+              console.log(\`🏓 Ping: \${Date.now() - start}ms\`);
+              
+              await mongoose.default.disconnect();
+              console.log('✅ Keep-alive successful');
+              process.exit(0);
+            } catch (error) {
+              console.error('❌ Error:', error.message);
+              process.exit(1);
+            }
+          });
+          "
+      
+      - name: Log timestamp
+        if: always()
+        run: echo "Last ping at $(date -u)"

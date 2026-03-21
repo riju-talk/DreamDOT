@@ -16,34 +16,37 @@ const trendingHashtags = [
 
 export function TrendingHashtags() {
   return (
-    <Card className="dream-card">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Hash className="h-4 w-4 text-primary" />
-          <span>Trending Tags</span>
+    <Card className="dream-card bg-white/[0.02] backdrop-blur-3xl border-white/[0.05] overflow-hidden group">
+      <CardHeader className="pb-6 border-b border-white/[0.05]">
+        <CardTitle className="text-xl font-serif flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-primary/10">
+            <Hash className="h-5 w-5 text-primary" />
+          </div>
+          <span className="bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">Trending Symbols</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
-        <div className="space-y-2">
+      <CardContent className="p-6">
+        <div className="space-y-4">
           {trendingHashtags.map((tag, index) => (
             <div
               key={tag.name}
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+              className="flex items-center justify-between p-3 rounded-2xl hover:bg-white/5 cursor-pointer transition-all duration-500 group/item border border-transparent hover:border-white/5"
             >
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">#{index + 1}</span>
-                <div>
-                  <div className="flex items-center gap-1">
-                    <span className="font-medium">#{tag.name}</span>
-                    {tag.trending && <TrendingUp className="h-3 w-3 text-primary" />}
+              <div className="flex items-center gap-4">
+                <span className="text-[10px] font-mono text-white/20 font-bold w-4">0{index + 1}</span>
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-white/80 group-hover/item:text-primary transition-colors">#{tag.name}</span>
+                    {tag.trending && <TrendingUp className="h-3 w-3 text-primary animate-pulse" />}
                   </div>
-                  <span className="text-xs text-muted-foreground">{tag.posts} posts</span>
+                  <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold font-mono">{tag.posts} manifests</p>
                 </div>
               </div>
             </div>
           ))}
         </div>
       </CardContent>
+      <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
     </Card>
   )
 }

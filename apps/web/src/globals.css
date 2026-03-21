@@ -52,116 +52,113 @@
 }
 
 :root {
-  --radius: 24px;
-  /* Organic, rounded feel */
+  --radius: 20px;
+  /* Atelier, refined roundedness */
 
-  /* Light Mode - Organic Wealth */
+  /* Light Mode - Digital Atelier (Optimized) */
   --background: #FAFAF9;
-  /* Alabaster / Warm Paper */
-  --foreground: #0A0F0D;
-  /* Deep Forest Charcoal */
+  --foreground: #121412;
 
   --card: #FFFFFF;
-  --card-foreground: #0A0F0D;
+  --card-foreground: #121412;
 
   --popover: #FFFFFF;
-  --popover-foreground: #0A0F0D;
+  --popover-foreground: #121412;
 
   --primary: #3E4A35;
-  /* Deep Olive Green - Wealth Coded */
+  /* Deep Olive for light mode */
   --primary-foreground: #FAFAF9;
 
   --secondary: #E2E8E0;
-  /* Light Moss */
-  --secondary-foreground: #1A211D;
+  --secondary-foreground: #1B3700;
 
   --muted: #F0F2EF;
   --muted-foreground: #5C665D;
 
-  --accent: #8CDD81;
-  /* Electric Sage */
-  --accent-foreground: #0A0F0D;
+  --accent: #99FF33;
+  /* Stitch Lime spark */
+  --accent-foreground: #121412;
 
-  --destructive: #991B1B;
-  --destructive-foreground: #FAFAF9;
+  --destructive: #93000a;
+  --destructive-foreground: #ffdad6;
 
   --border: #E5E7EB;
   --input: #E5E7EB;
-  --ring: #8CDD81;
-  /* Electric Sage glow */
+  --ring: #99FF33;
 
   --chart-1: #3E4A35;
-  --chart-2: #8CDD81;
+  --chart-2: #99FF33;
   --chart-3: #D4AF37;
   --chart-4: #2C352D;
   --chart-5: #E2E8E0;
 
   --sidebar: #FAFAF9;
-  --sidebar-foreground: #0A0F0D;
+  --sidebar-foreground: #121412;
   --sidebar-primary: #3E4A35;
   --sidebar-primary-foreground: #FAFAF9;
   --sidebar-accent: #F0F2EF;
   --sidebar-accent-foreground: #3E4A35;
   --sidebar-border: #E5E7EB;
-  --sidebar-ring: #8CDD81;
+  --sidebar-ring: #99FF33;
 
-  /* Anti-Gravity Shadows */
-  --shadow-glow: 0 0 20px -5px rgba(140, 221, 129, 0.3);
-  --shadow-float: 0 10px 30px -10px rgba(10, 15, 13, 0.1);
+  /* Ambient Luminance Shadows */
+  --shadow-glow: 0 0 30px -10px rgba(153, 255, 51, 0.4);
+  --shadow-float: 0 10px 40px -15px rgba(0, 0, 0, 0.1);
 }
 
 .dark {
-  /* Dark Mode - Bioluminescent Forest */
-  --background: #0A0F0D;
-  /* Deep Forest Charcoal */
-  --foreground: #FAFAF9;
+  /* Dark Mode - Digital Atelier (Stitch Primary) */
+  --background: #121412;
+  /* Deep Obsidian Foundation */
+  --foreground: #F1DBFC;
+  /* Soft Tonal Text */
 
-  --card: rgba(20, 30, 24, 0.4);
-  /* Glassmorphic Base */
-  --card-foreground: #FAFAF9;
+  --card: rgba(26, 28, 26, 0.6);
+  /* Tonal Surface Depth */
+  --card-foreground: #E3E3DF;
 
-  --popover: #0A0F0D;
-  --popover-foreground: #FAFAF9;
+  --popover: #121412;
+  --popover-foreground: #E3E3DF;
 
-  --primary: #8CDD81;
-  /* Electric Sage for dark mode accents */
-  --primary-foreground: #0A0F0D;
+  --primary: #99FF33;
+  /* Digital Spark - Stitch Lime */
+  --primary-foreground: #1B3700;
 
-  --secondary: #1A2621;
-  --secondary-foreground: #FAFAF9;
+  --secondary: #3B6D02;
+  --secondary-foreground: #B2EE7B;
 
-  --muted: #1A2621;
-  --muted-foreground: #8B9E94;
+  --muted: #1E201E;
+  --muted-foreground: #89947C;
 
-  --accent: #1A2621;
-  --accent-foreground: #8CDD81;
+  --accent: #1E201E;
+  --accent-foreground: #99FF33;
 
-  --destructive: #7F1D1D;
-  --destructive-foreground: #FAFAF9;
+  --destructive: #93000a;
+  --destructive-foreground: #ffdad6;
 
-  --border: rgba(140, 221, 129, 0.1);
-  /* Subtle green tint */
-  --input: rgba(140, 221, 129, 0.1);
-  --ring: #8CDD81;
+  --border: rgba(137, 148, 124, 0.1);
+  /* The "No-Line" Rule - felt not seen */
+  --input: rgba(137, 148, 124, 0.1);
+  --ring: #99FF33;
 
-  --chart-1: #8CDD81;
-  --chart-2: #3E4A35;
-  --chart-3: #D4AF37;
-  --chart-4: #FAFAF9;
-  --chart-5: #1A2621;
+  --chart-1: #99FF33;
+  --chart-2: #3B6D02;
+  --chart-3: #F1DBFC;
+  --chart-4: #E3E3DF;
+  --chart-5: #1E201E;
 
-  --sidebar: #0A0F0D;
-  --sidebar-foreground: #FAFAF9;
-  --sidebar-primary: #8CDD81;
-  --sidebar-primary-foreground: #0A0F0D;
-  --sidebar-accent: #1A2621;
-  --sidebar-accent-foreground: #8CDD81;
-  --sidebar-border: rgba(140, 221, 129, 0.1);
-  --sidebar-ring: #8CDD81;
+  --sidebar: #121412;
+  --sidebar-foreground: #E3E3DF;
+  --sidebar-primary: #99FF33;
+  --sidebar-primary-foreground: #1B3700;
+  --sidebar-accent: #1E201E;
+  --sidebar-accent-foreground: #99FF33;
+  --sidebar-border: rgba(137, 148, 124, 0.05);
+  --sidebar-ring: #99FF33;
 
-  /* Anti-Gravity Shadows & Glows */
-  --shadow-glow: 0 0 30px -5px rgba(140, 221, 129, 0.15);
-  --shadow-float: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+  /* Ambient Shadows & Glassmorphism */
+  --shadow-glow: 0 0 40px -5px rgba(153, 255, 51, 0.15);
+  --shadow-float: 0 25px 60px -20px rgba(0, 0, 0, 0.6);
 }
 
 @layer utilities {

@@ -1,5 +1,6 @@
 "use client"
 
+import { motion } from "framer-motion"
 import { useState, useEffect, useRef } from "react"
 import { ModeToggle } from "./mode-toggle"
 import { UserNav } from "./user-nav"
@@ -8,9 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Search, User, X, ShoppingBag } from "lucide-react"
+import { Search, User, X, ShoppingBag, Sparkles } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { usePathname } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { quickSearch } from "@/lib/search"
 import Link from "next/link"
@@ -187,48 +189,59 @@ function GlobalSearch() {
 }
 export function TopNav() {
   const pathname = usePathname()
+  const { data: session } = useSession()
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
-      <SidebarTrigger className="-ml-1" />
+    <header className="sticky top-0 z-40 flex h-20 items-center gap-6 bg-background/40 backdrop-blur-3xl px-8 md:px-12 border-b-0">
+      {session ? (
+        <SidebarTrigger className="-ml-2 hover:bg-foreground/5 transition-colors" />
+      ) : (
+        <Link href="/" className="flex items-center gap-3 mr-4 group">
+          <div className="relative overflow-hidden rounded-xl p-2 bg-primary shadow-glow transition-transform duration-500 group-hover:scale-110">
+            <Sparkles className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <span className="font-serif italic text-xl text-foreground tracking-tighter hidden sm:inline-block group-hover:text-primary transition-colors">
+            DreamDOT
+          </span>
+        </Link>
+      )}
+      
       <div className="hidden md:flex md:flex-1">
-        <nav className="flex items-center space-x-4 lg:space-x-6">
-          <Link
-            href="/feed"
-            className={cn(
-              "text-sm font-medium transition-colors hover:text-primary",
-              pathname === "/feed" ? "text-primary" : "text-muted-foreground",
-            )}
-          >
-            Home
-          </Link>
-          <Link
-            href="/discover"
-            className={cn(
-              "text-sm font-medium transition-colors hover:text-primary",
-              pathname === "/discover" ? "text-primary" : "text-muted-foreground",
-            )}
-          >
-            Discover
-          </Link>
-          <Link
-            href="/marketplace"
-            className={cn(
-              "text-sm font-medium transition-colors hover:text-primary",
-              pathname === "/marketplace" ? "text-primary" : "text-muted-foreground",
-            )}
-          >
-            Marketplace
-          </Link>
+        <nav className="flex items-center space-x-10">
+          {[
+            { name: "Live Stream", href: "/feed" },
+            { name: "Discover", href: "/discover" },
+            { name: "Marketplace", href: "/marketplace" }
+          ].map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                "text-[10px] font-mono uppercase tracking-[0.2em] transition-all duration-500 hover:text-primary relative group",
+                pathname === link.href ? "text-primary" : "text-foreground/40"
+              )}
+            >
+              {link.name}
+              {pathname === link.href && (
+                <motion.div 
+                  layoutId="nav-underline"
+                  className="absolute -bottom-1 left-0 right-0 h-[1px] bg-primary/50" 
+                />
+              )}
+              <div className="absolute -bottom-1 left-0 w-0 h-[1px] bg-primary/30 group-hover:w-full transition-all duration-500" />
+            </Link>
+          ))}
         </nav>
       </div>
 
-      <div className="flex flex-1 items-center justify-end space-x-2 md:space-x-4">
-        <div className="hidden md:flex">
+      <div className="flex flex-1 items-center justify-end space-x-6">
+        <div className="hidden md:flex w-full max-w-[300px]">
           <GlobalSearch />
         </div>
-        <ModeToggle />
-        <UserNav />
+        <div className="flex items-center gap-4">
+          <ModeToggle />
+          <UserNav />
+        </div>
       </div>
     </header>
   )

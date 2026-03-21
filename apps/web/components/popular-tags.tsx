@@ -19,28 +19,32 @@ const popularTags = [
 
 export function PopularTags() {
   return (
-    <Card className="dream-card">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Hash className="h-4 w-4 text-primary" />
-          <span>Popular Tags</span>
+    <Card className="dream-card bg-white/[0.02] backdrop-blur-3xl border-white/[0.05] overflow-hidden group">
+      <CardHeader className="pb-6 border-b border-white/[0.05]">
+        <CardTitle className="text-xl font-serif flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-primary/10">
+            <Hash className="h-5 w-5 text-primary" />
+          </div>
+          <span className="bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">Astral Symbols</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="p-6">
         <div className="flex flex-wrap gap-2">
           {popularTags.map((tag) => (
             <Badge
               key={tag.name}
               variant="outline"
-              className="cursor-pointer hover:bg-muted transition-colors flex items-center gap-1"
+              className="cursor-pointer bg-white/5 border-white/10 hover:border-primary/40 hover:bg-primary/5 transition-all duration-500 py-2 px-3 rounded-xl flex items-center gap-2 group/tag"
             >
-              #{tag.name}
-              {tag.trending && <TrendingUp className="h-3 w-3 text-primary" />}
-              <span className="text-xs text-muted-foreground ml-1">{tag.count}</span>
+              <span className="text-muted-foreground group-hover/tag:text-primary transition-colors">#</span>
+              <span className="text-[12px] font-medium tracking-wide">{tag.name}</span>
+              {tag.trending && <TrendingUp className="h-3.5 w-3.5 text-primary animate-pulse" />}
+              <span className="text-[10px] text-muted-foreground/40 ml-1 font-mono uppercase font-bold">{tag.count}</span>
             </Badge>
           ))}
         </div>
       </CardContent>
+      <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
     </Card>
   )
 }

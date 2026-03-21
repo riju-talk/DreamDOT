@@ -110,6 +110,7 @@ export default function SignInPage() {
   // OAuth feature flags from environment
   const googleEnabled = process.env.NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED === "true";
   const githubEnabled = process.env.NEXT_PUBLIC_GITHUB_OAUTH_ENABLED === "true";
+  const discordEnabled = process.env.NEXT_PUBLIC_DISCORD_OAUTH_ENABLED === "true";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 dark:bg-[#1f2421] px-4">
@@ -208,6 +209,7 @@ export default function SignInPage() {
               isLoading={isLoading}
               googleEnabled={googleEnabled}
               githubEnabled={githubEnabled}
+              discordEnabled={discordEnabled}
             />
           </CardContent>
 
@@ -220,6 +222,14 @@ export default function SignInPage() {
                 tabIndex={isLoading ? -1 : 0}
               >
                 Sign up
+              </a>
+            </p>
+            <p className="text-sm text-center text-muted-foreground">
+              <a
+                href="/feed"
+                className="text-foreground/60 hover:text-foreground hover:underline font-medium transition-colors"
+              >
+                Continue as Guest
               </a>
             </p>            <div className="flex justify-center pt-2 border-t border-border/50 w-full">
               <ModeToggle />

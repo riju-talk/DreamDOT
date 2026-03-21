@@ -5,7 +5,8 @@ export interface ChatMessage {
     senderName: string
     senderAvatar: string
     timestamp: string
-    type: "text" | "image" | "file" | "audio"
+    type: "text" | "image" | "file" | "audio" | "video"
+    attachments?: Array<{ url: string; type: string; name?: string; size?: number }>
     fileUrl?: string
     fileName?: string
     isRead: boolean

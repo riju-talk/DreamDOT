@@ -75,6 +75,7 @@ export async function fetchMessages(conversationId: string, userId: string): Pro
       senderAvatar: msg.senderAvatar,
       timestamp: msg.timestamp.toISOString(),
       type: msg.type,
+      attachments: msg.attachments || [],
       fileName: msg.fileName,
       isRead: msg.readBy ? msg.readBy.includes(userId) : false
     }))
@@ -139,6 +140,7 @@ export async function sendMessage({
   senderAvatar,
   content,
   type = 'text',
+  attachments = [],
   fileName
 }: {
   conversationId: string
@@ -146,7 +148,8 @@ export async function sendMessage({
   senderName: string
   senderAvatar?: string
   content: string
-  type?: 'text' | 'image' | 'file' | 'audio'
+  type?: 'text' | 'image' | 'file' | 'audio' | 'video'
+  attachments?: Array<{ url: string; type: string; name?: string; size?: number }>
   fileName?: string
 }): Promise<{ message: any }> {
   try {
@@ -163,6 +166,7 @@ export async function sendMessage({
       // Schema has senderId (String) and sender (String).
       content,
       type,
+      attachments,
       // fileName not in shared schema options? Attachment schema exists.
       // Map fileName to attachment if needed or assume text content contains it.
       timestamp: new Date(),
@@ -186,6 +190,7 @@ export async function sendMessage({
         senderAvatar: senderAvatar,
         timestamp: message.timestamp.toISOString(),
         type: message.type,
+        attachments: message.attachments || [],
         fileName: fileName,
         isRead: true
       }

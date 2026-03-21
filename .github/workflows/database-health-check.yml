@@ -1,0 +1,47 @@
+name: Database Health Check
+
+on:
+  # Run every 10 minutes to keep database alive
+  schedule:
+    - cron: '*/10 * * * *'  # Every 10 minutes
+  
+  # Allow manual trigger
+  workflow_dispatch:
+  
+  # Optional: Run on push to main to verify database connectivity
+  push:
+    branches:
+      - main
+
+jobs:
+  ping-database:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm install mongoose
+      
+      - name: Ping MongoDB Database
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: node scripts/ping-database.js
+        timeout-minutes: 2
+      
+      - name: Report Status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ Database is healthy and responsive"
+          else
+            echo "❌ Database health check failed"
+          fi

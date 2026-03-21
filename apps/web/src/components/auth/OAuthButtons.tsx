@@ -3,21 +3,23 @@
 import React from "react";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { FaGithub, FaGoogle } from "react-icons/fa";
+import { FaGithub, FaGoogle, FaDiscord } from "react-icons/fa";
 import { toast } from "sonner";
 
 interface OAuthButtonsProps {
   isLoading?: boolean;
   googleEnabled?: boolean;
   githubEnabled?: boolean;
+  discordEnabled?: boolean;
 }
 
 export function OAuthButtons({ 
   isLoading = false,
   googleEnabled = false,
   githubEnabled = false,
+  discordEnabled = false,
 }: OAuthButtonsProps) {
-  const handleOAuthSignIn = async (provider: "google" | "github") => {
+  const handleOAuthSignIn = async (provider: "google" | "github" | "discord") => {
     try {
       await signIn(provider, {
         callbackUrl: "/feed",
@@ -30,8 +32,8 @@ export function OAuthButtons({
     }
   };
 
-  // If neither provider is enabled, don't render anything
-  if (!googleEnabled && !githubEnabled) {
+  // If no providers are enabled, don't render anything
+  if (!googleEnabled && !githubEnabled && !discordEnabled) {
     return null;
   }
 
@@ -67,6 +69,19 @@ export function OAuthButtons({
           >
             <FaGithub className="h-4 w-4" />
             Sign in with GitHub
+          </Button>
+        )}
+
+        {discordEnabled && (
+          <Button
+            variant="outline"
+            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-muted/50 transition-colors"
+            onClick={() => handleOAuthSignIn("discord")}
+            disabled={isLoading}
+            type="button"
+          >
+            <FaDiscord className="h-4 w-4 text-[#5865F2]" />
+            Sign in with Discord
           </Button>
         )}
       </div>
