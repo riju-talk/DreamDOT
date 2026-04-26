@@ -98,7 +98,6 @@ app.post('/api/v1/conversations', async (req, res) => {
     const { type, participants, name } = req.body;
     const userId = req.user.sub;
 
-    debugLog('Creating conversation:', { type, participants, name, userId });
 
     if (!type || !participants || !Array.isArray(participants)) {
       return res.status(400).json({ success: false, error: 'Type and participants are required' });
@@ -117,19 +116,19 @@ app.post('/api/v1/conversations', async (req, res) => {
       }
     }
 
+    const uniqueParticipants = Array.from(new Set([...participants, userId]));
+
     const conversation = await Conversation.create({
       type,
-      participants: [...participants, userId], // Include creator
+      participants: uniqueParticipants,
       name: name || `Chat ${new Date().toLocaleDateString()}`,
       createdBy: userId,
       admins: [userId],
       lastMessageAt: new Date(),
     });
 
-    debugLog('SUCCESS: Created conversation:', conversation._id);
     res.json({ success: true, data: conversation });
   } catch (error) {
-    debugLog('ERROR: Error creating conversation:', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -140,7 +139,6 @@ app.get('/api/v1/conversations/:id/messages', async (req, res) => {
     const { id } = req.params;
     const { limit = 50, before } = req.query;
 
-    debugLog('Getting messages for conversation:', id);
 
     let query = { conversationId: id, isDeleted: false };
 
@@ -168,7 +166,6 @@ app.post('/api/v1/conversations/:id/messages', async (req, res) => {
     const { content, type = 'text', attachments = [] } = req.body;
     const userId = req.user.sub;
 
-    debugLog('Sending message to conversation:', id);
 
     // Check if user is member
     await ensureMember(userId, id);
@@ -176,7 +173,6 @@ app.post('/api/v1/conversations/:id/messages', async (req, res) => {
     // Create message
     const message = await Message.create({
       conversationId: id,
-      conversation: id,
       senderId: userId,
       sender: userId,
       content,
@@ -278,7 +274,6 @@ io.on('connection', (socket) => {
       // Save encrypted message
       const savedMessage = await Message.create({
         conversationId,
-        conversation: conversationId,
         senderId: socket.userId,
         sender: socket.userId,
         ciphertext,

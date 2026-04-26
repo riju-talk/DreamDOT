@@ -1,34 +1,51 @@
 import mongoose from 'mongoose';
 
-let isConnected = false;
+type GlobalMongooseCache = {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+};
 
-export const connectToDatabase = async (uri: string) => {
-    if (isConnected) {
-        console.log('=> using existing database connection');
-        return;
-    }
+const globalWithMongoose = globalThis as typeof globalThis & {
+  __dreamdot_mongoose?: GlobalMongooseCache;
+};
 
-    console.log('=> using new database connection');
+const cache: GlobalMongooseCache = globalWithMongoose.__dreamdot_mongoose ?? {
+  conn: null,
+  promise: null,
+};
 
-    try {
-        const db = await mongoose.connect(uri, {
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000,
-            maxPoolSize: 10,
-            minPoolSize: 5
-        });
-        isConnected = db.connections[0].readyState === 1;
-        console.log('MongoDB connected successfully');
-    } catch (error) {
-        console.error('Error connecting to MongoDB:', error);
-        // Don't throw, let the app decide how to handle
-    }
+globalWithMongoose.__dreamdot_mongoose = cache;
+
+export const connectToDatabase = async (uri?: string) => {
+  const mongoUri = uri || process.env.MONGODB_URI || process.env.MONGO_CLUSTER;
+
+  if (!mongoUri) {
+    throw new Error('MongoDB URI is missing. Set MONGODB_URI or MONGO_CLUSTER.');
+  }
+
+  if (cache.conn) {
+    return cache.conn;
+  }
+
+  if (!cache.promise) {
+    cache.promise = mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 20,
+      minPoolSize: 5,
+      retryWrites: true,
+      appName: 'dreamdot',
+    });
+  }
+
+  cache.conn = await cache.promise;
+  return cache.conn;
 };
 
 export const disconnectDatabase = async () => {
-    if (isConnected) {
-        await mongoose.disconnect();
-        isConnected = false;
-        console.log('MongoDB disconnected');
-    }
-}
+  if (cache.conn) {
+    await mongoose.disconnect();
+    cache.conn = null;
+    cache.promise = null;
+  }
+};
