@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { PrismaClient } from '@/generated/user/client'
 
 const prisma = new PrismaClient()
 
-export async function GET(request: NextRequest) {
+export async function GET(request) {
   try {
     const serviceSecret = request.headers.get('X-Service-Secret')
     const serviceUserId = request.headers.get('X-User-Id')
 
-    let userId: string | undefined
+    let userId
 
     if (serviceSecret === process.env.SERVICE_SECRET && serviceUserId) {
       userId = serviceUserId
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
       const user = await prisma.users.findUnique({
         where: { email: session.user.email },
-        select: { id: true }
+        select: { id: true },
       })
 
       if (!user) {
@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
       where: { id: userId },
       select: {
         id: true,
-        intitial_balance: true
-      }
+        intitial_balance: true,
+      },
     })
 
     if (!user) {
@@ -47,12 +47,15 @@ export async function GET(request: NextRequest) {
     const currentBalance = user.intitial_balance
     const redeemableBalance = Math.max(0, currentBalance - INITIAL_BALANCE)
 
-    return NextResponse.json({
-      userId: user.id,
-      currentBalance,
-      initialBalance: INITIAL_BALANCE,
-      redeemableBalance
-    }, { status: 200 })
+    return NextResponse.json(
+      {
+        userId: user.id,
+        currentBalance,
+        initialBalance: INITIAL_BALANCE,
+        redeemableBalance,
+      },
+      { status: 200 }
+    )
   } catch (error) {
     console.error('Get balance error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

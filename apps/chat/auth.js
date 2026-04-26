@@ -67,7 +67,7 @@ function generateToken(payload) {
 async function ensureMember(userId, conversationId) {
   console.log('Checking membership for user:', userId, 'in conversation:', conversationId);
 
-  const { Conversation } = require('./models');
+  const { Conversation } = require('@repo/database-mongo');
 
   const conversation = await Conversation.findById(conversationId);
   if (!conversation) {

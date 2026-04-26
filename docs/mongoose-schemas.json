@@ -1,0 +1,122 @@
+{
+  "User": {
+    "_id": "string",
+    "email": "string",
+    "name": "string",
+    "avatar": "string",
+    "credits": "number",
+    "createdAt": "date",
+    "updatedAt": "date"
+  },
+  "Conversation": {
+    "type": "direct|group",
+    "participants": ["string"],
+    "admins": ["string"],
+    "name": "string",
+    "description": "string",
+    "avatar": "string",
+    "lastMessage": "objectId",
+    "lastMessageAt": "date",
+    "unreadBy": ["string"],
+    "createdBy": "string",
+    "isArchived": "boolean",
+    "createdAt": "date",
+    "updatedAt": "date"
+  },
+  "Message": {
+    "conversationId": "string",
+    "senderId": "string",
+    "content": "string",
+    "ciphertext": "string",
+    "nonce": "string",
+    "keyId": "string",
+    "type": "text|image|file|audio|video|system",
+    "attachments": [
+      {
+        "url": "string",
+        "type": "string",
+        "name": "string",
+        "size": "number"
+      }
+    ],
+    "readBy": ["string"],
+    "editedAt": "date",
+    "isDeleted": "boolean",
+    "replyTo": "string",
+    "timestamp": "date",
+    "createdAt": "date",
+    "updatedAt": "date"
+  },
+  "Membership": {
+    "conversationId": "string",
+    "userId": "string",
+    "role": "member|admin",
+    "joinedAt": "date",
+    "createdAt": "date",
+    "updatedAt": "date"
+  },
+  "Attachment": {
+    "filename": "string",
+    "originalName": "string",
+    "mimeType": "string",
+    "size": "number",
+    "url": "string",
+    "uploadedBy": "string",
+    "message": "objectId",
+    "createdAt": "date",
+    "updatedAt": "date"
+  },
+  "Post": {
+    "userId": "string",
+    "sqlId": "string",
+    "content": "string",
+    "media": [
+      {
+        "type": "string",
+        "url": "string",
+        "alt": "string"
+      }
+    ],
+    "visibility": "boolean",
+    "likes": ["string"],
+    "comments": [
+      {
+        "userId": "string",
+        "text": "string",
+        "timestamp": "date"
+      }
+    ],
+    "createdAt": "date"
+  },
+  "Item": {
+    "userId": "string",
+    "title": "string",
+    "description": "string",
+    "category": "writing|illustration|audio|video|research|other",
+    "visibility": "private|unlisted|public",
+    "media": [
+      {
+        "url": "string",
+        "mimeType": "string",
+        "size": "number",
+        "width": "number",
+        "height": "number"
+      }
+    ],
+    "tags": ["string"],
+    "metadata": "mixed",
+    "createdAt": "date",
+    "updatedAt": "date"
+  },
+  "Transaction": {
+    "userId": "string",
+    "sessionId": "string",
+    "stripePaymentIntentId": "string",
+    "amount": "number",
+    "type": "replenish|redemption|purchase",
+    "status": "pending|completed|failed|expired",
+    "metadata": "mixed",
+    "createdAt": "date",
+    "updatedAt": "date"
+  }
+}

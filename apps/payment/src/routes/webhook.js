@@ -7,61 +7,56 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
 router.post('/stripe', async (req, res) => {
-  const sig = req.headers['stripe-signature']
+  const signature = req.headers['stripe-signature']
 
   let event
-
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret)
+    event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret)
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message)
     return res.status(400).send(`Webhook Error: ${err.message}`)
   }
 
-  switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object
 
-      const transaction = await Transaction.findOneAndUpdate(
-        { sessionId: session.id },
-        {
-          status: 'completed',
-          stripePaymentIntentId: session.payment_intent,
-        },
-        { new: true }
-      )
-
-      if (transaction) {
-        try {
-          // Update User credits directly using shared model
-          await User.updateOne(
-            { _id: transaction.userId },
-            { $inc: { credits: transaction.amount } }
-          );
-          console.log('Payment completed and credits updated:', session.id)
-        } catch (error) {
-          console.error('Error updating credits:', error)
+        const transaction = await Transaction.findOne({ sessionId: session.id })
+        if (!transaction) {
+          break
         }
+
+        if (transaction.status !== 'completed') {
+          transaction.status = 'completed'
+          transaction.stripePaymentIntentId = session.payment_intent
+          transaction.updatedAt = new Date()
+          await transaction.save()
+
+          await User.updateOne({ _id: transaction.userId }, { $inc: { credits: transaction.amount } })
+        }
+
+        break
       }
 
-      break
+      case 'checkout.session.expired': {
+        const expiredSession = event.data.object
+        await Transaction.findOneAndUpdate(
+          { sessionId: expiredSession.id, status: 'pending' },
+          { status: 'expired', updatedAt: new Date() }
+        )
+        break
+      }
 
-    case 'checkout.session.expired':
-      const expiredSession = event.data.object
+      default:
+        console.log(`Unhandled event type ${event.type}`)
+    }
 
-      await Transaction.findOneAndUpdate(
-        { sessionId: expiredSession.id },
-        { status: 'expired' }
-      )
-
-      console.log('Session expired:', expiredSession.id)
-      break
-
-    default:
-      console.log(`Unhandled event type ${event.type}`)
+    return res.json({ received: true })
+  } catch (error) {
+    console.error('Webhook processing error:', error)
+    return res.status(500).json({ error: 'Webhook handler failed' })
   }
-
-  res.json({ received: true })
 })
 
 module.exports = router
