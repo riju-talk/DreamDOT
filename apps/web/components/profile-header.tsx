@@ -14,18 +14,19 @@ import Link from "next/link";
 import Image from "next/image";
 
 interface UserProfileData {
-  username: string | null;
-  display_name: string | null;
-  avatar_url: string | null;
-  banner_url: string | null;
-  bio: string | null;
-  location: string | null;
-  website: string | null;
-  social_links: string | null;
-  dob: Date | null;
+  username?: string | null;
+  display_name?: string | null;
+  avatar_url?: string | null;
+  banner_url?: string | null;
+  bio?: string | null;
+  location?: string | null;
+  website?: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  social_links?: any;
+  dob?: Date | null;
   followers: number;
   following: number;
-  join_date: Date | null;
+  join_date?: Date | null;
 }
 
 export async function ProfileHeader() {

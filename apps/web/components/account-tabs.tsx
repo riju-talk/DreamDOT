@@ -61,6 +61,25 @@ const products = [
   },
 ]
 
+const subscriptionTiers = [
+  {
+    id: "1",
+    name: "Supporter",
+    price: "$5/mo",
+    description: "Support my work and get exclusive updates",
+    benefits: ["Exclusive updates", "Early access"],
+    subscribers: 10,
+  },
+  {
+    id: "2",
+    name: "VIP",
+    price: "$15/mo",
+    description: "Get the ultimate VIP experience with direct messaging",
+    benefits: ["All Supporter benefits", "Direct messaging", "Monthly Q&A"],
+    subscribers: 5,
+  },
+]
+
 
 export function AccountTabs({user_id}: {user_id: string}) {
   return (
@@ -137,7 +156,7 @@ export function AccountTabs({user_id}: {user_id: string}) {
                     About Me
                   </h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    I'm a digital artist and storyteller with over 10 years of experience creating immersive worlds
+                    I&apos;m a digital artist and storyteller with over 10 years of experience creating immersive worlds
                     through various mediums. My work explores themes of futurism, nature, and human connection in
                     digital spaces. I believe that art has the power to transport us to new realities and inspire us to
                     dream bigger.

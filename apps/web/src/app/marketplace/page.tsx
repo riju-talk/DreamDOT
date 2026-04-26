@@ -11,9 +11,15 @@ export const dynamic = "force-dynamic"
 
 const CATEGORIES = ["Mixed", "Art", "Writing", "Audio", "Video", "Courses"]
 
-export default async function MarketplacePage({ searchParams }: { searchParams?: { q?: string; cat?: string } }) {
-  const query = (searchParams?.q ?? "").trim()
-  const activeCategory = (searchParams?.cat ?? "mixed").toLowerCase()
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
+
+export default async function MarketplacePage({ searchParams }: { searchParams: SearchParams }) {
+  const resolvedParams = await searchParams;
+  const queryParam = resolvedParams?.q;
+  const catParam = resolvedParams?.cat;
+  
+  const query = (typeof queryParam === 'string' ? queryParam : "").trim()
+  const activeCategory = (typeof catParam === 'string' ? catParam : "mixed").toLowerCase()
   // Server-side fetch for initial render; searching happens client-side within the active category
   const results = await Promise.all(
     CATEGORIES.map((cat) =>

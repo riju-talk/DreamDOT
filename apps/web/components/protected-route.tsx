@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useAuth } from "@/lib/auth"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { Loader2 } from "lucide-react"
@@ -12,8 +12,10 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { data: session, status } = useSession()
   const router = useRouter()
+  const isLoading = status === "loading"
+  const isAuthenticated = status === "authenticated"
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

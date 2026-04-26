@@ -28,7 +28,7 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "DreamDOT",
-  description: "An, online content monetization social media",
+  description: "An online content monetization social network",
 };
 
 export default function RootLayout({

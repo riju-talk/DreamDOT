@@ -37,7 +37,6 @@ function SocialFeedSkeleton() {
 export function SocialFeedWrapper() {
   return (
     <Suspense fallback={<SocialFeedSkeleton />}>
-      {/* @ts-expect-error Server Component */}
       <SocialFeed />
     </Suspense>
   )

@@ -1,6 +1,6 @@
 // src/lib/search.ts — server-only Fuse.js search over Prisma results
 import { prismaUser, prismaItem } from "@/lib/db";
-import Fuse from "fuse.js";
+import Fuse, { type IFuseOptions } from "fuse.js";
 
 export type SearchResult = {
   type: "profile" | "marketplace";
@@ -10,7 +10,7 @@ export type SearchResult = {
   image?: string;
   url: string;
   score?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 };
 
 // --- alias map: try snake_case and camelCase variants, nested, and common fallbacks
@@ -19,7 +19,7 @@ const aliasMap: Record<string, string[]> = {
   display_name: ["display_name", "displayName", "displayNameRaw", "name"],
   bio: ["bio", "about", "description"],
   avatar_url: ["avatar_url", "avatarUrl", "avatar"],
-  location: ["location", "city", "country"],
+  country: ["country", "location", "city"],
   skills: ["skills", "tags"],
 
   title: ["title", "name"],
@@ -29,12 +29,25 @@ const aliasMap: Record<string, string[]> = {
   "creator.username": ["creator.username", "creator.userName", "creatorName", "creator.name"],
 };
 
-// Helper that returns a string or array — uses Fuse's default getFn under the hood
-function aliasGetFn(obj: any, path: string) {
+// Default Fuse getFn — grab nested with dot notation
+const fuseDefaultGetFn = (obj: object, path: string | string[]): string | string[] => {
+  const parts = Array.isArray(path) ? path : path.split(".");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let current: any = obj;
+  for (const part of parts) {
+    if (current == null) return "";
+    current = current[part];
+  }
+  if (Array.isArray(current)) return current.map(String);
+  return current == null ? "" : String(current);
+};
+
+// Helper that returns a string or array — uses alias candidates
+function aliasGetFn(obj: object, path: string): string | string[] {
   const candidates = aliasMap[path] ?? [path];
   for (const p of candidates) {
     try {
-      const v = Fuse.config.getFn(obj, p);
+      const v = fuseDefaultGetFn(obj, p);
       if (v === undefined || v === null) continue;
       if (Array.isArray(v)) {
         if (v.length) return v;
@@ -50,7 +63,7 @@ function aliasGetFn(obj: any, path: string) {
 }
 
 // PROFILE options — permissive enough for partial display name match
-export const profileSearchOptions: Fuse.IFuseOptions<any> = {
+export const profileSearchOptions: IFuseOptions<object> = {
   includeScore: true,
   threshold: 0.55,         // tuned: not too strict, not too loose
   minMatchCharLength: 1,
@@ -59,22 +72,23 @@ export const profileSearchOptions: Fuse.IFuseOptions<any> = {
     { name: "username", weight: 3.0 },
     { name: "display_name", weight: 2.2 },
     { name: "bio", weight: 1.0 },
-    { name: "location", weight: 0.8 },
+    { name: "country", weight: 0.8 },
     { name: "skills", weight: 1.2 },
   ],
-  getFn: (obj, path) => {
-    if (path === "skills") {
-      const v = aliasGetFn(obj, path);
+  getFn: (obj: object, path: string | string[]) => {
+    const p = Array.isArray(path) ? path[0] : path;
+    if (p === "skills") {
+      const v = aliasGetFn(obj, p);
       if (Array.isArray(v)) return v;
       if (typeof v === "string") return v.split(",").map((s: string) => s.trim()).filter(Boolean);
       return [];
     }
-    return aliasGetFn(obj, path);
+    return aliasGetFn(obj, p);
   },
 };
 
 // MARKETPLACE options — slightly stricter for relevance
-export const marketplaceSearchOptions: Fuse.IFuseOptions<any> = {
+export const marketplaceSearchOptions: IFuseOptions<object> = {
   includeScore: true,
   threshold: 0.4,
   minMatchCharLength: 2,
@@ -86,16 +100,17 @@ export const marketplaceSearchOptions: Fuse.IFuseOptions<any> = {
     { name: "tags", weight: 1.5 },
     { name: "creator.username", weight: 1.0 },
   ],
-  getFn: (obj, path) => {
-    if (path === "tags") {
-      const v = aliasGetFn(obj, path);
+  getFn: (obj: object, path: string | string[]) => {
+    const p = Array.isArray(path) ? path[0] : path;
+    if (p === "tags") {
+      const v = aliasGetFn(obj, p);
       return Array.isArray(v) ? v : typeof v === "string" ? v.split(",").map((s: string) => s.trim()) : [];
     }
-    return aliasGetFn(obj, path);
+    return aliasGetFn(obj, p);
   },
 };
 
-function createSearchInstance<T>(data: T[], options: Fuse.IFuseOptions<T>) {
+function createSearchInstance<T extends object>(data: T[], options: IFuseOptions<T>) {
   return new Fuse(data, options);
 }
 
@@ -110,28 +125,32 @@ export async function unifiedSearch(query: string, limit = 10): Promise<SearchRe
       display_name: true,
       bio: true,
       avatar_url: true,
-      location: true,
-      skills: true,
+      country: true,    // was "location" — not a column; user_profile has "country"
     },
   });
-
-  // DEBUG: if you need to inspect the shape once
-  // console.log("SEARCH: first users:", users.slice(0, 10).map(u => ({ user_id: u.user_id, username: u.username, display_name: u.display_name })));
 
   const userFuse = createSearchInstance(users, profileSearchOptions);
   const userResults = userFuse.search(query).slice(0, limit * 2);
 
-  // --- Fetch marketplace items
-  const items = await prismaItem.market_place.findMany({
-    include: { creator: { select: { username: true } } },
+  // --- Fetch marketplace items (prismaItem.items — not market_place)
+  const items = await prismaItem.items.findMany({
+    select: {
+      item_id: true,
+      title: true,
+      description: true,
+      category: true,
+      price: true,
+    },
     take: 300,
   });
   const itemFuse = createSearchInstance(items, marketplaceSearchOptions);
   const itemResults = itemFuse.search(query).slice(0, limit * 2);
 
   // --- Combine results (normalize id fallbacks)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const results: SearchResult[] = [
-    ...userResults.map(res => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ...userResults.map((res: any) => {
       const item = res.item as any;
       const id = item.user_id ?? item.id ?? String(item.userId ?? "");
       return {
@@ -142,12 +161,13 @@ export async function unifiedSearch(query: string, limit = 10): Promise<SearchRe
         image: item.avatar_url ?? item.avatarUrl ?? undefined,
         url: `/profile/${id}`,
         score: res.score,
-        metadata: { username: item.username, location: item.location },
+        metadata: { username: item.username, country: item.country } as Record<string, unknown>,
       };
     }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...itemResults.map((res: any) => {
       const item = res.item;
-      const id = item.id ?? item.item_id ?? String(item.itemId ?? "");
+      const id = item.item_id ?? item.id ?? String(item.itemId ?? "");
       return {
         type: "marketplace" as const,
         id,
@@ -156,7 +176,7 @@ export async function unifiedSearch(query: string, limit = 10): Promise<SearchRe
         image: item.image_url ?? item.imageUrl ?? undefined,
         url: `/items/${id}`,
         score: res.score,
-        metadata: { price: item.price, category: item.category, creator: item.creator?.username },
+        metadata: { price: item.price, category: item.category } as Record<string, unknown>,
       };
     }),
   ];

@@ -6,6 +6,8 @@ import { connectToDatabase } from "./connection";
 import { Item } from "@repo/database-mongo";
 import { prismaItem } from "../db";
 
+// Re-export the Mongoose model so API routes can import it directly
+export { Item as ItemModel };
 interface FetchItemsOptions {
   userId?: string;
   page?: number;

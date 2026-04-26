@@ -14,7 +14,7 @@ interface ChatContextType {
   isLoading: boolean
   joinConversation: (conversationId: string) => void
   leaveConversation: (conversationId: string) => void
-  sendMessage: (content: string, conversationId: string) => void
+  sendMessage: (content: string, conversationId: string, attachments?: any[]) => void
   setActiveConversation: (conversation: ChatConversation | null) => void
   createDirectMessage: (userId: string) => Promise<void>
   createGroupChat: (name: string, participants: string[]) => Promise<void>

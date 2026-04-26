@@ -70,7 +70,7 @@ function GlobalSearch() {
         type: r.type === "profile" ? "user" : "marketplace",
         id: r.id,
         title: r.title,
-        subtitle: r.type === "profile" ? `@${r.metadata?.username}` : r.metadata?.category,
+        subtitle: r.type === "profile" ? `@${r.metadata?.username}` : (r.metadata?.category as string | undefined),
         avatar: r.image,
         searchScore: r.score,
       }))

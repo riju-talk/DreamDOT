@@ -17,7 +17,7 @@ export function MobileChat() {
 
   const handleSendMessage = async () => {
     if (messageInput.trim()) {
-      await sendMessage(messageInput)
+      await sendMessage(messageInput, activeConversation!.id)
       setMessageInput("")
     }
   }

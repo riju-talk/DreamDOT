@@ -387,11 +387,8 @@ const startServer = async () => {
     const PORT = parseInt(process.env.PORT || '3001', 10);
     const HOST = process.env.HOST || '0.0.0.0';
 
-    // FORCE chat server to use port 3001
-    const CHAT_PORT = 3001;
-
-    server.listen(CHAT_PORT, HOST, () => {
-      debugLog(`SERVER: Chat server running on ${HOST}:${CHAT_PORT}`);
+    server.listen(PORT, HOST, () => {
+      debugLog(`SERVER: Chat server running on ${HOST}:${PORT}`);
       debugLog(`INFO: Environment: ${process.env.NODE_ENV || 'development'}`);
       debugLog(`INFO: Socket.IO path: ${process.env.SOCKET_PATH || '/socket.io'}`);
     });
