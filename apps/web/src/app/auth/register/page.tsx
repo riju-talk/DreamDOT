@@ -176,8 +176,8 @@ export default function RegisterPage() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen flex items-center justify-center bg-muted/30 dark:bg-[#1f2421] px-4">
-        <div className="flex flex-col lg:flex-row items-center justify-center rounded-xl shadow-lg overflow-hidden bg-white dark:bg-[#2a302d] dark:border dark:border-[#216869]">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="flex flex-col lg:flex-row items-center justify-center rounded-xl shadow-[var(--shadow-float-lg)] overflow-hidden bg-card border border-border [&_.card]:border-0">
           {/* Left: Illustration */}
           <div className="hidden lg:block">
             <img
@@ -188,7 +188,7 @@ export default function RegisterPage() {
           </div>
 
           {/* Right: Registration Card */}
-          <Card className="w-full max-w-md rounded-none lg:rounded-l-none lg:rounded-r-xl shadow-none border-none bg-white dark:bg-[#2a302d]">
+          <Card className="w-full max-w-md rounded-none lg:rounded-l-none lg:rounded-r-xl shadow-none border-0 bg-transparent">
             <CardHeader className="text-center">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <div className="relative overflow-hidden rounded-lg p-1.5 bg-primary">

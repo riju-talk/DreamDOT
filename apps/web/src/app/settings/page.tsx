@@ -1,11 +1,7 @@
 "use client"
 import Image from "next/image"
 import { useState, useEffect } from "react"
-import { TopNav } from "../../../components/top-nav"
-import { MobileNav } from "../../../components/mobile-nav"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { AppSidebar } from "../../../components/app-sidebar"
-import { ScrollableContent } from "@/components/scrollable-content"
+import { AuthenticatedLayout } from "../../../components/authenticated-layout"
 import {
   Card, CardContent, CardDescription, CardFooter,
   CardHeader, CardTitle
@@ -13,8 +9,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { FaTimes, FaPlus, FaTrash } from "react-icons/fa"
-import { Save } from "lucide-react"
+import { Save, Settings } from "lucide-react"
 import {
   Select, SelectTrigger, SelectValue,
   SelectContent, SelectItem
@@ -115,7 +112,6 @@ export default function SettingsPage() {
       const data: Record<string, any> = {}
       const fields: string[] = []
 
-      // Collect updated fields
       Object.entries(form).forEach(([key, value]) => {
         if (value?.toString().trim() !== "") {
           data[key] = value
@@ -152,7 +148,6 @@ export default function SettingsPage() {
       const json = await res.json()
       if (res.ok) {
         toast.success("Profile updated successfully!")
-        // Update form with returned data if available
         if (json.profile) {
           setForm({
             username: json.profile.username || "",
@@ -179,185 +174,171 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <TopNav />
-          <ScrollableContent>
-            <main className="container mx-auto px-4 py-6 bg-background text-foreground">
-              <div className="flex justify-between items-center mb-8">
-                <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <div className="lg:col-span-1">
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                        <div className="space-y-2">
-                          <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                          <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                        </div>
-                      </div>
-                    </CardHeader>
-                  </Card>
+      <AuthenticatedLayout>
+        <div className="flex justify-between items-center mb-8">
+          <div className="h-8 w-48 bg-muted rounded animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-1">
+            <Card className="border-border/50">
+              <CardHeader>
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full bg-muted animate-pulse" />
+                  <div className="space-y-2">
+                    <div className="h-4 w-24 bg-muted rounded animate-pulse" />
+                    <div className="h-3 w-20 bg-muted rounded animate-pulse" />
+                  </div>
                 </div>
-                <div className="lg:col-span-3">
-                  <Card>
-                    <CardHeader>
-                      <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                      <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-2" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {[...Array(6)].map((_, i) => (
-                          <div key={i} className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
+              </CardHeader>
+            </Card>
+          </div>
+          <div className="lg:col-span-3">
+            <Card className="border-border/50">
+              <CardHeader>
+                <div className="h-6 w-48 bg-muted rounded animate-pulse" />
+                <div className="h-4 w-64 bg-muted rounded animate-pulse mt-2" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="h-10 bg-muted rounded animate-pulse" />
+                  ))}
                 </div>
-              </div>
-            </main>
-          </ScrollableContent>
-          <MobileNav />
-        </SidebarInset>
-      </SidebarProvider>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </AuthenticatedLayout>
     )
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <TopNav />
-        <ScrollableContent>
-          <main className="container mx-auto px-4 py-6 bg-background text-foreground">
-            <Toaster position="top-center" richColors />
-            <div className="flex justify-between items-center mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">
-                Account Settings
-              </h1>
-            </div>
+    <AuthenticatedLayout>
+      <Toaster position="top-center" richColors />
+      <div className="space-y-8">
+        <div>
+          <Badge variant="outline" className="mb-4 px-4 py-1.5 rounded-full border-primary/20 bg-primary/5 text-primary text-xs font-mono tracking-[0.3em] uppercase">
+            <Settings className="mr-2 h-3 w-3" /> System
+          </Badge>
+          <h1 className="text-4xl font-serif tracking-tight">Account Settings</h1>
+          <p className="text-muted-foreground mt-2">Manage your account details and preferences</p>
+        </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              <div className="lg:col-span-1">
-                <Card className="sticky top-6">
-                  <CardHeader>
-                    <div className="flex items-center gap-4 mb-2">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-xl font-bold overflow-hidden">
-            {avatarUrl === 'loading' ? (
-              <div className="w-full h-full flex items-center justify-center animate-pulse text-xs">Uploading...</div>
-            ) : avatarUrl ? (
-              <Image 
-                src={avatarUrl} 
-                alt="Avatar" 
-                width={56} 
-                height={56} 
-                className="object-cover w-full h-full"
-              />
-            ) : (
-              <span>{form.display_name?.charAt(0)?.toUpperCase() || "U"}</span>
-            )}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="lg:col-span-1">
+            <Card className="border-border/50 shadow-[var(--shadow-float)] sticky top-6">
+              <CardHeader>
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground text-xl font-bold overflow-hidden">
+                    {avatarUrl === 'loading' ? (
+                      <div className="w-full h-full flex items-center justify-center animate-pulse text-xs">Uploading...</div>
+                    ) : avatarUrl ? (
+                      <Image 
+                        src={avatarUrl} 
+                        alt="Avatar" 
+                        width={56} 
+                        height={56} 
+                        className="object-cover w-full h-full"
+                      />
+                    ) : (
+                      <span>{form.display_name?.charAt(0)?.toUpperCase() || "U"}</span>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{form.display_name}</h3>
+                    <p className="text-xs text-muted-foreground">{form.username}</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
           </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-800 dark:text-gray-200">{form.display_name}</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{form.username}</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                </Card>
-              </div>
 
-              <div className="lg:col-span-3 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Account Information</CardTitle>
-                    <CardDescription>
-                      Manage your account details and preferences
-                    </CardDescription>
-                  </CardHeader>
+          <div className="lg:col-span-3 space-y-8">
+            <Card className="border-border/50 shadow-[var(--shadow-float)]">
+              <CardHeader>
+                <CardTitle className="text-xl font-serif">Account Information</CardTitle>
+                <CardDescription>
+                  Manage your account details and preferences
+                </CardDescription>
+              </CardHeader>
 
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Field id="username" label="Username" value={form.username}
-                        onChange={(v) => setForm({ ...form, username: v })} />
-                      <Field id="display_name" label="Display Name" value={form.display_name}
-                        onChange={(v) => setForm({ ...form, display_name: v })} />
-                      <Field id="bio" label="Bio" textarea value={form.bio}
-                        onChange={(v) => setForm({ ...form, bio: v })} />
-                      <Field id="dob" label="Date of Birth" type="date" value={form.dob}
-                        onChange={(v) => setForm({ ...form, dob: v })} />
-                      <div className="space-y-2">
-                        <Label htmlFor="country">Country</Label>
-                        <Select
-                          value={form.country}
-                          onValueChange={(val: string) => setForm({ ...form, country: val })}
-                        >
-                          <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
-                          <SelectContent>
-                            {COUNTRIES.map((c) => (
-                              <SelectItem key={c.value} value={c.value}>{c.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <Field id="website" label="Website" type="url" value={form.website}
-                        onChange={(v) => setForm({ ...form, website: v })} />
-                      <AvatarUpload label="Upload Avatar" imageUrl={avatarUrl} onUpload={(e) => handleImageUpload(e, "avatar")} />
-                      <BannerUpload label="Upload Banner" imageUrl={bannerUrl} onUpload={(e) => handleImageUpload(e, "banner")} />
-                    </div>
-
-                    <div className="mt-8">
-                      <h3 className="text-lg font-semibold mb-2">Social Links</h3>
-                      {socialLinks.map((link, idx) => (
-                        <div key={idx} className="flex items-center gap-2 mb-2">
-                          <Input
-                            value={link}
-                            placeholder="https://..."
-                            onChange={(e) => updateLink(idx, e.target.value)}
-                          />
-                          <Button variant="outline" size="sm" onClick={() => removeLink(idx)}>
-                            <FaTrash />
-                          </Button>
-                        </div>
-                      ))}
-                      {socialLinks.length < 4 && (
-                        <Button variant="ghost" size="sm" onClick={addLink}>
-                          <FaPlus /> Add link
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-
-                  <CardFooter className="flex justify-end gap-3">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => window.location.reload()} 
-                      disabled={isSaving || isLoading}
-                      className="gap-2"
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Field id="username" label="Username" value={form.username}
+                    onChange={(v) => setForm({ ...form, username: v })} />
+                  <Field id="display_name" label="Display Name" value={form.display_name}
+                    onChange={(v) => setForm({ ...form, display_name: v })} />
+                  <Field id="bio" label="Bio" textarea value={form.bio}
+                    onChange={(v) => setForm({ ...form, bio: v })} />
+                  <Field id="dob" label="Date of Birth" type="date" value={form.dob}
+                    onChange={(v) => setForm({ ...form, dob: v })} />
+                  <div className="space-y-2">
+                    <Label htmlFor="country">Country</Label>
+                    <Select
+                      value={form.country}
+                      onValueChange={(val: string) => setForm({ ...form, country: val })}
                     >
-                      <FaTimes /> Cancel
-                    </Button>
-                    <Button 
-                      onClick={handleSaveChanges} 
-                      disabled={isSaving || isLoading}
-                      className="gap-2"
-                    >
-                      <Save /> {isSaving ? "Saving..." : "Save Changes"}
-                    </Button>
-                  </CardFooter>
-                </Card>
+                      <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+                      <SelectContent>
+                        {COUNTRIES.map((c) => (
+                          <SelectItem key={c.value} value={c.value}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Field id="website" label="Website" type="url" value={form.website}
+                    onChange={(v) => setForm({ ...form, website: v })} />
+                  <AvatarUpload label="Upload Avatar" imageUrl={avatarUrl} onUpload={(e) => handleImageUpload(e, "avatar")} />
+                  <BannerUpload label="Upload Banner" imageUrl={bannerUrl} onUpload={(e) => handleImageUpload(e, "banner")} />
+                </div>
 
-                <ChangePassword />
-                <DeleteAccount />
-              </div>
-            </div>
-          </main>
-        </ScrollableContent>
-        <MobileNav />
-      </SidebarInset>
-    </SidebarProvider>
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold mb-4">Social Links</h3>
+                  {socialLinks.map((link, idx) => (
+                    <div key={idx} className="flex items-center gap-2 mb-2">
+                      <Input
+                        value={link}
+                        placeholder="https://..."
+                        onChange={(e) => updateLink(idx, e.target.value)}
+                      />
+                      <Button variant="outline" size="sm" onClick={() => removeLink(idx)}>
+                        <FaTrash />
+                      </Button>
+                    </div>
+                  ))}
+                  {socialLinks.length < 4 && (
+                    <Button variant="ghost" size="sm" onClick={addLink} className="mt-2">
+                      <FaPlus className="mr-2" /> Add link
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+
+              <CardFooter className="flex justify-end gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => window.location.reload()} 
+                  disabled={isSaving || isLoading}
+                  className="gap-2"
+                >
+                  <FaTimes /> Cancel
+                </Button>
+                <Button 
+                  onClick={handleSaveChanges} 
+                  disabled={isSaving || isLoading}
+                  className="gap-2"
+                >
+                  <Save /> {isSaving ? "Saving..." : "Save Changes"}
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <ChangePassword />
+            <DeleteAccount />
+          </div>
+        </div>
+      </div>
+    </AuthenticatedLayout>
   )
 }
 

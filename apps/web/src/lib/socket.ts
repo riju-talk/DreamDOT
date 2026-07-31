@@ -15,7 +15,7 @@ export function useSocket() {
   // access token may be attached to the NextAuth session object at runtime
   // its type isn't declared on the library Session type here, so read it
   // via an any-cast to avoid TypeScript errors while keeping runtime logic.
-  const token = (session as any)?.accessToken
+  const token = (session as any)?.chatToken
 
   useEffect(() => {
     if (!token) {

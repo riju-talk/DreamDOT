@@ -1,10 +1,15 @@
 import { getServerSession } from "next-auth"
-import { UnifiedHome } from "../components/unified-home"
+import { redirect } from "next/navigation"
+import { LandingPage } from "@/components/landing-page"
 
 export default async function HomePage() {
   const session = await getServerSession()
 
-  return <UnifiedHome session={session} />
+  if (session?.user) {
+    redirect("/feed")
+  }
+
+  return <LandingPage />
 }
 
 

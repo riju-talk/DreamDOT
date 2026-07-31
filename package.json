@@ -9,8 +9,7 @@
     "chat:dev": "cd apps/chat && npm run dev",
     "chat:build": "cd apps/chat && npm run build",
     "chat:start": "cd apps/chat && npm start",
-    "dev:all": "concurrently \"npm run dev\" \"npm run chat:dev\"",
-    "postinstall": "cd apps/web && npx prisma generate --schema=src/lib/prisma/schema.user.prisma && npx prisma generate --schema=src/lib/prisma/schema.social.prisma && npx prisma generate --schema=src/lib/prisma/schema.item.prisma && npx prisma generate --schema=src/lib/prisma/schema.community.prisma && npx prisma generate --schema=src/lib/prisma/schema.audit.prisma"
+    "dev:all": "concurrently \"npm run dev\" \"npm run chat:dev\""
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
@@ -27,6 +26,7 @@
     "packages/*"
   ],
   "dependencies": {
-    "@swc/helpers": "^0.5.17"
+    "@swc/helpers": "^0.5.17",
+    "bcryptjs": "^3.0.3"
   }
 }

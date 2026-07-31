@@ -1,44 +1,56 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { SidebarProvider } from "@/components/ui/sidebar"
-import { AppSidebar } from "../../../components/app-sidebar"
-import { TopNav } from "../../../components/top-nav"
-import { MobileNav } from "../../../components/mobile-nav"
+import { Badge } from "@/components/ui/badge"
+import { AuthenticatedLayout } from "../../../components/authenticated-layout"
+import { Wallet, History } from "lucide-react"
 
 export default function WalletPage() {
     return (
-        <SidebarProvider>
-            <div className="min-h-screen flex w-full">
-                <AppSidebar />
-                <div className="flex-1 flex flex-col">
-                    <TopNav />
-                    <main className="flex-1 container mx-auto px-4 py-6">
-                        <div className="p-4">
-                            <h1 className="text-2xl font-bold text-black mb-4">Wallet</h1>
-                            <div className="bg-yellow-100 text-yellow-800 p-4 rounded-md mb-4">
-                                <p className="font-semibold">This feature is still in production.</p>
-                                <p>Manage your earnings and transactions on DreamDot. Coming soon!</p>
+        <AuthenticatedLayout>
+            <div className="space-y-8">
+                <div>
+                    <Badge variant="outline" className="mb-4 px-4 py-1.5 rounded-full border-primary/20 bg-primary/5 text-primary text-xs font-mono tracking-[0.3em] uppercase">Vault</Badge>
+                    <h1 className="text-4xl font-serif tracking-tight">Wallet</h1>
+                    <p className="text-muted-foreground mt-2">Manage your earnings and transactions on DreamDot.</p>
+                </div>
+
+                <div className="glass-panel rounded-2xl p-6 border-primary/10 bg-primary/5">
+                    <div className="flex items-center gap-3">
+                        <div className="h-3 w-3 rounded-full bg-primary animate-pulse" />
+                        <p className="text-sm font-medium text-primary">This feature is still in production</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2">Manage your earnings and transactions on DreamDot. Coming soon!</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="border-border/50 shadow-[var(--shadow-float)]">
+                        <CardHeader>
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 rounded-xl bg-primary/10">
+                                    <Wallet className="h-5 w-5 text-primary" />
+                                </div>
+                                <CardTitle className="text-lg font-serif">Balance</CardTitle>
                             </div>
-                            <Card className="rounded-lg shadow-sm">
-                                <CardHeader>
-                                    <CardTitle className="text-lg font-semibold text-black">Balance</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-gray-700">Coming soon...</p>
-                                </CardContent>
-                            </Card>
-                            <Card className="mt-4 rounded-lg shadow-sm">
-                                <CardHeader>
-                                    <CardTitle className="text-lg font-semibold text-black">Transaction History</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-gray-700">Coming soon...</p>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </main>
-                    <MobileNav />
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-muted-foreground">Coming soon...</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-border/50 shadow-[var(--shadow-float)]">
+                        <CardHeader>
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 rounded-xl bg-primary/10">
+                                    <History className="h-5 w-5 text-primary" />
+                                </div>
+                                <CardTitle className="text-lg font-serif">Transaction History</CardTitle>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-muted-foreground">Coming soon...</p>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
-        </SidebarProvider>
+        </AuthenticatedLayout>
     )
 }

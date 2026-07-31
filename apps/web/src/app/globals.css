@@ -102,9 +102,11 @@
   --sidebar-border: #E5E7EB;
   --sidebar-ring: #8CDD81;
 
-  /* Anti-Gravity Shadows */
-  --shadow-glow: 0 0 20px -5px rgba(140, 221, 129, 0.3);
-  --shadow-float: 0 10px 30px -10px rgba(10, 15, 13, 0.1);
+  /* Premium Anti-Gravity Shadows */
+  --shadow-glow: 0 0 30px -8px rgba(140, 221, 129, 0.35);
+  --shadow-float: 0 8px 32px -12px rgba(10, 15, 13, 0.12);
+  --shadow-float-lg: 0 20px 60px -20px rgba(10, 15, 13, 0.15);
+  --shadow-glow-lg: 0 0 60px -10px rgba(140, 221, 129, 0.2);
 }
 
 .dark {
@@ -156,9 +158,11 @@
   --sidebar-border: rgba(140, 221, 129, 0.1);
   --sidebar-ring: #8CDD81;
 
-  /* Anti-Gravity Shadows & Glows */
-  --shadow-glow: 0 0 30px -5px rgba(140, 221, 129, 0.15);
+  /* Premium Anti-Gravity Shadows & Glows */
+  --shadow-glow: 0 0 40px -8px rgba(140, 221, 129, 0.2);
   --shadow-float: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+  --shadow-float-lg: 0 30px 80px -24px rgba(0, 0, 0, 0.6);
+  --shadow-glow-lg: 0 0 80px -16px rgba(140, 221, 129, 0.15);
 }
 
 @layer utilities {
@@ -225,6 +229,7 @@
     @apply font-serif tracking-tight;
   }
 }
+
 @layer base {
   html,
   body {
@@ -246,5 +251,33 @@
 @layer utilities {
   .ui-shell {
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .dream-card {
+    @apply bg-card border-border/50 shadow-[var(--shadow-float)] backdrop-blur-3xl transition-all duration-500;
+  }
+
+  .dream-card:hover {
+    @apply shadow-[var(--shadow-glow)] border-primary/20;
+  }
+
+  .dream-button {
+    @apply bg-primary text-primary-foreground hover:opacity-90 transition-all duration-300 shadow-[var(--shadow-glow)] font-medium;
+  }
+
+  .dream-badge {
+    @apply bg-primary/20 text-primary border-primary/30 font-medium;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-primary/60;
+  }
+
+  .glass-panel {
+    @apply bg-background/60 backdrop-blur-2xl border border-border/50 shadow-[var(--shadow-float)];
+  }
+
+  .ambient-glow {
+    @apply pointer-events-none absolute rounded-full blur-[160px] opacity-20;
   }
 }

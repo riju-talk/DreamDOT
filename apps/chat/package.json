@@ -4,6 +4,7 @@
   "description": "Simple Socket.IO Chat Server",
   "main": "server.js",
   "scripts": {
+    "build": "echo 'No build step needed'",
     "dev": "nodemon server.js",
     "dev:debug": "nodemon --inspect server.js",
     "start": "node server.js",

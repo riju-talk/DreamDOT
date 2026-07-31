@@ -26,31 +26,31 @@ export function ProductCard({ product }: ProductCardProps) {
             src={product.image || "/placeholder.svg"}
             alt={product.title}
             fill
-            className="object-cover transition-transform hover:scale-105"
+            className="object-cover transition-all duration-700 group-hover:scale-105"
           />
-          <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">{product.category}</Badge>
+          <Badge className="absolute top-3 right-3 bg-primary/90 text-primary-foreground backdrop-blur-sm">{product.category}</Badge>
         </div>
-        <div className="p-4">
+        <div className="p-5">
           <div className="space-y-2">
             <Link
               href={`/product/${product.id}`}
-              className="font-medium hover:underline line-clamp-1 hover:text-primary transition-colors"
+              className="font-semibold line-clamp-1 hover:text-primary transition-colors"
             >
               {product.title}
             </Link>
           </div>
           <div className="mt-3 flex items-center justify-between">
-            <div className="font-bold text-lg text-primary">{product.price}</div>
+            <div className="font-bold text-xl text-primary">{product.price}</div>
             <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-current text-yellow-500" />
-              <span className="text-sm font-medium">{product.rating}</span>
+              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+              <span className="text-sm font-medium text-muted-foreground">{product.rating}</span>
             </div>
           </div>
-          <div className="text-sm text-muted-foreground">{product.sales} sold</div>
+          <div className="text-sm text-muted-foreground mt-1">{product.sales} sold</div>
         </div>
       </CardContent>
-      <CardFooter className="p-4 pt-0">
-        <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+      <CardFooter className="p-5 pt-0">
+        <Button className="w-full gap-2 rounded-xl shadow-[var(--shadow-glow)]">
           <ShoppingCart className="h-4 w-4" />
           View Product
         </Button>

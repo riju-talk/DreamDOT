@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter, Playfair_Display } from "next/font/google"; // Removed Playfair
+import { Geist, Geist_Mono, Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { SessionContextProvider } from "./session-contect";
 import { Toaster } from "@/components/ui/sonner";
-import { BetaBanner } from "@/components/beta-banner";
 import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
@@ -17,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 const inter = Inter({
-  variable: "--font-sans", // Using font-sans for Inter to replace default
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
@@ -48,7 +47,6 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <BetaBanner />
             <Toaster />
             {children}
           </ThemeProvider>

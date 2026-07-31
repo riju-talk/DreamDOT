@@ -27,22 +27,22 @@ export function BetaBanner() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 relative">
+    <div className="bg-gradient-to-r from-primary to-accent text-primary-foreground px-4 py-2.5 relative">
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1">
-          <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+          <span className="bg-primary-foreground/20 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider">
             Beta
           </span>
-          <p className="text-sm md:text-base">
-            You're using the beta version of DreamDot. Features are actively being developed.
+          <p className="text-sm text-primary-foreground/90">
+            You&apos;re using the beta version of DreamDot. Features are actively being developed.
           </p>
         </div>
         <button
           onClick={handleDismiss}
-          className="ml-4 p-1 hover:bg-white/20 rounded transition-colors"
+          className="ml-4 p-1.5 hover:bg-primary-foreground/20 rounded-full transition-colors"
           aria-label="Dismiss banner"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" />
         </button>
       </div>
     </div>

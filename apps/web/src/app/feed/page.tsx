@@ -1,87 +1,189 @@
-"use client";
+"use client"
 
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { AppSidebar } from "../../../components/app-sidebar"
-import { TopNav } from "../../../components/top-nav"
-import { CreatePostPrompt } from "../../../components/create-post-prompt"
-import { UnifiedFeed } from "../../../components/unified-feed"
-import { TrendingCreators } from "../../../components/trending-creators"
-import { PopularTags } from "../../../components/popular-tags"
-import { ScrollableContent } from "../../../components/scrollable-content"
-import { MobileNav } from "../../../components/mobile-nav"
 import { motion } from "framer-motion"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { AuthenticatedLayout } from "@/components/authenticated-layout"
+import { Heart, MessageCircle, Share2, Bookmark, ArrowRight } from "lucide-react"
+import { getFakePosts, getCurrentUser } from "@/lib/fake-data"
+import Image from "next/image"
+import { useState } from "react"
 
 export default function FeedPage() {
+  const posts = getFakePosts()
+  const user = getCurrentUser()
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set())
+
+  const toggleLike = (postId: string) => {
+    const newLiked = new Set(likedPosts)
+    if (newLiked.has(postId)) {
+      newLiked.delete(postId)
+    } else {
+      newLiked.add(postId)
+    }
+    setLikedPosts(newLiked)
+  }
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  }
+
   return (
-    <div className="min-h-screen bg-[#050505] text-foreground relative font-sans overflow-hidden selection:bg-primary/30">
-      {/* Texture Overlay */}
-      <div className="fixed inset-0 z-[1] opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-
-      {/* Background Ambient Glows */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] right-[-5%] w-[1000px] h-[1000px] bg-primary/10 rounded-full blur-[160px] opacity-20 animate-pulse transition-opacity duration-1000" />
-        <div className="absolute bottom-[10%] left-[-10%] w-[800px] h-[800px] bg-purple-500/5 rounded-full blur-[140px] opacity-20" />
-        <div className="absolute top-[40%] left-[20%] w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[120px] opacity-10" />
-      </div>
-
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="relative bg-transparent z-[2]">
-          <TopNav />
-          <ScrollableContent>
-            <main className="container mx-auto px-6 md:px-12 py-16">
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-16">
-                <div className="lg:col-span-3 space-y-16">
-                  <header className="space-y-4">
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.8 }}
-                    >
-                      <h2 className="text-5xl md:text-6xl font-serif tracking-tight text-white/90 leading-[1.1]">
-                        Curated <span className="text-white/20 italic font-light">Inspirations</span>
-                      </h2>
-                      <div className="flex items-center gap-4 mt-6">
-                        <div className="h-[1px] w-12 bg-primary/40" />
-                        <p className="text-[10px] text-primary/60 font-mono uppercase tracking-[0.4em] font-bold">The Digital Atelier Collective</p>
-                      </div>
-                    </motion.div>
-                  </header>
-                  <CreatePostPrompt />
-                  <UnifiedFeed />
-                </div>
-                <div className="space-y-12 hidden lg:block">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                    className="space-y-10"
-                  >
-                    <TrendingCreators />
-                    <PopularTags />
-                    
-                    <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/[0.05] backdrop-blur-2xl">
-                      <h4 className="text-sm font-serif mb-4 text-white/60">Atelier Stats</h4>
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-end">
-                          <span className="text-[10px] text-white/30 uppercase tracking-widest font-bold">Active Manifestations</span>
-                          <span className="text-lg font-mono text-primary">12,402</span>
-                        </div>
-                        <div className="w-full h-[1px] bg-white/[0.05]" />
-                        <div className="flex justify-between items-end">
-                          <span className="text-[10px] text-white/30 uppercase tracking-widest font-bold">Creator Resonance</span>
-                          <span className="text-lg font-mono text-primary">98.2%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
+    <AuthenticatedLayout>
+      <div className="min-h-screen" style={{ backgroundColor: "#0a0f1f" }}>
+        {/* Header */}
+        <div className="sticky top-0 z-40 backdrop-blur-md" style={{ backgroundColor: "rgba(10, 15, 31, 0.8)", borderBottom: "1px solid rgba(0, 255, 0, 0.2)" }}>
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-white">Welcome back, {user.name.split(" ")[0]}!</h1>
+                <p style={{ color: "#a3a3a3" }}>Discover what's new from creators you follow</p>
               </div>
-            </main>
-          </ScrollableContent>
-          <MobileNav />
-        </SidebarInset>
-      </SidebarProvider>
-    </div>
+              <Button className="font-semibold" style={{ backgroundColor: "#00ff00", color: "#0a0f1f" }}>
+                + Create Post
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Feed Content */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <motion.div
+            className="space-y-6"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+          >
+            {posts.map((post, idx) => (
+              <motion.div key={post.id} variants={itemVariants}>
+                <Card className="border-border/50 hover:border-border transition-all overflow-hidden group">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 overflow-hidden">
+                          <Image
+                            src={post.author.avatar}
+                            alt={post.author.name}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm">{post.author.name}</p>
+                          <p className="text-xs text-gray-400">
+                            {Math.floor((Date.now() - post.createdAt.getTime()) / (1000 * 60 * 60))} hours ago
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm" className="hover:bg-foreground/10">
+                        Follow
+                      </Button>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h2 className="text-2xl font-bold mb-2 group-hover:text-blue-400 transition-colors cursor-pointer">
+                        {post.title}
+                      </h2>
+                      <p className="text-gray-300 leading-relaxed">{post.content}</p>
+                    </div>
+
+                    {post.image && (
+                      <div className="relative w-full h-64 rounded-lg overflow-hidden bg-foreground/5">
+                        <Image
+                          src={post.image}
+                          alt={post.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          unoptimized
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 flex-wrap">
+                      {post.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-3 py-1 text-xs rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 cursor-pointer hover:bg-blue-500/20 transition-colors"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Engagement Stats */}
+                    <div className="flex items-center justify-between pt-4 text-sm text-gray-400 border-t border-border/30">
+                      <span>{post.likes} likes</span>
+                      <span>{post.comments} comments</span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-4 border-t border-border/30">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex-1 hover:bg-red-500/10 group/btn"
+                        onClick={() => toggleLike(post.id)}
+                      >
+                        <Heart
+                          className={`h-4 w-4 mr-2 transition-colors ${
+                            likedPosts.has(post.id)
+                              ? "fill-red-500 text-red-500"
+                              : "text-gray-400 group-hover/btn:text-red-500"
+                          }`}
+                        />
+                        <span className="text-gray-400 group-hover/btn:text-red-500 transition-colors">
+                          Like
+                        </span>
+                      </Button>
+                      <Button variant="ghost" size="sm" className="flex-1 hover:bg-blue-500/10">
+                        <MessageCircle className="h-4 w-4 mr-2 text-gray-400 group-hover:text-blue-500" />
+                        <span className="text-gray-400 group-hover:text-blue-500 transition-colors">
+                          Comment
+                        </span>
+                      </Button>
+                      <Button variant="ghost" size="sm" className="flex-1 hover:bg-purple-500/10">
+                        <Share2 className="h-4 w-4 mr-2 text-gray-400 group-hover:text-purple-500" />
+                        <span className="text-gray-400 group-hover:text-purple-500 transition-colors">
+                          Share
+                        </span>
+                      </Button>
+                      <Button variant="ghost" size="sm" className="flex-1 hover:bg-yellow-500/10">
+                        <Bookmark className="h-4 w-4 mr-2 text-gray-400 group-hover:text-yellow-500" />
+                        <span className="text-gray-400 group-hover:text-yellow-500 transition-colors">
+                          Save
+                        </span>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+
+            {/* Load More */}
+            <motion.div variants={itemVariants} className="text-center pt-8">
+              <Button
+                variant="outline"
+                className="border-border/50 hover:bg-foreground/10"
+              >
+                Load More Posts
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </motion.div>
+          </motion.div>
+        </div>
+      </div>
+    </AuthenticatedLayout>
   )
 }

@@ -35,8 +35,11 @@ import {
 } from "lucide-react"
 import { useChat } from "@/lib/chat-context"
 import { formatRelativeTime } from "@/lib/utils"
+import { useSession } from "next-auth/react"
 
 export function ChatWindow() {
+  const { data: session } = useSession()
+  const currentUserId = (session as any)?.user?.id
   const { activeConversation, messages, sendMessage } = useChat()
   const [messageInput, setMessageInput] = useState("")
   const [isInfoOpen, setIsInfoOpen] = useState(false)
@@ -193,7 +196,7 @@ export function ChatWindow() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message, index) => {
-          const isCurrentUser = message.senderId === "current-user"
+          const isCurrentUser = message.senderId === currentUserId
           const showAvatar =
             !isCurrentUser &&
             (index === 0 || messages[index - 1].senderId !== message.senderId || activeConversation.type === "dm")

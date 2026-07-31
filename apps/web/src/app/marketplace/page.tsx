@@ -1,65 +1,266 @@
-import { MarketplaceHero } from "../../../components/marketplace-hero"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { AppSidebar } from "../../../components/app-sidebar"
-import { TopNav } from "../../../components/top-nav"
-import { MobileNav } from "../../../components/mobile-nav"
-import { fetchItems } from "@/lib/mongoose/items"
-import { MarketplaceSearch } from "../../../components/marketplace-search"
-import { ScrollableContent } from "@/components/scrollable-content"
+"use client"
 
-export const dynamic = "force-dynamic"
+import { motion } from "framer-motion"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { AuthenticatedLayout } from "@/components/authenticated-layout"
+import { Heart, ShoppingCart, Star, Search, Filter } from "lucide-react"
+import { getFakeItems, getFakeFeaturedItems } from "@/lib/fake-data"
+import Image from "next/image"
+import { useState } from "react"
 
-const CATEGORIES = ["Mixed", "Art", "Writing", "Audio", "Video", "Courses"]
+const CATEGORIES = [
+  { id: "all", label: "All Items" },
+  { id: "writing", label: "Writing" },
+  { id: "audio", label: "Audio" },
+  { id: "visual", label: "Visual" },
+  { id: "template", label: "Templates" },
+  { id: "code", label: "Code" },
+]
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
+export default function MarketplacePage() {
+  const allItems = getFakeItems()
+  const featuredItems = getFakeFeaturedItems()
+  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [liked, setLiked] = useState<Set<string>>(new Set())
 
-export default async function MarketplacePage({ searchParams }: { searchParams: SearchParams }) {
-  const resolvedParams = await searchParams;
-  const queryParam = resolvedParams?.q;
-  const catParam = resolvedParams?.cat;
-  
-  const query = (typeof queryParam === 'string' ? queryParam : "").trim()
-  const activeCategory = (typeof catParam === 'string' ? catParam : "mixed").toLowerCase()
-  // Server-side fetch for initial render; searching happens client-side within the active category
-  const results = await Promise.all(
-    CATEGORIES.map((cat) =>
-      fetchItems({ page: 1, limit: 12, category: cat.toLowerCase() === "mixed" ? undefined : cat })
-    )
-  )
+  const filteredItems =
+    selectedCategory === "all"
+      ? allItems
+      : allItems.filter((item) => item.category === selectedCategory)
 
-  const itemsByCategory = results.map((r) => ({ items: r.items || [] }))
+  const toggleLike = (itemId: string) => {
+    const newLiked = new Set(liked)
+    if (newLiked.has(itemId)) {
+      newLiked.delete(itemId)
+    } else {
+      newLiked.add(itemId)
+    }
+    setLiked(newLiked)
+  }
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.05 },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+  }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-foreground relative font-sans overflow-hidden selection:bg-primary/30">
-      {/* Texture Overlay */}
-      <div className="fixed inset-0 z-[1] opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-
-      {/* Background Ambient Glows */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-5%] w-[1000px] h-[1000px] bg-primary/10 rounded-full blur-[160px] opacity-20 animate-pulse transition-opacity duration-1000" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[140px] opacity-20" />
-      </div>
-
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="relative bg-transparent z-[2]">
-          <TopNav />
-          <ScrollableContent>
-            <main className="container mx-auto px-6 md:px-12 py-16">
-              <div className="space-y-16">
-                <MarketplaceHero />
-                <MarketplaceSearch
-                  itemsByCategory={itemsByCategory}
-                  categories={CATEGORIES}
-                  activeCategory={activeCategory}
-                  query={query}
-                />
+    <AuthenticatedLayout>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background/90">
+        {/* Header */}
+        <div className="border-b border-border/50 bg-gradient-to-b from-background/50 to-transparent backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              <div>
+                <h1 className="text-4xl font-bold mb-2">Digital Marketplace</h1>
+                <p className="text-gray-400">Discover premium digital products from top creators</p>
               </div>
-            </main>
-          </ScrollableContent>
-          <MobileNav />
-        </SidebarInset>
-      </SidebarProvider>
-    </div>
+
+              {/* Search & Filter */}
+              <div className="flex gap-4 flex-wrap">
+                <div className="relative flex-1 min-w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    className="w-full bg-foreground/10 border border-border/50 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  />
+                </div>
+                <Button variant="outline" className="border-border/50">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filters
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
+          {/* Featured Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="space-y-6"
+          >
+            <div>
+              <h2 className="text-2xl font-bold mb-2">✨ Featured Items</h2>
+              <p className="text-gray-400">Handpicked selections from our top creators</p>
+            </div>
+
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              initial="hidden"
+              animate="visible"
+              variants={containerVariants}
+            >
+              {featuredItems.map((item) => (
+                <motion.div key={item.id} variants={itemVariants}>
+                  <Card className="border-border/50 hover:border-blue-500/50 transition-all overflow-hidden group h-full flex flex-col">
+                    <div className="relative w-full h-48 bg-foreground/5 overflow-hidden">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        unoptimized
+                      />
+                      <Badge className="absolute top-3 right-3 bg-blue-500/80 text-white border-0">
+                        Featured
+                      </Badge>
+                    </div>
+
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg line-clamp-2">{item.title}</CardTitle>
+                        </div>
+                        <button
+                          onClick={() => toggleLike(item.id)}
+                          className="flex-shrink-0"
+                        >
+                          <Heart
+                            className={`h-5 w-5 transition-colors ${
+                              liked.has(item.id)
+                                ? "fill-red-500 text-red-500"
+                                : "text-gray-400 hover:text-red-500"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="flex-1 pb-3">
+                      <p className="text-sm text-gray-400 line-clamp-2 mb-4">{item.description}</p>
+
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="font-semibold">{item.rating}</span>
+                          <span className="text-gray-400">({item.reviews})</span>
+                        </div>
+                        <div className="text-gray-400">
+                          {item.sales} sold
+                        </div>
+                      </div>
+                    </CardContent>
+
+                    <CardFooter className="flex gap-3 pt-4 border-t border-border/30">
+                      <div className="flex-1">
+                        <p className="text-xs text-gray-400">Price</p>
+                        <p className="text-2xl font-bold text-blue-400">${item.price}</p>
+                      </div>
+                      <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg hover:shadow-blue-500/50 text-white font-semibold">
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Buy
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+
+          {/* Categories */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="flex gap-2 flex-wrap mb-6">
+              {CATEGORIES.map((cat) => (
+                <Button
+                  key={cat.id}
+                  variant={selectedCategory === cat.id ? "default" : "outline"}
+                  className={`rounded-full ${
+                    selectedCategory === cat.id
+                      ? "bg-gradient-to-r from-blue-500 to-purple-600 border-0"
+                      : "border-border/50 hover:border-border"
+                  }`}
+                  onClick={() => setSelectedCategory(cat.id)}
+                >
+                  {cat.label}
+                </Button>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* All Items Grid */}
+          <motion.div
+            className="space-y-6"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+          >
+            <div>
+              <h2 className="text-2xl font-bold mb-2">
+                {selectedCategory === "all" ? "All Products" : CATEGORIES.find((c) => c.id === selectedCategory)?.label}
+              </h2>
+              <p className="text-gray-400">Showing {filteredItems.length} items</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {filteredItems.map((item) => (
+                <motion.div key={item.id} variants={itemVariants}>
+                  <Card className="border-border/50 hover:border-border transition-all overflow-hidden group h-full flex flex-col">
+                    <div className="relative w-full h-32 bg-foreground/5 overflow-hidden">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        unoptimized
+                      />
+                    </div>
+
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm line-clamp-2">{item.title}</CardTitle>
+                    </CardHeader>
+
+                    <CardContent className="flex-1 pb-2">
+                      <p className="text-xs text-gray-400 mb-3">{item.creator.name}</p>
+                      <div className="flex items-center gap-1 text-xs">
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        <span className="font-semibold">{item.rating}</span>
+                        <span className="text-gray-400">({item.reviews})</span>
+                      </div>
+                    </CardContent>
+
+                    <CardFooter className="flex items-center justify-between pt-3 border-t border-border/30">
+                      <span className="font-bold text-blue-400">${item.price}</span>
+                      <button
+                        onClick={() => toggleLike(item.id)}
+                        className="flex-shrink-0"
+                      >
+                        <Heart
+                          className={`h-4 w-4 transition-colors ${
+                            liked.has(item.id)
+                              ? "fill-red-500 text-red-500"
+                              : "text-gray-400 hover:text-red-500"
+                          }`}
+                        />
+                      </button>
+                    </CardFooter>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </AuthenticatedLayout>
   )
 }
