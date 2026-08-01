@@ -209,7 +209,7 @@ export function TopNav() {
       <div className="hidden md:flex md:flex-1">
         <nav className="flex items-center space-x-10">
           {[
-            { name: "Live Stream", href: "/feed" },
+            { name: "Home Feed", href: "/feed" },
             { name: "Discover", href: "/discover" },
             { name: "Marketplace", href: "/marketplace" }
           ].map((link) => (

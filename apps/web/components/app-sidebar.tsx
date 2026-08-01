@@ -11,7 +11,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,12 +18,10 @@ import {
   Compass,
   ShoppingBag,
   BarChart3,
-  Bell,
   MessageSquare,
   PlusSquare,
   Wallet,
   Settings,
-  HelpCircle,
   Sparkles,
 } from "lucide-react"
 import Link from "next/link"
@@ -40,6 +37,7 @@ export function AppSidebar() {
   const isMarketplace = pathname?.startsWith("/marketplace")
   const isAnalytics = pathname?.startsWith("/analytics")
   const isCreate = pathname?.startsWith("/create")
+  const isMessages = pathname?.startsWith("/messages")
 
   return (
     <Sidebar 
@@ -49,10 +47,10 @@ export function AppSidebar() {
     >
       <SidebarHeader className="p-6 overflow-hidden flex-shrink-0">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative overflow-hidden rounded-xl p-2 transition-transform duration-500 group-hover:scale-110" style={{ backgroundColor: "rgba(0, 255, 0, 0.2)", boxShadow: "0 0 15px rgba(0, 255, 0, 0.4)" }}>
-            <Sparkles className="h-5 w-5" style={{ color: "#00ff00" }} />
+          <div className="relative overflow-hidden rounded-xl p-2 bg-primary shadow-glow transition-transform duration-500 group-hover:scale-110">
+            <Sparkles className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="font-serif italic text-xl tracking-tighter group-hover:text-white transition-colors" style={{ color: "#00ff00" }}>
+          <span className="font-serif italic text-xl text-foreground tracking-tighter group-hover:text-primary transition-colors">
             DreamDOT
           </span>
         </Link>
@@ -60,33 +58,57 @@ export function AppSidebar() {
 
       <SidebarContent className="flex-1 overflow-hidden px-3 space-y-6">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] font-mono uppercase tracking-[0.3em] px-4 mb-4" style={{ color: "rgba(0, 255, 0, 0.4)" }}>The Stream</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] font-mono uppercase tracking-[0.3em] px-4 mb-4 text-primary/40">The Stream</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-2">
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={Boolean(isHome)} className="h-12 rounded-2xl transition-all duration-500 active:scale-95 group relative overflow-hidden hover:bg-white/5">
+                <SidebarMenuButton 
+                  asChild 
+                  isActive={Boolean(isHome)} 
+                  className={cn(
+                    "h-12 rounded-2xl transition-all duration-300 active:scale-95 group relative overflow-hidden",
+                    isHome 
+                      ? "bg-primary/10 border-l-2 border-primary shadow-md" 
+                      : "hover:bg-foreground/5"
+                  )}
+                >
                   <Link href="/feed">
-                    <Home className={cn("transition-colors", isHome ? "text-green-400" : "text-foreground/40" )} style={{ color: isHome ? "#00ff00" : undefined }} />
-                    <span className={cn("font-medium transition-colors", isHome ? "text-white" : "text-foreground/60")} style={{ color: isHome ? "#00ff00" : undefined }}>Home</span>
-                    {isHome && <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 rounded-full" style={{ backgroundColor: "#00ff00" }} />}
+                    <Home className={cn("transition-colors", isHome ? "text-primary" : "text-foreground/40 group-hover:text-primary")} />
+                    <span className={cn("font-medium transition-colors", isHome ? "text-primary" : "text-foreground/60 group-hover:text-primary")}>Home</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={Boolean(isDiscover)} className="h-12 rounded-2xl transition-all duration-500 group relative overflow-hidden hover:bg-white/5">
+                <SidebarMenuButton 
+                  asChild 
+                  isActive={Boolean(isDiscover)} 
+                  className={cn(
+                    "h-12 rounded-2xl transition-all duration-300 group relative overflow-hidden",
+                    isDiscover 
+                      ? "bg-primary/10 border-l-2 border-primary shadow-md" 
+                      : "hover:bg-foreground/5"
+                  )}
+                >
                   <Link href="/discover">
-                    <Compass className={cn("transition-colors", isDiscover ? "text-green-400" : "text-foreground/40")} style={{ color: isDiscover ? "#00ff00" : undefined }} />
-                    <span className={cn("font-medium transition-colors", isDiscover ? "text-white" : "text-foreground/60")} style={{ color: isDiscover ? "#00ff00" : undefined }}>Discover</span>
-                    {isDiscover && <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 rounded-full" style={{ backgroundColor: "#00ff00" }} />}
+                    <Compass className={cn("transition-colors", isDiscover ? "text-primary" : "text-foreground/40 group-hover:text-primary")} />
+                    <span className={cn("font-medium transition-colors", isDiscover ? "text-primary" : "text-foreground/60 group-hover:text-primary")}>Discover</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={Boolean(isMarketplace)} className="h-12 rounded-2xl transition-all duration-500 group relative overflow-hidden hover:bg-white/5">
+                <SidebarMenuButton 
+                  asChild 
+                  isActive={Boolean(isMarketplace)} 
+                  className={cn(
+                    "h-12 rounded-2xl transition-all duration-300 group relative overflow-hidden",
+                    isMarketplace 
+                      ? "bg-primary/10 border-l-2 border-primary shadow-md" 
+                      : "hover:bg-foreground/5"
+                  )}
+                >
                   <Link href="/marketplace">
-                    <ShoppingBag className={cn("transition-colors", isMarketplace ? "text-green-400" : "text-foreground/40")} style={{ color: isMarketplace ? "#00ff00" : undefined }} />
-                    <span className={cn("font-medium transition-colors", isMarketplace ? "text-white" : "text-foreground/60")} style={{ color: isMarketplace ? "#00ff00" : undefined }}>Market</span>
-                    {isMarketplace && <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 rounded-full" style={{ backgroundColor: "#00ff00" }} />}
+                    <ShoppingBag className={cn("transition-colors", isMarketplace ? "text-primary" : "text-foreground/40 group-hover:text-primary")} />
+                    <span className={cn("font-medium transition-colors", isMarketplace ? "text-primary" : "text-foreground/60 group-hover:text-primary")}>Market</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -95,32 +117,68 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] font-mono uppercase tracking-[0.3em] px-4 mb-4" style={{ color: "rgba(0, 255, 0, 0.4)" }}>Atelier</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] font-mono uppercase tracking-[0.3em] px-4 mb-4 text-primary/40">Atelier</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-2">
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={Boolean(isAnalytics)} className="h-12 rounded-2xl transition-all duration-500 group relative overflow-hidden hover:bg-white/5">
+                <SidebarMenuButton 
+                  asChild 
+                  isActive={Boolean(isAnalytics)} 
+                  className={cn(
+                    "h-12 rounded-2xl transition-all duration-300 group relative overflow-hidden",
+                    isAnalytics 
+                      ? "bg-primary/10 border-l-2 border-primary shadow-md" 
+                      : "hover:bg-foreground/5"
+                  )}
+                >
                   <Link href="/analytics">
-                    <BarChart3 className={cn("transition-colors", isAnalytics ? "text-green-400" : "text-foreground/40")} style={{ color: isAnalytics ? "#00ff00" : undefined }} />
-                    <span className={cn("font-medium transition-colors", isAnalytics ? "text-white" : "text-foreground/60")} style={{ color: isAnalytics ? "#00ff00" : undefined }}>Insights</span>
-                    {isAnalytics && <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 rounded-full" style={{ backgroundColor: "#00ff00" }} />}
+                    <BarChart3 className={cn("transition-colors", isAnalytics ? "text-primary" : "text-foreground/40 group-hover:text-primary")} />
+                    <span className={cn("font-medium transition-colors", isAnalytics ? "text-primary" : "text-foreground/60 group-hover:text-primary")}>Insights</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={Boolean(isCreate)} className="h-12 rounded-2xl transition-all duration-500 group relative overflow-hidden hover:bg-white/5">
+                <SidebarMenuButton 
+                  asChild 
+                  isActive={Boolean(isCreate)} 
+                  className={cn(
+                    "h-12 rounded-2xl transition-all duration-300 group relative overflow-hidden",
+                    isCreate 
+                      ? "bg-primary/10 border-l-2 border-primary shadow-md" 
+                      : "hover:bg-foreground/5"
+                  )}
+                >
                   <Link href="/create">
-                    <PlusSquare className={cn("transition-colors", isCreate ? "text-green-400" : "text-foreground/40")} style={{ color: isCreate ? "#00ff00" : undefined }} />
-                    <span className={cn("font-medium transition-colors", isCreate ? "text-white" : "text-foreground/60")} style={{ color: isCreate ? "#00ff00" : undefined }}>Craft Item</span>
-                    {isCreate && <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 rounded-full" style={{ backgroundColor: "#00ff00" }} />}
+                    <PlusSquare className={cn("transition-colors", isCreate ? "text-primary" : "text-foreground/40 group-hover:text-primary")} />
+                    <span className={cn("font-medium transition-colors", isCreate ? "text-primary" : "text-foreground/60 group-hover:text-primary")}>Craft Item</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild className="h-12 rounded-2xl transition-all duration-500 active:scale-95 group relative overflow-hidden hover:bg-white/5">
+                <SidebarMenuButton 
+                  asChild 
+                  isActive={Boolean(isMessages)} 
+                  className={cn(
+                    "h-12 rounded-2xl transition-all duration-300 group relative overflow-hidden",
+                    isMessages 
+                      ? "bg-primary/10 border-l-2 border-primary shadow-md" 
+                      : "hover:bg-foreground/5"
+                  )}
+                >
+                  <Link href="/messages">
+                    <MessageSquare className={cn("transition-colors", isMessages ? "text-primary" : "text-foreground/40 group-hover:text-primary")} />
+                    <span className={cn("font-medium transition-colors", isMessages ? "text-primary" : "text-foreground/60 group-hover:text-primary")}>Messages</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  asChild 
+                  className="h-12 rounded-2xl transition-all duration-300 active:scale-95 group relative overflow-hidden hover:bg-foreground/5"
+                >
                   <Link href="/payment">
-                    <Wallet className="text-foreground/40 group-hover:text-white transition-colors" style={{ color: "#00ff00" }} />
-                    <span className="font-medium text-foreground/60 group-hover:text-white" style={{ color: "#00ff00" }}>Payments</span>
+                    <Wallet className="text-foreground/40 group-hover:text-primary transition-colors" />
+                    <span className="font-medium text-foreground/60 group-hover:text-primary transition-colors">Payments</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -129,14 +187,17 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] font-mono uppercase tracking-[0.3em] px-4 mb-4" style={{ color: "rgba(0, 255, 0, 0.4)" }}>System</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] font-mono uppercase tracking-[0.3em] px-4 mb-4 text-primary/40">System</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-2">
               <SidebarMenuItem>
-                <SidebarMenuButton asChild className="h-12 rounded-2xl transition-all duration-500 active:scale-95 group relative overflow-hidden hover:bg-white/5">
+                <SidebarMenuButton 
+                  asChild 
+                  className="h-12 rounded-2xl transition-all duration-300 active:scale-95 group relative overflow-hidden hover:bg-foreground/5"
+                >
                   <Link href="/settings">
-                    <Settings className="text-foreground/40 group-hover:text-white transition-colors" style={{ color: "#00ff00" }} />
-                    <span className="font-medium text-foreground/60 group-hover:text-white" style={{ color: "#00ff00" }}>Preferences</span>
+                    <Settings className="text-foreground/40 group-hover:text-primary transition-colors" />
+                    <span className="font-medium text-foreground/60 group-hover:text-primary transition-colors">Preferences</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -147,8 +208,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-6 overflow-hidden flex-shrink-0">
         <Button 
-          className="w-full h-12 rounded-2xl shadow-lg border border-white/5 transition-all duration-500 active:scale-[0.98] font-mono text-[10px] uppercase tracking-widest font-semibold"
-          style={{ backgroundColor: "#00ff00", color: "#0a0f1f" }}
+          className="w-full h-12 rounded-2xl shadow-glow border border-white/5 transition-all duration-300 active:scale-[0.98] font-mono text-[10px] uppercase tracking-widest font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
           onClick={() => router.push("/create")}
         >
           <PlusSquare className="mr-2 h-4 w-4" />

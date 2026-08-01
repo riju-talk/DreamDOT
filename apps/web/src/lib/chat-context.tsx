@@ -153,9 +153,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }
 
   const joinConversation = (conversationId: string) => {
+    loadMessages(conversationId)
     if (socket && isConnected) {
       joinRoom(conversationId)
-      loadMessages(conversationId)
+    }
+  }
+
+  const selectConversation = (conversation: ChatConversation | null) => {
+    setActiveConversation(conversation)
+    if (conversation) {
+      joinConversation(conversation.id)
     }
   }
 
@@ -280,7 +287,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     joinConversation,
     leaveConversation,
     sendMessage,
-    setActiveConversation,
+    setActiveConversation: selectConversation,
     createDirectMessage,
     createGroupChat,
     searchConversations,

@@ -3,15 +3,14 @@
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AuthenticatedLayout } from "@/components/authenticated-layout"
+import { AuthenticatedLayout } from "../../../components/authenticated-layout"
 import { Heart, MessageCircle, Share2, Bookmark, ArrowRight } from "lucide-react"
-import { getFakePosts, getCurrentUser } from "@/lib/fake-data"
+import { getFakePosts } from "@/lib/fake-data"
 import Image from "next/image"
 import { useState } from "react"
 
 export default function FeedPage() {
   const posts = getFakePosts()
-  const user = getCurrentUser()
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set())
 
   const toggleLike = (postId: string) => {
@@ -39,22 +38,7 @@ export default function FeedPage() {
 
   return (
     <AuthenticatedLayout>
-      <div className="min-h-screen" style={{ backgroundColor: "#0a0f1f" }}>
-        {/* Header */}
-        <div className="sticky top-0 z-40 backdrop-blur-md" style={{ backgroundColor: "rgba(10, 15, 31, 0.8)", borderBottom: "1px solid rgba(0, 255, 0, 0.2)" }}>
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-white">Welcome back, {user.name.split(" ")[0]}!</h1>
-                <p style={{ color: "#a3a3a3" }}>Discover what's new from creators you follow</p>
-              </div>
-              <Button className="font-semibold" style={{ backgroundColor: "#00ff00", color: "#0a0f1f" }}>
-                + Create Post
-              </Button>
-            </div>
-          </div>
-        </div>
-
+      <div className="min-h-screen bg-[#f5f7f0] dark:bg-[#0a0f1f]">
         {/* Feed Content */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <motion.div
@@ -80,7 +64,7 @@ export default function FeedPage() {
                         </div>
                         <div>
                           <p className="font-semibold text-sm">{post.author.name}</p>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-muted-foreground">
                             {Math.floor((Date.now() - post.createdAt.getTime()) / (1000 * 60 * 60))} hours ago
                           </p>
                         </div>
@@ -96,7 +80,7 @@ export default function FeedPage() {
                       <h2 className="text-2xl font-bold mb-2 group-hover:text-blue-400 transition-colors cursor-pointer">
                         {post.title}
                       </h2>
-                      <p className="text-gray-300 leading-relaxed">{post.content}</p>
+                      <p className="text-muted-foreground leading-relaxed">{post.content}</p>
                     </div>
 
                     {post.image && (
@@ -123,7 +107,7 @@ export default function FeedPage() {
                     </div>
 
                     {/* Engagement Stats */}
-                    <div className="flex items-center justify-between pt-4 text-sm text-gray-400 border-t border-border/30">
+                    <div className="flex items-center justify-between pt-4 text-sm text-muted-foreground border-t border-border/30">
                       <span>{post.likes} likes</span>
                       <span>{post.comments} comments</span>
                     </div>
@@ -140,28 +124,28 @@ export default function FeedPage() {
                           className={`h-4 w-4 mr-2 transition-colors ${
                             likedPosts.has(post.id)
                               ? "fill-red-500 text-red-500"
-                              : "text-gray-400 group-hover/btn:text-red-500"
+                              : "text-muted-foreground group-hover/btn:text-red-500"
                           }`}
                         />
-                        <span className="text-gray-400 group-hover/btn:text-red-500 transition-colors">
+                        <span className="text-muted-foreground group-hover/btn:text-red-500 transition-colors">
                           Like
                         </span>
                       </Button>
                       <Button variant="ghost" size="sm" className="flex-1 hover:bg-blue-500/10">
-                        <MessageCircle className="h-4 w-4 mr-2 text-gray-400 group-hover:text-blue-500" />
-                        <span className="text-gray-400 group-hover:text-blue-500 transition-colors">
+                        <MessageCircle className="h-4 w-4 mr-2 text-muted-foreground group-hover:text-blue-500" />
+                        <span className="text-muted-foreground group-hover:text-blue-500 transition-colors">
                           Comment
                         </span>
                       </Button>
                       <Button variant="ghost" size="sm" className="flex-1 hover:bg-purple-500/10">
-                        <Share2 className="h-4 w-4 mr-2 text-gray-400 group-hover:text-purple-500" />
-                        <span className="text-gray-400 group-hover:text-purple-500 transition-colors">
+                        <Share2 className="h-4 w-4 mr-2 text-muted-foreground group-hover:text-purple-500" />
+                        <span className="text-muted-foreground group-hover:text-purple-500 transition-colors">
                           Share
                         </span>
                       </Button>
                       <Button variant="ghost" size="sm" className="flex-1 hover:bg-yellow-500/10">
-                        <Bookmark className="h-4 w-4 mr-2 text-gray-400 group-hover:text-yellow-500" />
-                        <span className="text-gray-400 group-hover:text-yellow-500 transition-colors">
+                        <Bookmark className="h-4 w-4 mr-2 text-muted-foreground group-hover:text-yellow-500" />
+                        <span className="text-muted-foreground group-hover:text-yellow-500 transition-colors">
                           Save
                         </span>
                       </Button>

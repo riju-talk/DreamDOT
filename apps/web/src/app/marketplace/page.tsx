@@ -4,8 +4,8 @@ import { motion } from "framer-motion"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { AuthenticatedLayout } from "@/components/authenticated-layout"
-import { Heart, ShoppingCart, Star, Search, Filter } from "lucide-react"
+import { AuthenticatedLayout } from "../../../components/authenticated-layout"
+import { Heart, ShoppingCart, Star } from "lucide-react"
 import { getFakeItems, getFakeFeaturedItems } from "@/lib/fake-data"
 import Image from "next/image"
 import { useState } from "react"
@@ -56,38 +56,6 @@ export default function MarketplacePage() {
   return (
     <AuthenticatedLayout>
       <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background/90">
-        {/* Header */}
-        <div className="border-b border-border/50 bg-gradient-to-b from-background/50 to-transparent backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-6"
-            >
-              <div>
-                <h1 className="text-4xl font-bold mb-2">Digital Marketplace</h1>
-                <p className="text-gray-400">Discover premium digital products from top creators</p>
-              </div>
-
-              {/* Search & Filter */}
-              <div className="flex gap-4 flex-wrap">
-                <div className="relative flex-1 min-w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                  <input
-                    type="text"
-                    placeholder="Search products..."
-                    className="w-full bg-foreground/10 border border-border/50 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                  />
-                </div>
-                <Button variant="outline" className="border-border/50">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filters
-                </Button>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
           {/* Featured Section */}
           <motion.div
@@ -98,7 +66,7 @@ export default function MarketplacePage() {
           >
             <div>
               <h2 className="text-2xl font-bold mb-2">✨ Featured Items</h2>
-              <p className="text-gray-400">Handpicked selections from our top creators</p>
+              <p className="text-muted-foreground">Handpicked selections from our top creators</p>
             </div>
 
             <motion.div
@@ -136,7 +104,7 @@ export default function MarketplacePage() {
                             className={`h-5 w-5 transition-colors ${
                               liked.has(item.id)
                                 ? "fill-red-500 text-red-500"
-                                : "text-gray-400 hover:text-red-500"
+                                : "text-muted-foreground hover:text-red-500"
                             }`}
                           />
                         </button>
@@ -144,15 +112,15 @@ export default function MarketplacePage() {
                     </CardHeader>
 
                     <CardContent className="flex-1 pb-3">
-                      <p className="text-sm text-gray-400 line-clamp-2 mb-4">{item.description}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{item.description}</p>
 
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center gap-1">
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                           <span className="font-semibold">{item.rating}</span>
-                          <span className="text-gray-400">({item.reviews})</span>
+                          <span className="text-muted-foreground">({item.reviews})</span>
                         </div>
-                        <div className="text-gray-400">
+                        <div className="text-muted-foreground">
                           {item.sales} sold
                         </div>
                       </div>
@@ -160,7 +128,7 @@ export default function MarketplacePage() {
 
                     <CardFooter className="flex gap-3 pt-4 border-t border-border/30">
                       <div className="flex-1">
-                        <p className="text-xs text-gray-400">Price</p>
+                        <p className="text-xs text-muted-foreground">Price</p>
                         <p className="text-2xl font-bold text-blue-400">${item.price}</p>
                       </div>
                       <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg hover:shadow-blue-500/50 text-white font-semibold">
@@ -209,7 +177,7 @@ export default function MarketplacePage() {
               <h2 className="text-2xl font-bold mb-2">
                 {selectedCategory === "all" ? "All Products" : CATEGORIES.find((c) => c.id === selectedCategory)?.label}
               </h2>
-              <p className="text-gray-400">Showing {filteredItems.length} items</p>
+              <p className="text-muted-foreground">Showing {filteredItems.length} items</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -231,11 +199,11 @@ export default function MarketplacePage() {
                     </CardHeader>
 
                     <CardContent className="flex-1 pb-2">
-                      <p className="text-xs text-gray-400 mb-3">{item.creator.name}</p>
+                      <p className="text-xs text-muted-foreground mb-3">{item.creator.name}</p>
                       <div className="flex items-center gap-1 text-xs">
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                         <span className="font-semibold">{item.rating}</span>
-                        <span className="text-gray-400">({item.reviews})</span>
+                        <span className="text-muted-foreground">({item.reviews})</span>
                       </div>
                     </CardContent>
 
@@ -249,7 +217,7 @@ export default function MarketplacePage() {
                           className={`h-4 w-4 transition-colors ${
                             liked.has(item.id)
                               ? "fill-red-500 text-red-500"
-                              : "text-gray-400 hover:text-red-500"
+                              : "text-muted-foreground hover:text-red-500"
                           }`}
                         />
                       </button>
