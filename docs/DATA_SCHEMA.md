@@ -6,11 +6,35 @@ Here is the **definitive, exhaustive, and fully detailed Data Schema & State Mod
 
 | | |
 |---|---|
-| **Document version** | 3.0 (Complete & Exhaustive) |
+| **Document version** | 3.1 (MongoDB vs PostgreSQL Split Clarified) |
 | **Status** | Locked — Single Source of Truth for all databases and state |
 | **Last updated** | 2026-08-01 |
 | **Owner** | Rijusmit |
 | **Repository** | `C:\Code\01_full_stack\DreamDot` |
+
+---
+
+## 0. Data Architecture Overview: MongoDB vs PostgreSQL
+
+### The Split (Golden Rule)
+- **PostgreSQL (Prisma)**: All relational data, social graph, auth, transactions, subscriptions, and business logic
+- **MongoDB (Mongoose)**: All content bodies, media, chat, Web3 ledger, DRM configs, and unstructured data
+
+| Data Category | Database | Why | Examples |
+|---|---|---|---|
+| **Content Bodies** | **MongoDB** | Flexible schema for long-form text, rich media arrays, DRM configs | Posts (script/body), Items (full script), Comments (text) |
+| **User Profiles & Auth** | **PostgreSQL** | Relational, normalized, indexed for fast auth lookups | Users, email, credentials, settings |
+| **Social Graph** | **PostgreSQL** | Relational core: follow/unfollow, block/unblock, subscriptions | Follows, Blocks, UserSubscriptions |
+| **Financial & Transactions** | **PostgreSQL** | ACID guarantees, audit trails, compliance | Transactions, Payments, Balances |
+| **Engagement (Likes, Saves, Shares)** | **PostgreSQL** | Relational indices for fast counts and user interaction queries | Likes, Saves, Shares tables |
+| **Chat (Messages & Conversations)** | **MongoDB** | Unstructured, high write-throughput, flexible message schemas | Messages, Conversations with attachment arrays |
+| **Items/Products Metadata** | **PostgreSQL** | Relational pricing, inventory, ownership | Item (title, price, category, visibility) |
+| **Items Content Bodies** | **MongoDB** | Item scripts, media arrays, DRM settings, NFT tokens | Item (script body, media, blockchainTokenId, drmConfig) |
+| **Web3 / Blockchain** | **MongoDB** | Immutable ledger, hash chains, cryptographic proofs | BlockchainLedger (txHash, eventType, timestamp) |
+| **Meta Integrations** | **PostgreSQL** | Encrypted tokens, API credentials, campaign IDs | MetaIntegration, AdCampaign |
+| **Community Servers** | **MongoDB** | Flexible channel/member schemas, text-only enforcement | Server, ServerChannel (type: 'text' only) |
+
+**Bottom Line**: If it's relational, transactional, or needs fast indexed queries → PostgreSQL. If it's a content body, unstructured, or immutable → MongoDB.
 
 ---
 
@@ -766,3 +790,462 @@ export interface AdCampaign {
 - **Payment Routes**: `apps/payment/src/routes/payment.js`, `webhook.js`
 - **Meta Service**: `apps/meta/src/routes/broadcast.js`, `ads.js`
 - **Web3 Service**: `apps/web3/src/routes/mint.js`, `ledger.js`
+
+
+---
+
+## 8. MongoDB Comprehensive Usage Guide
+
+### 8.1 When to Use MongoDB: Decision Tree
+
+```
+Does the data have a fixed structure and need ACID transactions?
+  ├─ YES → PostgreSQL (Users, Transactions, Social Graph)
+  └─ NO  → Is it content/body text or unstructured media?
+           ├─ YES → MongoDB (Posts, Items, Chat Messages)
+           └─ NO  → PostgreSQL
+```
+
+### 8.2 MongoDB Models & When to Query Them
+
+#### **Post Model** (MongoDB)
+**Use when**: Reading/writing post content bodies, comments, media arrays, engagement score
+**Avoid**: Counting likes/comments for feed (use PostgreSQL `likes` table instead)
+**Query Examples**:
+```javascript
+// ✅ DO: Get post content body for display
+const post = await Post.findById(postId).select('content title media comments')
+
+// ❌ DON'T: Count likes here - use PostgreSQL instead
+const likeCount = post.likes.length  // WRONG - use prismaSocial.likes.count()
+
+// ✅ DO: Get comments with pagination
+const comments = post.comments.slice(skip, skip + limit)
+
+// ✅ DO: Add/remove comment from post
+await Post.findByIdAndUpdate(postId, { $push: { comments: newComment } })
+```
+
+#### **Item Model** (MongoDB)
+**Use when**: Reading/writing item scripts, media arrays, DRM configs, pricing models, bundle items
+**Avoid**: Querying by price range (use PostgreSQL `Item` metadata instead for fast indexed queries)
+**Query Examples**:
+```javascript
+// ✅ DO: Get item's full script body and DRM config
+const item = await Item.findById(itemId).select('script drmConfig media pricingModel')
+
+// ✅ DO: Get bundle items (array of Item IDs)
+const bundleItems = await Item.findById(bundleId).select('bundleItems')
+
+// ❌ DON'T: Query by price range in MongoDB
+// Instead, query PostgreSQL Item for price range, then join with Mongo for bodies
+
+// ✅ DO: Update DRM settings
+await Item.findByIdAndUpdate(itemId, { 'drmConfig.disableRightClick': true })
+```
+
+#### **Message Model** (MongoDB)
+**Use when**: Reading/writing chat messages, attachments, E2E encryption payloads
+**Query Examples**:
+```javascript
+// ✅ DO: Get recent messages with pagination
+const messages = await Message.find({ conversationId })
+  .sort({ timestamp: -1 })
+  .limit(20)
+
+// ✅ DO: Get unread messages for user
+const unreadMessages = await Message.find({
+  conversationId,
+  readBy: { $nin: [userId] }
+})
+
+// ✅ DO: Mark messages as read
+await Message.updateMany(
+  { conversationId, 'readBy': { $nin: [userId] } },
+  { $push: { readBy: userId } }
+)
+
+// ✅ DO: Store E2E encrypted message
+const encryptedMessage = await Message.create({
+  conversationId,
+  senderId,
+  ciphertext: encryptedPayload,
+  nonce,
+  keyId,
+  type: 'text'
+})
+```
+
+#### **BlockchainLedger Model** (MongoDB)
+**Use when**: Recording immutable Web3 events, NFT mints, credit transfers
+**Key Rule**: NEVER UPDATE. Only INSERT.
+**Query Examples**:
+```javascript
+// ✅ DO: Append immutable transaction record
+await BlockchainLedger.create({
+  txHash: '0x123abc...',
+  chainId: 137, // Polygon
+  eventType: 'mint_item',
+  toAddress: userWeb3Address,
+  creditsAmount: 500,
+  metadata: { itemId: 'item_xyz' }
+})
+
+// ✅ DO: Verify ownership chain (append-only audit trail)
+const ownerships = await BlockchainLedger.find({
+  eventType: { $in: ['mint_item', 'transfer'] },
+  toAddress: userWeb3Address
+}).sort({ timestamp: -1 })
+
+// ❌ DON'T: Update or delete records
+// await BlockchainLedger.findByIdAndUpdate(...) // WRONG
+
+// ✅ DO: Read for audit (immutability is the feature)
+const allEventsForUser = await BlockchainLedger.find({
+  fromAddress: userWeb3Address
+}).sort({ timestamp: -1 })
+```
+
+#### **Server Model** (MongoDB) - Text-Only Communities
+**Use when**: Creating/managing text-only community servers, channels, permissions
+**Strict Rule**: `Channel.type` MUST be `'text'`. No 'voice' or 'stage' allowed.
+**Query Examples**:
+```javascript
+// ✅ DO: Create text-only server
+const server = await Server.create({
+  name: 'Developer Hub',
+  ownerId: userId,
+  members: [{ userId, role: 'owner' }],
+  channels: [
+    {
+      id: 'general',
+      name: 'general',
+      type: 'text', // STRICTLY ENFORCED
+      topic: 'General discussion'
+    }
+  ]
+})
+
+// ✅ DO: Add text channel
+await Server.findByIdAndUpdate(serverId, {
+  $push: {
+    channels: {
+      id: 'announcements',
+      name: 'announcements',
+      type: 'text'
+    }
+  }
+})
+
+// ❌ DON'T: Create voice channels
+// await Server.findByIdAndUpdate(serverId, {
+//   $push: {
+//     channels: {
+//       name: 'voice-chat',
+//       type: 'voice'  // WRONG - will be rejected at API level
+//     }
+//   }
+// })
+
+// ✅ DO: Fetch all text channels for a server
+const server = await Server.findById(serverId).select('channels')
+const textChannels = server.channels.filter(c => c.type === 'text')
+```
+
+#### **Conversation & Message Models** (MongoDB) - Chat
+**Use when**: Managing DM/group chats, reading messages, tracking unread counts
+**Query Examples**:
+```javascript
+// ✅ DO: Get all conversations for user (with latest message)
+const conversations = await Conversation.find({
+  participants: userId
+}).populate('lastMessage')
+
+// ✅ DO: Get unread count per conversation
+const unreadCounts = {}
+for (const conv of conversations) {
+  unreadCounts[conv._id] = conv.unreadBy.length
+}
+
+// ✅ DO: Mark conversation as read
+await Conversation.findByIdAndUpdate(convId, {
+  $pull: { unreadBy: userId }
+})
+
+// ✅ DO: Add participant to group chat
+await Conversation.findByIdAndUpdate(convId, {
+  $push: { participants: newUserId }
+})
+```
+
+### 8.3 Cross-Database Joins: Patterns & Examples
+
+**Pattern 1: Get Post with Creator Profile**
+```javascript
+// 1. Query Mongo for post content
+const post = await Post.findById(postId)
+
+// 2. Use userId from post to query Prisma for profile
+const creator = await prismaSocial.users.findUnique({
+  where: { id: post.userId },
+  select: { displayName: true, avatar: true }
+})
+
+// 3. Merge results
+return {
+  ...post.toObject(),
+  creator
+}
+```
+
+**Pattern 2: Get Items for Marketplace with Seller Info**
+```javascript
+// 1. Query Mongo for items
+const items = await Item.find({ visibility: 'public' })
+  .sort({ createdAt: -1 })
+  .limit(20)
+
+// 2. Batch query Prisma for creator info
+const creatorIds = items.map(i => i.userId)
+const creators = await prismaSocial.users.findMany({
+  where: { id: { in: creatorIds } },
+  select: { id: true, displayName: true, avatar: true }
+})
+const creatorMap = Object.fromEntries(creators.map(c => [c.id, c]))
+
+// 3. Enrich items
+return items.map(item => ({
+  ...item.toObject(),
+  creator: creatorMap[item.userId]
+}))
+```
+
+**Pattern 3: Get Comments with Author Info**
+```javascript
+// 1. Get post with comments from Mongo
+const post = await Post.findById(postId)
+const comments = post.comments || []
+
+// 2. Batch fetch author profiles from Prisma
+const authorIds = comments.map(c => c.userId)
+const authors = await prismaSocial.users.findMany({
+  where: { id: { in: authorIds } },
+  select: { id: true, displayName: true, avatar: true }
+})
+const authorMap = Object.fromEntries(authors.map(a => [a.id, a]))
+
+// 3. Enrich comments with author info
+return comments.map(comment => ({
+  ...comment,
+  author: authorMap[comment.userId]
+}))
+```
+
+### 8.4 Mongoose Query Optimization
+
+#### Index Strategy
+```javascript
+// Indices are defined in model `@index` decorators
+// Key indices for performance:
+
+// Post model - fast access by userId and createdAt
+Post.index({ userId: 1 })
+Post.index({ createdAt: -1 })
+
+// Item model - fast marketplace queries
+Item.index({ userId: 1 })
+Item.index({ category: 1 })
+Item.index({ visibility: 1 })
+Item.index({ createdAt: -1 })
+
+// Message model - fast chat queries
+Message.index({ conversationId: 1, timestamp: -1 })
+Message.index({ senderId: 1, timestamp: -1 })
+
+// BlockchainLedger - immutable event log
+BlockchainLedger.index({ txHash: 1 }, { unique: true })
+BlockchainLedger.index({ timestamp: -1 })
+```
+
+#### Lean Queries (No Mongoose Overhead)
+```javascript
+// ✅ Use .lean() for read-heavy operations (saves memory)
+const posts = await Post.find({ visibility: true })
+  .lean() // Returns plain JS objects, not Mongoose documents
+  .limit(20)
+
+// ❌ Don't use .lean() if you need to call .save() later
+// const post = await Post.findById(postId).lean()
+// post.content = '...' // Won't work - post is just a JS object
+// await post.save() // WRONG
+```
+
+#### Pagination Best Practices
+```javascript
+// ✅ DO: Skip + Limit with sorting
+const page = 2
+const limit = 20
+const skip = (page - 1) * limit
+
+const posts = await Post.find({ userId: creatorId })
+  .sort({ createdAt: -1 })
+  .skip(skip)
+  .limit(limit)
+  .lean()
+
+// ❌ DON'T: Fetch all then slice (wasteful)
+// const allPosts = await Post.find({ userId: creatorId })
+// const page2Posts = allPosts.slice(20, 40) // WRONG - fetches all docs
+
+// ✅ DO: Return hasMore flag
+const total = await Post.countDocuments({ userId: creatorId })
+const hasMore = skip + posts.length < total
+```
+
+### 8.5 MongoDB Error Handling & Edge Cases
+
+#### Handling Duplicate Posts (Race Condition)
+```javascript
+// Problem: User submits post twice within 100ms
+// Solution: Use unique index on (userId, contentHash)
+
+// In Post model:
+PostSchema.index({ userId: 1, contentHash: 1 }, { unique: true })
+
+// In API route:
+try {
+  const post = await Post.create({
+    userId,
+    content,
+    contentHash: crypto.hash(content) // Prevents duplicates
+  })
+} catch (error) {
+  if (error.code === 11000) {
+    return res.status(409).json({ error: 'Duplicate post' })
+  }
+}
+```
+
+#### Handling Atomic Array Operations
+```javascript
+// Problem: Race condition on comment push
+// Solution: Use Mongoose atomic operators ($push, $pull, $inc)
+
+// ✅ DO: Use atomic operations (safe for concurrent requests)
+await Post.findByIdAndUpdate(postId, {
+  $push: { comments: newComment },
+  $inc: { commentCount: 1 }
+})
+
+// ❌ DON'T: Fetch, modify, save (loses concurrent updates)
+// const post = await Post.findById(postId)
+// post.comments.push(newComment)
+// await post.save() // Other requests' updates may be lost
+
+// ✅ DO: Return updated document
+const updatedPost = await Post.findByIdAndUpdate(
+  postId,
+  { $push: { comments: newComment } },
+  { new: true } // Returns post AFTER update
+)
+```
+
+#### Handling Missing Documents
+```javascript
+// ✅ DO: Check for null and return 404
+const post = await Post.findById(postId)
+if (!post) {
+  return res.status(404).json({ error: 'Post not found' })
+}
+
+// ✅ DO: Use findByIdAndUpdate with upsert if needed
+const updatedPost = await Post.findByIdAndUpdate(
+  postId,
+  { $inc: { views: 1 } },
+  { new: true }
+)
+if (!updatedPost) {
+  return res.status(404).json({ error: 'Post not found' })
+}
+```
+
+### 8.6 Transitioning Data Between Mongo & Postgres
+
+When moving from MongoDB-only to split architecture:
+
+#### Step 1: Add `sqlId` to MongoDB models
+```javascript
+// Add sqlId field (links Mongo → Postgres)
+const post = await Post.findByIdAndUpdate(mongoId, {
+  $set: { sqlId: postgresId }
+})
+```
+
+#### Step 2: Dual-write during transition
+```javascript
+// Write to both databases
+const sqlItem = await prismaSocial.items.create({ ... })
+const mongoItem = await Item.create({
+  ...mongoData,
+  sqlId: sqlItem.id
+})
+```
+
+#### Step 3: Verify consistency
+```javascript
+// Audit: Check all Mongo docs have sqlId
+const missingLinks = await Post.find({ sqlId: null })
+console.log(`Posts missing sqlId: ${missingLinks.length}`)
+```
+
+---
+
+## 9. PostgreSQL Quick Reference for Post/Item Metadata
+
+While MongoDB stores **content bodies**, PostgreSQL stores **metadata**:
+
+| MongoDB (Item) | PostgreSQL (Item) |
+|---|---|
+| title | title |
+| script | — (in Mongo) |
+| drmConfig | — (in Mongo) |
+| pricingModel | pricing_model |
+| priceCredits | price_credits |
+| media (array) | — (in Mongo) |
+| visibility | visibility |
+| bundleItems | — (in Mongo) |
+| blockchainTokenId | — (in Mongo) |
+
+**Use case**: When querying marketplace by price range, use PostgreSQL:
+```javascript
+// ✅ Fast price range query in PostgreSQL
+const items = await prismaSocial.items.findMany({
+  where: {
+    priceCredits: { gte: minPrice, lte: maxPrice },
+    visibility: 'public'
+  }
+})
+
+// Then fetch content bodies from MongoDB:
+const enrichedItems = await Promise.all(
+  items.map(async (sqlItem) => {
+    const mongoItem = await Item.findOne({ sqlId: sqlItem.id })
+    return { ...sqlItem, script: mongoItem.script }
+  })
+)
+```
+
+---
+
+## 10. Checklist: Before Going Live with MongoDB
+
+- ✅ All Mongoose models defined in `@repo/database-mongo`
+- ✅ All models use **String `_id`**, never ObjectId in application logic
+- ✅ All `Post` and `Item` records have `sqlId` linking to PostgreSQL
+- ✅ All indices created for frequent queries (userId, createdAt, category)
+- ✅ Pagination implemented with hasMore flag (no "fetch all" patterns)
+- ✅ DRM config stored in MongoDB (never expose in API responses)
+- ✅ Chat messages stored in MongoDB with E2E encryption support
+- ✅ BlockchainLedger append-only (no updates, only inserts)
+- ✅ Error handling for duplicate posts, missing documents, race conditions
+- ✅ Cross-database joins tested (Mongo + Prisma results merge correctly)

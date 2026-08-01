@@ -131,7 +131,55 @@ apps/meta/
 
 ---
 
-## 4. State Management (Updated)
+## 4. Database Query Patterns (MongoDB vs PostgreSQL)
+
+### Query Routing Decision
+
+| Query Goal | Database | Rationale | Example |
+|---|---|---|---|
+| **Search by price/category/rating** | PostgreSQL | Indexed relational queries are fast | `GET /api/items?priceMin=10&priceMax=100` |
+| **Get post/item content body** | MongoDB | Flexible schema, rich media arrays | `POST.content`, `Item.script` |
+| **Count likes/comments/saves** | PostgreSQL | Relational counts with indices | `SELECT COUNT(*) FROM likes WHERE post_id=?` |
+| **Get chat messages** | MongoDB | High write throughput, unstructured | `Message.find({ conversationId })` |
+| **Verify user ownership** | PostgreSQL | ACID compliance, audit trail | `Transaction.findFirst({ buyer_id, item_id })` |
+| **Immutable Web3 ledger** | MongoDB | Append-only, cryptographic proof | `BlockchainLedger.create(...)` |
+| **DRM configs** | MongoDB | Unstructured, per-item overrides | `Item.drmConfig` |
+
+### Common Anti-Patterns (DO NOT DO)
+
+```javascript
+// ❌ DON'T: Query MongoDB for price ranges (no indexed numeric queries)
+const items = await Item.find({ price: { $gte: 10, $lte: 100 } })
+
+// ✅ DO: Query PostgreSQL for price range, then Mongo for content
+const items = await prismaSocial.items.findMany({
+  where: { priceCredits: { gte: 10, lte: 100 } }
+})
+const enriched = await Promise.all(
+  items.map(item => Item.findOne({ sqlId: item.id }))
+)
+
+// ❌ DON'T: Keep like count in MongoDB Post model
+post.likes.length // Prone to race conditions
+
+// ✅ DO: Use PostgreSQL likes table with COUNT query
+const likeCount = await prismaSocial.likes.count({ where: { post_id } })
+
+// ❌ DON'T: Fetch all records then slice
+const allPosts = await Post.find()
+const page2 = allPosts.slice(20, 40)
+
+// ✅ DO: Use skip + limit + lean()
+const posts = await Post.find()
+  .sort({ createdAt: -1 })
+  .skip(20)
+  .limit(20)
+  .lean()
+```
+
+---
+
+## 5. State Management (Updated)
 
 | Scope | Mechanism | Details |
 |---|---|---|
@@ -266,3 +314,153 @@ npm run type-check
 - Meta Service: `apps/meta/server.js`
 - Web app: `apps/web/src/**`
 - Zustand Stores: `apps/web/src/lib/store/*.ts`
+
+
+---
+
+## 6. MongoDB Architecture & Usage (In-Depth)
+
+### What Lives in MongoDB
+
+| Data Category | Reasoning | Models |
+|---|---|---|
+| **Post Content Bodies** | Flexible schema for long-form text, rich media, engagement metrics | `Post` (content, media[], comments[]) |
+| **Item Scripts & Media** | Creator Studio workflows require unstructured script fields, variable media arrays | `Item` (script, media[], drmConfig, bundleItems[]) |
+| **Chat Messages** | High write throughput, flexible attachment schemas, E2E encryption payloads | `Message` (ciphertext, attachments[], readBy[]) |
+| **Conversations Metadata** | Optional server-side, participants tracking, unread counts | `Conversation` (participants[], unreadBy[], lastMessage) |
+| **Web3 Blockchain Ledger** | Immutable append-only, cryptographic proofs, audit trail | `BlockchainLedger` (txHash, eventType, metadata) |
+| **Text-Only Servers** | Community servers with strict text-only channel enforcement | `Server` (channels[{ type: 'text' }]) |
+
+### MongoDB Models by Use Case
+
+#### Post Model
+- **When to query**: Fetching post content, comments, media for display
+- **What it stores**: Long-form text body, media array, comment thread, engagement scores
+- **Linked from PostgreSQL via**: `sqlId` (Post.sqlId ↔ Prisma Post.id)
+- **Query example**: `await Post.findById(mongoPostId).select('content media comments')`
+
+#### Item Model  
+- **When to query**: Fetching creator studio items, displaying scripts, DRM configs
+- **What it stores**: Script/body, media array, DRM settings, pricing model, bundleItems array
+- **Linked from PostgreSQL via**: `sqlId` (Item.sqlId ↔ Prisma Item.id)
+- **Query example**: `await Item.findById(mongoItemId).select('script drmConfig pricingModel')`
+
+#### Message Model
+- **When to query**: Fetching chat messages, unread counts, message history
+- **What it stores**: Plaintext/ciphertext, attachments, readBy array, replyTo reference
+- **Query example**: `await Message.find({ conversationId }).sort({ timestamp: -1 }).limit(50)`
+
+#### BlockchainLedger Model (IMMUTABLE)
+- **When to query**: Reading audit trail, verifying ownership, checking transaction history
+- **What it stores**: txHash, fromAddress, toAddress, eventType, metadata
+- **Key rule**: WRITE-ONCE, NEVER UPDATE
+- **Query example**: `await BlockchainLedger.find({ toAddress: userWeb3Address })`
+
+#### Server Model
+- **When to query**: Managing community servers, enforcing text-only channels
+- **What it stores**: Members, channels (strictly type: 'text'), permissions
+- **Query example**: `await Server.findById(serverId).select('channels')`
+
+### PostgreSQL Handles What MongoDB Shouldn't
+
+| Query | Why NOT MongoDB | PostgreSQL Model |
+|---|---|---|
+| Price range search | No numeric indices, slow full scans | `Item` (price_credits with B-tree index) |
+| Like count aggregation | Race conditions on embedded counters | `Like` table (atomic count() query) |
+| Social graph traversal | Relational queries on Follow/Block | `Follow`, `Block` models |
+| Transaction audits | ACID guarantees, immutability needed | `Transaction` model |
+| User authentication | Password hashing, 2FA, session tokens | `User` model |
+
+### Best Practices: Reading from MongoDB
+
+```javascript
+// ✅ DO: Use .lean() for read-heavy operations (no Mongoose overhead)
+const posts = await Post.find({ visibility: true })
+  .lean()
+  .limit(20)
+
+// ✅ DO: Select only needed fields
+const items = await Item.find()
+  .select('title thumbnailUrl category pricingModel')
+  .lean()
+
+// ✅ DO: Paginate with skip + limit + sort
+const { page, limit } = req.query
+const skip = (page - 1) * limit
+const comments = post.comments.slice(skip, skip + limit)
+
+// ❌ DON'T: Keep counters in embedded arrays (race conditions)
+// ✅ DO: Use PostgreSQL tables for counts
+const likeCount = await prismaSocial.likes.count({ where: { post_id: postId } })
+
+// ✅ DO: Use atomic operators for updates ($push, $pull, $inc)
+await Post.findByIdAndUpdate(postId, {
+  $push: { comments: newComment },
+  $inc: { commentCount: 1 }
+}, { new: true })
+```
+
+### Anti-Patterns to Avoid
+
+```javascript
+// ❌ DON'T: Fetch all records then filter/sort in JS
+const allItems = await Item.find()
+const sorted = allItems.sort((a, b) => a.price - b.price)
+
+// ✅ DO: Sort in database with index
+const items = await prismaSocial.items.findMany({
+  where: { visibility: 'public' },
+  orderBy: { priceCredits: 'asc' }
+})
+
+// ❌ DON'T: Query MongoDB for price ranges
+const expensive = await Item.find({ priceCredits: { $gte: 100 } })
+
+// ✅ DO: Query PostgreSQL, enrich with Mongo content
+const items = await prismaSocial.items.findMany({
+  where: { priceCredits: { gte: 100 } }
+})
+const enriched = await Promise.all(
+  items.map(i => Item.findOne({ sqlId: i.id }))
+)
+
+// ❌ DON'T: Keep engagement counts in Mongo (race conditions)
+post.likes = post.likes + 1  // Wrong - lost updates
+
+// ✅ DO: Use PostgreSQL likes table + atomic increments
+await prismaSocial.likes.create({ userId, postId })
+const count = await prismaSocial.likes.count({ where: { postId } })
+```
+
+### DRM Config Storage (MongoDB Only)
+
+```javascript
+// ✅ DRM configs live ONLY in MongoDB, never exposed in API
+const item = await Item.findById(itemId).select('drmConfig')
+return {
+  watermarkOpacity: item.drmConfig.watermarkOpacity,      // 0.15
+  disableRightClick: item.drmConfig.disableRightClick,    // true
+  disableTextSelect: item.drmConfig.disableTextSelect,    // true
+  emeKeyId: item.drmConfig.emeKeyId,                      // For video EME
+  emeLicenseServerUrl: item.drmConfig.emeLicenseServerUrl // For video EME
+}
+```
+
+### Chat Messages with E2E Encryption (MongoDB)
+
+```javascript
+// ✅ Encrypted messages stored in MongoDB
+const message = await Message.create({
+  conversationId,
+  senderId,
+  ciphertext: encryptedPayload,      // AES-256-GCM
+  nonce: generateNonce(),
+  keyId: user.e2eKeyId,
+  type: 'text',
+  timestamp: new Date()
+})
+
+// ✅ Decrypt on client side only
+const decrypted = await decryptMessage(message.ciphertext, userPrivateKey)
+```
+

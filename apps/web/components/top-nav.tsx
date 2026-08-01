@@ -192,7 +192,10 @@ export function TopNav() {
   const { data: session } = useSession()
 
   return (
-    <header className="sticky top-0 z-40 flex h-20 items-center gap-6 bg-background/40 backdrop-blur-3xl px-8 md:px-12 border-b-0">
+    <header 
+      className="sticky top-0 z-40 flex h-16 sm:h-20 items-center gap-4 sm:gap-6 bg-background/40 backdrop-blur-3xl px-4 sm:px-8 md:px-12 border-b border-border/50"
+      role="banner"
+    >
       {session ? (
         <SidebarTrigger className="-ml-2 hover:bg-foreground/5 transition-colors" />
       ) : (
@@ -234,11 +237,11 @@ export function TopNav() {
         </nav>
       </div>
 
-      <div className="flex flex-1 items-center justify-end space-x-6">
+      <div className="flex flex-1 items-center justify-end space-x-3 sm:space-x-6">
         <div className="hidden md:flex w-full max-w-[300px]">
           <GlobalSearch />
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <ModeToggle />
           <UserNav />
         </div>

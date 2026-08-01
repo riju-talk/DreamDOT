@@ -1,28 +1,16 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { AuthenticatedLayout } from "../../../components/authenticated-layout"
-import { Download, Eye, Lock, CheckCircle, Clock } from "lucide-react"
-import { getFakeItems } from "@/lib/fake-data"
-import Image from "next/image"
+import { Lock } from "lucide-react"
 import { useState } from "react"
-
-interface LibraryItem {
-  id: string
-  title: string
-  image: string
-  category: string
-  purchaseDate: Date
-  price: number
-  status: "purchased" | "minted" | "pending"
-  blockchainTokenId?: string
-}
+import { LibraryItemCard, LibraryItem } from "./components/LibraryItemCard"
+import { DRMViewer } from "./components/DRMViewer"
 
 export default function LibraryPage() {
-  // Mock purchased items (in real app, fetch from API)
+  // Mock purchased items (in real app, fetch from /api/library)
   const purchasedItems: LibraryItem[] = [
     {
       id: "1",
@@ -32,6 +20,7 @@ export default function LibraryPage() {
       purchaseDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
       price: 99,
       status: "purchased",
+      creatorName: "Alex Jordan",
     },
     {
       id: "2",
@@ -40,8 +29,8 @@ export default function LibraryPage() {
       category: "art",
       purchaseDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
       price: 49,
-      status: "minted",
-      blockchainTokenId: "0x123...abc",
+      status: "purchased",
+      creatorName: "Sam Chen",
     },
     {
       id: "3",
@@ -51,6 +40,7 @@ export default function LibraryPage() {
       purchaseDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
       price: 29,
       status: "purchased",
+      creatorName: "Maya Rodriguez",
     },
     {
       id: "4",
@@ -59,12 +49,72 @@ export default function LibraryPage() {
       category: "writing",
       purchaseDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
       price: 79,
-      status: "pending",
+      status: "processing",
+      creatorName: "Jordan Lee",
+    },
+    {
+      id: "5",
+      title: "Photography Fundamentals",
+      image: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=500&h=300&fit=crop",
+      category: "photography",
+      purchaseDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
+      price: 59,
+      status: "purchased",
+      creatorName: "Casey Williams",
+    },
+    {
+      id: "6",
+      title: "Video Editing Pro Suite",
+      image: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=500&h=300&fit=crop",
+      category: "video",
+      purchaseDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+      price: 149,
+      status: "purchased",
+      creatorName: "Taylor Smith",
+    },
+    {
+      id: "7",
+      title: "3D Modeling Essentials",
+      image: "https://images.unsplash.com/photo-1555974702-d2d16b64cff8?w=500&h=300&fit=crop",
+      category: "3d",
+      purchaseDate: new Date(Date.now() - 75 * 24 * 60 * 60 * 1000),
+      price: 119,
+      status: "purchased",
+      creatorName: "Morgan Davis",
+    },
+    {
+      id: "8",
+      title: "UI/UX Design Masterclass",
+      image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&h=300&fit=crop",
+      category: "design",
+      purchaseDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+      price: 89,
+      status: "purchased",
+      creatorName: "Riley Park",
     },
   ]
 
   const [selectedItem, setSelectedItem] = useState<LibraryItem | null>(null)
-  const [viewingItemId, setViewingItemId] = useState<string | null>(null)
+  const [dateFilter, setDateFilter] = useState<string>("all")
+  const [typeFilter, setTypeFilter] = useState<string>("all")
+
+  // Filter items based on selected filters
+  const filteredItems = purchasedItems.filter((item) => {
+    // Date filter
+    if (dateFilter !== "all") {
+      const daysDifference = Math.floor(
+        (Date.now() - item.purchaseDate.getTime()) / (1000 * 60 * 60 * 24)
+      )
+      if (dateFilter === "week" && daysDifference > 7) return false
+      if (dateFilter === "month" && daysDifference > 30) return false
+      if (dateFilter === "quarter" && daysDifference > 90) return false
+    }
+
+    // Type filter
+    if (typeFilter !== "all" && item.category !== typeFilter) return false
+
+    return true
+  })
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -74,271 +124,176 @@ export default function LibraryPage() {
     },
   }
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+  const headerVariants = {
+    hidden: { opacity: 0, y: -20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "purchased":
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case "minted":
-        return <Lock className="h-4 w-4 text-blue-500" />
-      case "pending":
-        return <Clock className="h-4 w-4 text-yellow-500" />
-      default:
-        return null
-    }
-  }
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "purchased":
-        return "Owned"
-      case "minted":
-        return "NFT Minted"
-      case "pending":
-        return "Processing"
-      default:
-        return status
-    }
-  }
+  const uniqueCategories = Array.from(new Set(purchasedItems.map((item) => item.category)))
 
   return (
     <AuthenticatedLayout>
-      <div className="min-h-screen bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="min-h-screen bg-[#121412]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-12"
-          >
-            <h1 className="text-4xl font-bold mb-2">My Library</h1>
-            <p className="text-muted-foreground">
-              All your purchased and owned digital content. Protected by DRM & blockchain.
+          <motion.div initial="hidden" animate="visible" variants={headerVariants} className="mb-8">
+            <h1 className="text-3xl sm:text-4xl font-bold text-[#FFFFFF] mb-2">My Library</h1>
+            <p className="text-[#6B8E6E]">
+              All your purchased digital content, protected by DRM and blockchain.
             </p>
           </motion.div>
 
           {/* Stats */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial="hidden"
+            animate="visible"
+            variants={headerVariants}
             transition={{ delay: 0.1 }}
-            className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12"
+            className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8"
           >
-            <Card>
-              <CardContent className="pt-6">
+            <Card className="bg-[#1a1918] border-[#2a2826]">
+              <CardContent className="pt-4 sm:pt-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold">{purchasedItems.length}</p>
-                  <p className="text-sm text-muted-foreground">Items Owned</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-[#FFFFFF]">
+                    {purchasedItems.length}
+                  </p>
+                  <p className="text-xs sm:text-sm text-[#6B8E6E]">Items Owned</p>
                 </div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-6">
+            <Card className="bg-[#1a1918] border-[#2a2826]">
+              <CardContent className="pt-4 sm:pt-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-green-500">
+                  <p className="text-2xl sm:text-3xl font-bold text-[#99FF33]">
                     {purchasedItems.filter((i) => i.status === "purchased").length}
                   </p>
-                  <p className="text-sm text-muted-foreground">Purchased</p>
+                  <p className="text-xs sm:text-sm text-[#6B8E6E]">Purchased</p>
                 </div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-6">
+            <Card className="bg-[#1a1918] border-[#2a2826]">
+              <CardContent className="pt-4 sm:pt-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-blue-500">
-                    {purchasedItems.filter((i) => i.status === "minted").length}
+                  <p className="text-2xl sm:text-3xl font-bold text-[#99FF33]">
+                    {purchasedItems.filter((i) => i.status === "processing").length}
                   </p>
-                  <p className="text-sm text-muted-foreground">Minted as NFT</p>
+                  <p className="text-xs sm:text-sm text-[#6B8E6E]">Processing</p>
                 </div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-6">
+            <Card className="bg-[#1a1918] border-[#2a2826]">
+              <CardContent className="pt-4 sm:pt-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold">
+                  <p className="text-2xl sm:text-3xl font-bold text-[#99FF33]">
                     ${purchasedItems.reduce((sum, i) => sum + i.price, 0)}
                   </p>
-                  <p className="text-sm text-muted-foreground">Total Spent</p>
+                  <p className="text-xs sm:text-sm text-[#6B8E6E]">Total Spent</p>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* Items Grid */}
+          {/* Filters */}
           <motion.div
             initial="hidden"
             animate="visible"
-            variants={containerVariants}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={headerVariants}
+            transition={{ delay: 0.2 }}
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8"
           >
-            {purchasedItems.map((item) => (
-              <motion.div key={item.id} variants={itemVariants}>
-                <Card className="border-border/50 hover:border-border transition-all overflow-hidden group h-full flex flex-col">
-                  {/* Image Container */}
-                  <div className="relative w-full h-48 bg-foreground/5 overflow-hidden">
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      unoptimized
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+            <div className="flex-1">
+              <label className="text-xs sm:text-sm text-[#6B8E6E] block mb-2">Filter by Date</label>
+              <select
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="w-full bg-[#1a1918] border border-[#2a2826] text-[#FFFFFF] text-sm rounded px-3 py-2 focus:border-[#99FF33] focus:outline-none transition-colors"
+              >
+                <option value="all">All Time</option>
+                <option value="week">Last Week</option>
+                <option value="month">Last Month</option>
+                <option value="quarter">Last 3 Months</option>
+              </select>
+            </div>
 
-                    {/* Status Badge */}
-                    <Badge
-                      className="absolute top-3 right-3 flex items-center gap-1 bg-black/60 text-white border-0"
-                      variant="default"
-                    >
-                      {getStatusIcon(item.status)}
-                      {getStatusLabel(item.status)}
-                    </Badge>
+            <div className="flex-1">
+              <label className="text-xs sm:text-sm text-[#6B8E6E] block mb-2">Filter by Type</label>
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="w-full bg-[#1a1918] border border-[#2a2826] text-[#FFFFFF] text-sm rounded px-3 py-2 focus:border-[#99FF33] focus:outline-none transition-colors"
+              >
+                <option value="all">All Types</option>
+                {uniqueCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-                    {/* Overlay Actions */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => setViewingItemId(item.id)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Download className="h-4 w-4 mr-1" />
-                        Export
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg line-clamp-2">{item.title}</CardTitle>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
-                    </p>
-                  </CardHeader>
-
-                  {/* Footer */}
-                  <CardFooter className="flex flex-col gap-3 pt-4 border-t border-border/30">
-                    <div className="flex items-center justify-between w-full text-sm">
-                      <span className="text-muted-foreground">
-                        Purchased {item.purchaseDate.toLocaleDateString()}
-                      </span>
-                      <span className="font-bold">${item.price}</span>
-                    </div>
-
-                    {/* Blockchain Info */}
-                    {item.status === "minted" && (
-                      <div className="w-full p-2 bg-blue-500/10 rounded text-xs text-blue-500">
-                        <Lock className="h-3 w-3 inline mr-1" />
-                        Token: {item.blockchainTokenId}
-                      </div>
-                    )}
-
-                    <Button
-                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                      onClick={() => setViewingItemId(item.id)}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Open in Vault
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            ))}
+            {(dateFilter !== "all" || typeFilter !== "all") && (
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setDateFilter("all")
+                    setTypeFilter("all")
+                  }}
+                  className="w-full sm:w-auto border-[#2a2826] text-[#99FF33] hover:bg-[#2a2826]"
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            )}
           </motion.div>
 
-          {/* Empty State */}
-          {purchasedItems.length === 0 && (
+          {/* Items Grid */}
+          {filteredItems.length > 0 ? (
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={containerVariants}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+            >
+              {filteredItems.map((item) => (
+                <LibraryItemCard key={item.id} item={item} onView={setSelectedItem} />
+              ))}
+            </motion.div>
+          ) : (
+            /* Empty State */
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-center py-12"
+              className="text-center py-12 sm:py-16"
             >
-              <Lock className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No items yet</h3>
-              <p className="text-muted-foreground mb-6">
-                Purchase digital content from creators to see them here
+              <Lock className="h-12 sm:h-16 w-12 sm:w-16 text-[#2a2826] mx-auto mb-4" />
+              <h3 className="text-lg sm:text-xl font-semibold text-[#FFFFFF] mb-2">No items found</h3>
+              <p className="text-[#6B8E6E] mb-6">
+                {typeFilter !== "all" || dateFilter !== "all"
+                  ? "No items match your filters. Try adjusting them."
+                  : "Purchase digital content from creators to see them here"}
               </p>
-              <Button>Browse Marketplace</Button>
+              {(typeFilter !== "all" || dateFilter !== "all") && (
+                <Button
+                  onClick={() => {
+                    setDateFilter("all")
+                    setTypeFilter("all")
+                  }}
+                  className="bg-[#99FF33] text-[#121412] hover:bg-[#85e022] font-semibold"
+                >
+                  Clear Filters
+                </Button>
+              )}
             </motion.div>
           )}
         </div>
 
-        {/* Vault Viewer Modal (Placeholder) */}
-        {viewingItemId && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
-            onClick={() => setViewingItemId(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              className="bg-surface rounded-lg p-8 max-w-2xl w-full mx-4 relative"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute top-4 right-4"
-                onClick={() => setViewingItemId(null)}
-              >
-                ✕
-              </Button>
-
-              <h2 className="text-2xl font-bold mb-4">
-                {purchasedItems.find((i) => i.id === viewingItemId)?.title}
-              </h2>
-
-              {/* Watermark Grid */}
-              <div className="relative w-full h-96 bg-muted rounded border border-border/50 flex items-center justify-center overflow-hidden">
-                <div className="absolute inset-0 opacity-5 pointer-events-none">
-                  {Array.from({ length: 20 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute text-white text-xs transform -rotate-45 whitespace-nowrap"
-                      style={{
-                        top: `${Math.random() * 100}%`,
-                        left: `${Math.random() * 100}%`,
-                      }}
-                    >
-                      User ID: 12345 | {new Date().toLocaleTimeString()}
-                    </div>
-                  ))}
-                </div>
-
-                <Image
-                  src={purchasedItems.find((i) => i.id === viewingItemId)?.image || ""}
-                  alt="Content"
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-black/40 px-6 py-3 rounded text-white text-center">
-                    <p className="text-sm">DRM Protected Content</p>
-                    <p className="text-xs text-gray-300 mt-1">
-                      Right-click disabled • Watermarked
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-sm text-muted-foreground mt-4">
-                This content is protected by DRM. Screenshots and unauthorized sharing are tracked and
-                can result in account termination.
-              </p>
-            </motion.div>
-          </motion.div>
-        )}
+        {/* DRM Viewer Modal */}
+        <DRMViewer
+          item={selectedItem!}
+          isOpen={!!selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
       </div>
     </AuthenticatedLayout>
   )
