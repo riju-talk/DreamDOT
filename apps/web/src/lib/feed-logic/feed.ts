@@ -1,7 +1,7 @@
 "use server"
-import { prismaSocial } from "@/lib/db"
-import { prismaItem } from "@/lib/db"
-import { prismaUser } from "@/lib/db"
+import { prismaSocial } from "@/lib/prisma/social"
+import { prismaItems } from "@/lib/prisma/items"
+import { prismaUser } from "@/lib/prisma/user"
 import { connectToDatabase } from "../mongoose/connection"
 import { fetchItems } from "../mongoose/items"
 import { fetchPosts } from "../mongoose/posts"
@@ -360,7 +360,7 @@ export async function fetchUnifiedFeed({
 
     // Prisma Items (guarded)
     const pgItemsPromise = wantItems
-      ? prismaItem.items.findMany({
+      ? prismaItems.items.findMany({
           where: { availability: true },
           orderBy: { created_at: "desc" },
           skip,
@@ -456,7 +456,7 @@ export async function fetchUnifiedFeed({
     const [postsTotal, mongoItemsTotal, prismaItemsTotal] = await Promise.all([
       wantPosts ? fetchPosts({ page: 1, limit: 1 }).then((r) => r.pagination.total) : Promise.resolve(0),
       wantItems ? fetchItems({ page: 1, limit: 1 }).then((r) => r.pagination.total) : Promise.resolve(0),
-      wantItems ? prismaItem.items.count({ where: { availability: true } }) : Promise.resolve(0),
+      wantItems ? prismaItems.items.count({ where: { availability: true } }) : Promise.resolve(0),
     ])
 
     const total = (wantPosts ? postsTotal : 0) + (wantItems ? mongoItemsTotal + prismaItemsTotal : 0)

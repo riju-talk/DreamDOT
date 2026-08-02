@@ -105,10 +105,11 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
-exports.Prisma.Posts_metadataScalarFieldEnum = {
+exports.Prisma.PostsScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
-  description: 'description',
+  sql_id: 'sql_id',
+  content: 'content',
   visibility: 'visibility',
   created_at: 'created_at',
   updated_at: 'updated_at'
@@ -302,7 +303,7 @@ exports.Prisma.JsonNullValueFilter = {
 
 
 exports.Prisma.ModelName = {
-  posts_metadata: 'posts_metadata',
+  posts: 'posts',
   posts_analytics: 'posts_analytics',
   comments: 'comments',
   likes: 'likes',

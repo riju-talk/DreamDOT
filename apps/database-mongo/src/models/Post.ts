@@ -23,7 +23,7 @@ const PostSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now },
     
     // Engagement
-    likes: [{ type: String, index: true }], // Array of user IDs who liked
+    likes: [{ type: String }], // Array of user IDs who liked
     comments: [CommentSchema],
     shares: { type: Number, default: 0 },
     saves: [{ type: String }], // Array of user IDs who saved

@@ -4,7 +4,7 @@ import { Collection } from "mongoose";
 import { connectToDatabase } from "./connection";
 // import { Item } from "./types/Item";
 import { Item } from "@repo/database-mongo";
-import { prismaItem } from "../db";
+import { prismaItems } from "../prisma/items";
 
 // Re-export the Mongoose model so API routes can import it directly
 export { Item as ItemModel };
@@ -76,7 +76,7 @@ export async function fetchItems(
     const mongoIds = mongoItems.map((it) => String(it._id));
     // Fetching corresponding SQL entries from Prisma
     console.time("⏱️ Prisma fetch");
-    const sqlItems = await prismaItem.items.findMany({
+    const sqlItems = await prismaItems.items.findMany({
       where: { item_id: { in: mongoIds } },
       select: {
         item_id: true,

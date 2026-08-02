@@ -3,7 +3,7 @@
 import { useCreatorStudioStore } from '@/lib/store/useCreatorStudioStore'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Upload, X, GripVertical, Music, FileType, Image as ImageIcon, Film, FilePdf } from 'lucide-react'
+import { Upload, X, GripVertical, Music, FileText, Image as ImageIcon, Film } from 'lucide-react'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -42,8 +42,8 @@ export function MediaPart() {
     if (file.type.startsWith('image/')) return <ImageIcon className="h-4 w-4" />
     if (file.type.startsWith('video/')) return <Film className="h-4 w-4" />
     if (file.type.startsWith('audio/')) return <Music className="h-4 w-4" />
-    if (file.type.includes('pdf')) return <FilePdf className="h-4 w-4" />
-    return <FileType className="h-4 w-4" />
+    if (file.type.includes('pdf')) return <FileText className="h-4 w-4" />
+    return <FileText className="h-4 w-4" />
   }
 
   const processFiles = (files: File[]) => {

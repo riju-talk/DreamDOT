@@ -1,15 +1,13 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { prismaSocial, prismaUser } from "@/lib/prisma"
+import { prismaSocial } from "@/lib/prisma/social"
+import { prismaUser } from "@/lib/prisma/user"
 import { connectToDatabase } from "@/lib/mongoose/connection"
-import { Post } from "@repo/database-mongo"
-import mongoose from "mongoose"
 
 // Helper function to validate user authentication
 async function validateUser(request) {
   try {
-    // First try NextAuth session
     const session = await getServerSession(authOptions)
     if (session?.user?.name) {
       return {
@@ -18,7 +16,6 @@ async function validateUser(request) {
       }
     }
 
-    // Fallback to JWT token validation
     const authorization = request.headers.get("Authorization")
     if (!authorization?.startsWith("Bearer ")) {
       return null
@@ -90,7 +87,6 @@ async function createPostAnalytics(postId) {
     })
   } catch (error) {
     console.error("Failed to create post analytics:", error)
-    // Non-critical error, don't throw
   }
 }
 
@@ -124,13 +120,11 @@ async function updateUserAnalytics(userId) {
     }
   } catch (error) {
     console.error("Failed to update user analytics:", error)
-    // Non-critical error, don't throw
   }
 }
 
 export async function POST(request) {
   try {
-    // 1. Validate user authentication
     const user = await validateUser(request)
     if (!user) {
       return NextResponse.json(
@@ -143,7 +137,6 @@ export async function POST(request) {
       )
     }
 
-    // 2. Parse and validate request body
     let requestData
     try {
       const rawBody = await request.text()
@@ -160,7 +153,6 @@ export async function POST(request) {
       )
     }
 
-    // 3. Validate input data
     const validation = validateInput(requestData)
     if (!validation.isValid) {
       return NextResponse.json(
@@ -176,7 +168,6 @@ export async function POST(request) {
 
     const { content, mediaUrl, visibility, mediaType } = validation.cleanData
 
-    // 4. Find user by email to get the user ID
     const dbUser = await prismaUser.users.findUnique({
       where: { email: user.email },
       select: { id: true }
@@ -193,11 +184,11 @@ export async function POST(request) {
       )
     }
 
-    // 5. CRITICAL: Create PostgreSQL metadata FIRST to get UUID
-    const postMetadata = await prismaSocial.posts_metadata.create({
+    const postMetadata = await prismaSocial.posts.create({
       data: {
         user_id: dbUser.id,
-        description: content.substring(0, 500), // Fallback content storage
+        sql_id: `post_${Date.now()}`,
+        description: content.substring(0, 500),
         created_at: new Date(),
         updated_at: new Date()
       }
@@ -206,36 +197,15 @@ export async function POST(request) {
     const sqlId = postMetadata.id
     console.log(`✅ SQL metadata created - ID: ${sqlId}`)
 
-    // 6. Create MongoDB post content WITH the SQL ID
-    await connectToDatabase()
-    const postContent = new Post({
-      userId: dbUser.id,
-      sqlId: sqlId, // Link to SQL UUID!
-      content: content,
-      media: mediaUrl ? [{ type: mediaType, url: mediaUrl }] : [],
-      visibility: visibility === true,
-      createdAt: new Date(),
-      likes: [],
-      comments: []
-    })
-
-    await postContent.save()
-    console.log(`✅ MongoDB post created - _id: ${postContent._id}, sqlId: ${sqlId}`)
-
-    // 7. Create initial analytics entry (non-blocking)
     createPostAnalytics(postMetadata.id)
-
-    // 8. Update user analytics (non-blocking)
     updateUserAnalytics(dbUser.id)
 
-    // 9. Return success response
     return NextResponse.json({
       success: true,
       message: "Post created successfully",
       data: {
         postId: postMetadata.id,
-        mongoId: postContent._id,
-        content: postContent.content,
+        content: postMetadata.description,
         visibility: visibility,
         createdAt: postMetadata.created_at,
         user: {
@@ -250,41 +220,20 @@ export async function POST(request) {
     console.error("Error creating post:", {
       message: error.message,
       name: error.name,
-      stack: error.stack,
-      fullError: JSON.stringify(error, Object.getOwnPropertyNames(error))
+      stack: error.stack
     })
 
-    // Log validation errors if they exist
-    if (error.errors) {
-      console.error("Validation errors:", error.errors)
+    if (error.message.includes("duplicate key")) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Post already exists",
+          code: "DUPLICATE_POST"
+        },
+        { status: 409 }
+      )
     }
 
-    // Handle specific database errors
-    if (error instanceof Error) {
-      if (error.message.includes("duplicate key")) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Post already exists",
-            code: "DUPLICATE_POST"
-          },
-          { status: 409 }
-        )
-      }
-
-      if (error.message.includes("foreign key constraint")) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Invalid user reference",
-            code: "INVALID_USER"
-          },
-          { status: 400 }
-        )
-      }
-    }
-
-    // Generic error response
     return NextResponse.json(
       {
         success: false,
@@ -296,7 +245,6 @@ export async function POST(request) {
   }
 }
 
-// GET endpoint to retrieve user's posts
 export async function GET(request) {
   try {
     const user = await validateUser(request)
@@ -309,7 +257,8 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get("page") || "1")
-    const limit = Math.min(parseInt(searchParams.get("limit") || "10"), 50) // Max 50 posts per page
+    const limit = Math.min(parseInt(searchParams.get("limit") || "10"), 50)
+    
     const dbUser = await prismaUser.users.findUnique({
       where: { email: user.email },
       select: { id: true }
@@ -322,14 +271,14 @@ export async function GET(request) {
       )
     }
 
-    await connectToDatabase()
-    const posts = await Post.find({ userId: dbUser.id })
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean()
+    const posts = await prismaSocial.posts.findMany({
+      where: { user_id: dbUser.id },
+      orderBy: { created_at: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit
+    })
 
-    const totalPosts = await Post.countDocuments({ userId: dbUser.id })
+    const total = await prismaSocial.posts.count({ where: { user_id: dbUser.id } })
 
     return NextResponse.json({
       success: true,
@@ -338,8 +287,8 @@ export async function GET(request) {
         pagination: {
           page,
           limit,
-          total: totalPosts,
-          hasMore: (page * limit) < totalPosts
+          total,
+          hasMore: (page * limit) < total
         }
       }
     })

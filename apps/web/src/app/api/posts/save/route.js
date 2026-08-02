@@ -1,13 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { PrismaClient } from '@/generated/social/client'
+import { prismaSocial } from '@/lib/prisma/social'
+import { prismaUser } from '@/lib/prisma/user'
 
-const prisma = new PrismaClient()
-
-/**
- * POST /api/posts/save
- * Save a post to user's collection
- */
 export async function POST(request) {
   try {
     const session = await getServerSession()
@@ -21,8 +16,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 })
     }
 
-    // Get the current user
-    const user = await prisma.users.findUnique({
+    const user = await prismaUser.users.findUnique({
       where: { email: session.user.email }
     })
 
@@ -30,8 +24,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Check if post exists
-    const post = await prisma.posts_metadata.findUnique({
+    const post = await prismaSocial.posts.findUnique({
       where: { id: postId }
     })
 
@@ -39,8 +32,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     }
 
-    // Check if already saved
-    const existingSave = await prisma.saves.findFirst({
+    const existingSave = await prismaSocial.saves.findFirst({
       where: {
         user_id: user.id,
         post_id: postId,
@@ -51,8 +43,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Post already saved' }, { status: 400 })
     }
 
-    // Create the save
-    const save = await prisma.saves.create({
+    const save = await prismaSocial.saves.create({
       data: {
         user_id: user.id,
         post_id: postId,
@@ -78,10 +69,6 @@ export async function POST(request) {
   }
 }
 
-/**
- * DELETE /api/posts/save
- * Unsave a post
- */
 export async function DELETE(request) {
   try {
     const session = await getServerSession()
@@ -95,8 +82,7 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 })
     }
 
-    // Get the current user
-    const user = await prisma.users.findUnique({
+    const user = await prismaUser.users.findUnique({
       where: { email: session.user.email }
     })
 
@@ -104,8 +90,7 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Delete the save
-    const result = await prisma.saves.deleteMany({
+    const result = await prismaSocial.saves.deleteMany({
       where: {
         user_id: user.id,
         post_id: postId,
@@ -135,10 +120,6 @@ export async function DELETE(request) {
   }
 }
 
-/**
- * GET /api/posts/save
- * Get saved posts for current user
- */
 export async function GET(request) {
   try {
     const session = await getServerSession()
@@ -150,8 +131,7 @@ export async function GET(request) {
     const page = parseInt(searchParams.get('page') || '1', 10)
     const limit = parseInt(searchParams.get('limit') || '10', 10)
 
-    // Get the current user
-    const user = await prisma.users.findUnique({
+    const user = await prismaUser.users.findUnique({
       where: { email: session.user.email }
     })
 
@@ -159,16 +139,14 @@ export async function GET(request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Get total count
-    const total = await prisma.saves.count({
+    const total = await prismaSocial.saves.count({
       where: { user_id: user.id }
     })
 
-    // Get paginated saves
-    const saves = await prisma.saves.findMany({
+    const saves = await prismaSocial.saves.findMany({
       where: { user_id: user.id },
       include: {
-        posts_metadata: {
+        posts: {
           include: {
             users: {
               select: { id: true, email: true }
@@ -182,11 +160,11 @@ export async function GET(request) {
     })
 
     const savedPosts = saves.map(save => ({
-      id: save.posts_metadata.id,
-      userId: save.posts_metadata.user_id,
-      description: save.posts_metadata.description,
-      visibility: save.posts_metadata.visibility,
-      createdAt: save.posts_metadata.created_at,
+      id: save.posts.id,
+      userId: save.posts.user_id,
+      description: save.posts.description,
+      visibility: save.posts.visibility,
+      createdAt: save.posts.created_at,
       savedAt: save.saved_at,
     }))
 

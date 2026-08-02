@@ -3,34 +3,13 @@
 import { useCreatorStudioStore } from '@/lib/store/useCreatorStudioStore'
 import { RichTextEditor } from '@/components/rich-text-editor'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
   PenTool, 
-  Tag, 
-  Type, 
-  DollarSign, 
-  FileText,
-  BookOpen,
-  Palette,
-  Music,
-  Film,
-  Code2,
-  Microscope,
-  Package
+  DollarSign,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-
-const CATEGORIES = [
-  { value: 'writing', label: 'Writing', icon: BookOpen },
-  { value: 'art', label: 'Art', icon: Palette },
-  { value: 'audio', label: 'Audio', icon: Music },
-  { value: 'video', label: 'Video', icon: Film },
-  { value: 'template', label: 'Template', icon: FileText },
-  { value: 'code', label: 'Code', icon: Code2 },
-  { value: 'research', label: 'Research', icon: Microscope },
-]
 
 const PRICING_MODELS = [
   { value: 'free', label: 'Free', desc: 'Anyone can access' },
@@ -62,74 +41,6 @@ export function WriterPart() {
       animate="visible"
       variants={containerVariants}
     >
-      {/* Title */}
-      <motion.div variants={itemVariants}>
-        <Card className="bg-card border-border/50">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Type className="h-5 w-5 text-primary" />
-              Title
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Input
-                value={draft.title}
-                onChange={(e) => updateDraft({ title: e.target.value })}
-                placeholder="Enter a compelling title..."
-                maxLength={140}
-                className="text-base py-6"
-              />
-              <div className="flex justify-between items-center text-xs">
-                {errors.title ? (
-                  <span className="text-destructive font-medium">{errors.title}</span>
-                ) : (
-                  <span className="text-muted-foreground">Create an engaging title for your work</span>
-                )}
-                <span className="text-muted-foreground font-mono">{draft.title.length}/140</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Category */}
-      <motion.div variants={itemVariants}>
-        <Card className="bg-card border-border/50">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Tag className="h-5 w-5 text-primary" />
-              Category
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <Select value={draft.category} onValueChange={(val) => updateDraft({ category: val })}>
-                <SelectTrigger className="py-6 text-base">
-                  <SelectValue placeholder="Select a category..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((c) => {
-                    const Icon = c.icon
-                    return (
-                      <SelectItem key={c.value} value={c.value}>
-                        <div className="flex items-center gap-2">
-                          <Icon className="h-4 w-4" />
-                          {c.label}
-                        </div>
-                      </SelectItem>
-                    )
-                  })}
-                </SelectContent>
-              </Select>
-              {errors.category && (
-                <span className="text-xs text-destructive font-medium block">{errors.category}</span>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
       {/* Rich Text Editor */}
       <motion.div variants={itemVariants}>
         <Card className="bg-card border-border/50 overflow-hidden">
@@ -230,34 +141,6 @@ export function WriterPart() {
           </Card>
         </motion.div>
       )}
-
-      {/* Description */}
-      <motion.div variants={itemVariants}>
-        <Card className="bg-card border-border/50">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <FileText className="h-5 w-5 text-primary" />
-              Description (Optional)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <textarea
-                value={draft.description || ''}
-                onChange={(e) => updateDraft({ description: e.target.value })}
-                placeholder="Add a brief description of your work..."
-                maxLength={500}
-                rows={4}
-                className="w-full px-4 py-3 rounded-lg bg-muted/50 border border-border/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
-              />
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground">Help buyers understand your work</span>
-                <span className="text-muted-foreground font-mono">{(draft.description || '').length}/500</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
     </motion.div>
   )
 }

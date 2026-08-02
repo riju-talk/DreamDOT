@@ -24,12 +24,14 @@ export type itemsPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultA
   scalars: $Extensions.GetResult<{
     item_id: string
     user_id: string
+    sql_id: string
     title: string
     description: string | null
     category: string | null
     price: Prisma.Decimal | null
     monetization_type: string | null
     availability: boolean | null
+    visibility: string | null
     created_at: Date | null
   }, ExtArgs["result"]["items"]>
   composites: {}
@@ -2576,36 +2578,42 @@ export namespace Prisma {
   export type ItemsMinAggregateOutputType = {
     item_id: string | null
     user_id: string | null
+    sql_id: string | null
     title: string | null
     description: string | null
     category: string | null
     price: Decimal | null
     monetization_type: string | null
     availability: boolean | null
+    visibility: string | null
     created_at: Date | null
   }
 
   export type ItemsMaxAggregateOutputType = {
     item_id: string | null
     user_id: string | null
+    sql_id: string | null
     title: string | null
     description: string | null
     category: string | null
     price: Decimal | null
     monetization_type: string | null
     availability: boolean | null
+    visibility: string | null
     created_at: Date | null
   }
 
   export type ItemsCountAggregateOutputType = {
     item_id: number
     user_id: number
+    sql_id: number
     title: number
     description: number
     category: number
     price: number
     monetization_type: number
     availability: number
+    visibility: number
     created_at: number
     _all: number
   }
@@ -2622,36 +2630,42 @@ export namespace Prisma {
   export type ItemsMinAggregateInputType = {
     item_id?: true
     user_id?: true
+    sql_id?: true
     title?: true
     description?: true
     category?: true
     price?: true
     monetization_type?: true
     availability?: true
+    visibility?: true
     created_at?: true
   }
 
   export type ItemsMaxAggregateInputType = {
     item_id?: true
     user_id?: true
+    sql_id?: true
     title?: true
     description?: true
     category?: true
     price?: true
     monetization_type?: true
     availability?: true
+    visibility?: true
     created_at?: true
   }
 
   export type ItemsCountAggregateInputType = {
     item_id?: true
     user_id?: true
+    sql_id?: true
     title?: true
     description?: true
     category?: true
     price?: true
     monetization_type?: true
     availability?: true
+    visibility?: true
     created_at?: true
     _all?: true
   }
@@ -2746,12 +2760,14 @@ export namespace Prisma {
   export type ItemsGroupByOutputType = {
     item_id: string
     user_id: string
+    sql_id: string
     title: string
     description: string | null
     category: string | null
     price: Decimal | null
     monetization_type: string | null
     availability: boolean | null
+    visibility: string | null
     created_at: Date | null
     _count: ItemsCountAggregateOutputType | null
     _avg: ItemsAvgAggregateOutputType | null
@@ -2777,12 +2793,14 @@ export namespace Prisma {
   export type itemsSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     item_id?: boolean
     user_id?: boolean
+    sql_id?: boolean
     title?: boolean
     description?: boolean
     category?: boolean
     price?: boolean
     monetization_type?: boolean
     availability?: boolean
+    visibility?: boolean
     created_at?: boolean
     favorites?: boolean | items$favoritesArgs<ExtArgs>
     users?: boolean | usersArgs<ExtArgs>
@@ -2795,12 +2813,14 @@ export namespace Prisma {
   export type itemsSelectScalar = {
     item_id?: boolean
     user_id?: boolean
+    sql_id?: boolean
     title?: boolean
     description?: boolean
     category?: boolean
     price?: boolean
     monetization_type?: boolean
     availability?: boolean
+    visibility?: boolean
     created_at?: boolean
   }
 
@@ -18042,12 +18062,14 @@ export namespace Prisma {
   export const ItemsScalarFieldEnum: {
     item_id: 'item_id',
     user_id: 'user_id',
+    sql_id: 'sql_id',
     title: 'title',
     description: 'description',
     category: 'category',
     price: 'price',
     monetization_type: 'monetization_type',
     availability: 'availability',
+    visibility: 'visibility',
     created_at: 'created_at'
   };
 
@@ -18289,12 +18311,14 @@ export namespace Prisma {
     NOT?: Enumerable<itemsWhereInput>
     item_id?: UuidFilter | string
     user_id?: UuidFilter | string
+    sql_id?: StringFilter | string
     title?: StringFilter | string
     description?: StringNullableFilter | string | null
     category?: StringNullableFilter | string | null
     price?: DecimalNullableFilter | Decimal | DecimalJsLike | number | string | null
     monetization_type?: StringNullableFilter | string | null
     availability?: BoolNullableFilter | boolean | null
+    visibility?: StringNullableFilter | string | null
     created_at?: DateTimeNullableFilter | Date | string | null
     favorites?: FavoritesListRelationFilter
     users?: XOR<UsersRelationFilter, usersWhereInput>
@@ -18306,12 +18330,14 @@ export namespace Prisma {
   export type itemsOrderByWithRelationInput = {
     item_id?: SortOrder
     user_id?: SortOrder
+    sql_id?: SortOrder
     title?: SortOrder
     description?: SortOrderInput | SortOrder
     category?: SortOrderInput | SortOrder
     price?: SortOrderInput | SortOrder
     monetization_type?: SortOrderInput | SortOrder
     availability?: SortOrderInput | SortOrder
+    visibility?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     favorites?: favoritesOrderByRelationAggregateInput
     users?: usersOrderByWithRelationInput
@@ -18322,17 +18348,20 @@ export namespace Prisma {
 
   export type itemsWhereUniqueInput = {
     item_id?: string
+    sql_id?: string
   }
 
   export type itemsOrderByWithAggregationInput = {
     item_id?: SortOrder
     user_id?: SortOrder
+    sql_id?: SortOrder
     title?: SortOrder
     description?: SortOrderInput | SortOrder
     category?: SortOrderInput | SortOrder
     price?: SortOrderInput | SortOrder
     monetization_type?: SortOrderInput | SortOrder
     availability?: SortOrderInput | SortOrder
+    visibility?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     _count?: itemsCountOrderByAggregateInput
     _avg?: itemsAvgOrderByAggregateInput
@@ -18347,12 +18376,14 @@ export namespace Prisma {
     NOT?: Enumerable<itemsScalarWhereWithAggregatesInput>
     item_id?: UuidWithAggregatesFilter | string
     user_id?: UuidWithAggregatesFilter | string
+    sql_id?: StringWithAggregatesFilter | string
     title?: StringWithAggregatesFilter | string
     description?: StringNullableWithAggregatesFilter | string | null
     category?: StringNullableWithAggregatesFilter | string | null
     price?: DecimalNullableWithAggregatesFilter | Decimal | DecimalJsLike | number | string | null
     monetization_type?: StringNullableWithAggregatesFilter | string | null
     availability?: BoolNullableWithAggregatesFilter | boolean | null
+    visibility?: StringNullableWithAggregatesFilter | string | null
     created_at?: DateTimeNullableWithAggregatesFilter | Date | string | null
   }
 
@@ -19177,12 +19208,14 @@ export namespace Prisma {
 
   export type itemsCreateInput = {
     item_id?: string
+    sql_id: string
     title: string
     description?: string | null
     category?: string | null
     price?: Decimal | DecimalJsLike | number | string | null
     monetization_type?: string | null
     availability?: boolean | null
+    visibility?: string | null
     created_at?: Date | string | null
     favorites?: favoritesCreateNestedManyWithoutItemsInput
     users: usersCreateNestedOneWithoutItemsInput
@@ -19194,12 +19227,14 @@ export namespace Prisma {
   export type itemsUncheckedCreateInput = {
     item_id?: string
     user_id: string
+    sql_id: string
     title: string
     description?: string | null
     category?: string | null
     price?: Decimal | DecimalJsLike | number | string | null
     monetization_type?: string | null
     availability?: boolean | null
+    visibility?: string | null
     created_at?: Date | string | null
     favorites?: favoritesUncheckedCreateNestedManyWithoutItemsInput
     monetization?: monetizationUncheckedCreateNestedManyWithoutItemsInput
@@ -19209,12 +19244,14 @@ export namespace Prisma {
 
   export type itemsUpdateInput = {
     item_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     favorites?: favoritesUpdateManyWithoutItemsNestedInput
     users?: usersUpdateOneRequiredWithoutItemsNestedInput
@@ -19226,12 +19263,14 @@ export namespace Prisma {
   export type itemsUncheckedUpdateInput = {
     item_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     favorites?: favoritesUncheckedUpdateManyWithoutItemsNestedInput
     monetization?: monetizationUncheckedUpdateManyWithoutItemsNestedInput
@@ -19242,35 +19281,41 @@ export namespace Prisma {
   export type itemsCreateManyInput = {
     item_id?: string
     user_id: string
+    sql_id: string
     title: string
     description?: string | null
     category?: string | null
     price?: Decimal | DecimalJsLike | number | string | null
     monetization_type?: string | null
     availability?: boolean | null
+    visibility?: string | null
     created_at?: Date | string | null
   }
 
   export type itemsUpdateManyMutationInput = {
     item_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type itemsUncheckedUpdateManyInput = {
     item_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -20395,12 +20440,14 @@ export namespace Prisma {
   export type itemsCountOrderByAggregateInput = {
     item_id?: SortOrder
     user_id?: SortOrder
+    sql_id?: SortOrder
     title?: SortOrder
     description?: SortOrder
     category?: SortOrder
     price?: SortOrder
     monetization_type?: SortOrder
     availability?: SortOrder
+    visibility?: SortOrder
     created_at?: SortOrder
   }
 
@@ -20411,24 +20458,28 @@ export namespace Prisma {
   export type itemsMaxOrderByAggregateInput = {
     item_id?: SortOrder
     user_id?: SortOrder
+    sql_id?: SortOrder
     title?: SortOrder
     description?: SortOrder
     category?: SortOrder
     price?: SortOrder
     monetization_type?: SortOrder
     availability?: SortOrder
+    visibility?: SortOrder
     created_at?: SortOrder
   }
 
   export type itemsMinOrderByAggregateInput = {
     item_id?: SortOrder
     user_id?: SortOrder
+    sql_id?: SortOrder
     title?: SortOrder
     description?: SortOrder
     category?: SortOrder
     price?: SortOrder
     monetization_type?: SortOrder
     availability?: SortOrder
+    visibility?: SortOrder
     created_at?: SortOrder
   }
 
@@ -22815,12 +22866,14 @@ export namespace Prisma {
 
   export type itemsCreateWithoutMonetizationInput = {
     item_id?: string
+    sql_id: string
     title: string
     description?: string | null
     category?: string | null
     price?: Decimal | DecimalJsLike | number | string | null
     monetization_type?: string | null
     availability?: boolean | null
+    visibility?: string | null
     created_at?: Date | string | null
     favorites?: favoritesCreateNestedManyWithoutItemsInput
     users: usersCreateNestedOneWithoutItemsInput
@@ -22831,12 +22884,14 @@ export namespace Prisma {
   export type itemsUncheckedCreateWithoutMonetizationInput = {
     item_id?: string
     user_id: string
+    sql_id: string
     title: string
     description?: string | null
     category?: string | null
     price?: Decimal | DecimalJsLike | number | string | null
     monetization_type?: string | null
     availability?: boolean | null
+    visibility?: string | null
     created_at?: Date | string | null
     favorites?: favoritesUncheckedCreateNestedManyWithoutItemsInput
     reviews?: reviewsUncheckedCreateNestedManyWithoutItemsInput
@@ -22855,12 +22910,14 @@ export namespace Prisma {
 
   export type itemsUpdateWithoutMonetizationInput = {
     item_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     favorites?: favoritesUpdateManyWithoutItemsNestedInput
     users?: usersUpdateOneRequiredWithoutItemsNestedInput
@@ -22871,12 +22928,14 @@ export namespace Prisma {
   export type itemsUncheckedUpdateWithoutMonetizationInput = {
     item_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     favorites?: favoritesUncheckedUpdateManyWithoutItemsNestedInput
     reviews?: reviewsUncheckedUpdateManyWithoutItemsNestedInput
@@ -22885,12 +22944,14 @@ export namespace Prisma {
 
   export type itemsCreateWithoutFavoritesInput = {
     item_id?: string
+    sql_id: string
     title: string
     description?: string | null
     category?: string | null
     price?: Decimal | DecimalJsLike | number | string | null
     monetization_type?: string | null
     availability?: boolean | null
+    visibility?: string | null
     created_at?: Date | string | null
     users: usersCreateNestedOneWithoutItemsInput
     monetization?: monetizationCreateNestedManyWithoutItemsInput
@@ -22901,12 +22962,14 @@ export namespace Prisma {
   export type itemsUncheckedCreateWithoutFavoritesInput = {
     item_id?: string
     user_id: string
+    sql_id: string
     title: string
     description?: string | null
     category?: string | null
     price?: Decimal | DecimalJsLike | number | string | null
     monetization_type?: string | null
     availability?: boolean | null
+    visibility?: string | null
     created_at?: Date | string | null
     monetization?: monetizationUncheckedCreateNestedManyWithoutItemsInput
     reviews?: reviewsUncheckedCreateNestedManyWithoutItemsInput
@@ -22980,12 +23043,14 @@ export namespace Prisma {
 
   export type itemsUpdateWithoutFavoritesInput = {
     item_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: usersUpdateOneRequiredWithoutItemsNestedInput
     monetization?: monetizationUpdateManyWithoutItemsNestedInput
@@ -22996,12 +23061,14 @@ export namespace Prisma {
   export type itemsUncheckedUpdateWithoutFavoritesInput = {
     item_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     monetization?: monetizationUncheckedUpdateManyWithoutItemsNestedInput
     reviews?: reviewsUncheckedUpdateManyWithoutItemsNestedInput
@@ -23065,12 +23132,14 @@ export namespace Prisma {
 
   export type itemsCreateWithoutReviewsInput = {
     item_id?: string
+    sql_id: string
     title: string
     description?: string | null
     category?: string | null
     price?: Decimal | DecimalJsLike | number | string | null
     monetization_type?: string | null
     availability?: boolean | null
+    visibility?: string | null
     created_at?: Date | string | null
     favorites?: favoritesCreateNestedManyWithoutItemsInput
     users: usersCreateNestedOneWithoutItemsInput
@@ -23081,12 +23150,14 @@ export namespace Prisma {
   export type itemsUncheckedCreateWithoutReviewsInput = {
     item_id?: string
     user_id: string
+    sql_id: string
     title: string
     description?: string | null
     category?: string | null
     price?: Decimal | DecimalJsLike | number | string | null
     monetization_type?: string | null
     availability?: boolean | null
+    visibility?: string | null
     created_at?: Date | string | null
     favorites?: favoritesUncheckedCreateNestedManyWithoutItemsInput
     monetization?: monetizationUncheckedCreateNestedManyWithoutItemsInput
@@ -23160,12 +23231,14 @@ export namespace Prisma {
 
   export type itemsUpdateWithoutReviewsInput = {
     item_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     favorites?: favoritesUpdateManyWithoutItemsNestedInput
     users?: usersUpdateOneRequiredWithoutItemsNestedInput
@@ -23176,12 +23249,14 @@ export namespace Prisma {
   export type itemsUncheckedUpdateWithoutReviewsInput = {
     item_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     favorites?: favoritesUncheckedUpdateManyWithoutItemsNestedInput
     monetization?: monetizationUncheckedUpdateManyWithoutItemsNestedInput
@@ -23300,12 +23375,14 @@ export namespace Prisma {
 
   export type itemsCreateWithoutTransactionsInput = {
     item_id?: string
+    sql_id: string
     title: string
     description?: string | null
     category?: string | null
     price?: Decimal | DecimalJsLike | number | string | null
     monetization_type?: string | null
     availability?: boolean | null
+    visibility?: string | null
     created_at?: Date | string | null
     favorites?: favoritesCreateNestedManyWithoutItemsInput
     users: usersCreateNestedOneWithoutItemsInput
@@ -23316,12 +23393,14 @@ export namespace Prisma {
   export type itemsUncheckedCreateWithoutTransactionsInput = {
     item_id?: string
     user_id: string
+    sql_id: string
     title: string
     description?: string | null
     category?: string | null
     price?: Decimal | DecimalJsLike | number | string | null
     monetization_type?: string | null
     availability?: boolean | null
+    visibility?: string | null
     created_at?: Date | string | null
     favorites?: favoritesUncheckedCreateNestedManyWithoutItemsInput
     monetization?: monetizationUncheckedCreateNestedManyWithoutItemsInput
@@ -23395,12 +23474,14 @@ export namespace Prisma {
 
   export type itemsUpdateWithoutTransactionsInput = {
     item_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     favorites?: favoritesUpdateManyWithoutItemsNestedInput
     users?: usersUpdateOneRequiredWithoutItemsNestedInput
@@ -23411,12 +23492,14 @@ export namespace Prisma {
   export type itemsUncheckedUpdateWithoutTransactionsInput = {
     item_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     favorites?: favoritesUncheckedUpdateManyWithoutItemsNestedInput
     monetization?: monetizationUncheckedUpdateManyWithoutItemsNestedInput
@@ -23447,12 +23530,14 @@ export namespace Prisma {
 
   export type itemsCreateWithoutUsersInput = {
     item_id?: string
+    sql_id: string
     title: string
     description?: string | null
     category?: string | null
     price?: Decimal | DecimalJsLike | number | string | null
     monetization_type?: string | null
     availability?: boolean | null
+    visibility?: string | null
     created_at?: Date | string | null
     favorites?: favoritesCreateNestedManyWithoutItemsInput
     monetization?: monetizationCreateNestedManyWithoutItemsInput
@@ -23462,12 +23547,14 @@ export namespace Prisma {
 
   export type itemsUncheckedCreateWithoutUsersInput = {
     item_id?: string
+    sql_id: string
     title: string
     description?: string | null
     category?: string | null
     price?: Decimal | DecimalJsLike | number | string | null
     monetization_type?: string | null
     availability?: boolean | null
+    visibility?: string | null
     created_at?: Date | string | null
     favorites?: favoritesUncheckedCreateNestedManyWithoutItemsInput
     monetization?: monetizationUncheckedCreateNestedManyWithoutItemsInput
@@ -23760,12 +23847,14 @@ export namespace Prisma {
     NOT?: Enumerable<itemsScalarWhereInput>
     item_id?: UuidFilter | string
     user_id?: UuidFilter | string
+    sql_id?: StringFilter | string
     title?: StringFilter | string
     description?: StringNullableFilter | string | null
     category?: StringNullableFilter | string | null
     price?: DecimalNullableFilter | Decimal | DecimalJsLike | number | string | null
     monetization_type?: StringNullableFilter | string | null
     availability?: BoolNullableFilter | boolean | null
+    visibility?: StringNullableFilter | string | null
     created_at?: DateTimeNullableFilter | Date | string | null
   }
 
@@ -25001,12 +25090,14 @@ export namespace Prisma {
 
   export type itemsCreateManyUsersInput = {
     item_id?: string
+    sql_id: string
     title: string
     description?: string | null
     category?: string | null
     price?: Decimal | DecimalJsLike | number | string | null
     monetization_type?: string | null
     availability?: boolean | null
+    visibility?: string | null
     created_at?: Date | string | null
   }
 
@@ -25063,12 +25154,14 @@ export namespace Prisma {
 
   export type itemsUpdateWithoutUsersInput = {
     item_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     favorites?: favoritesUpdateManyWithoutItemsNestedInput
     monetization?: monetizationUpdateManyWithoutItemsNestedInput
@@ -25078,12 +25171,14 @@ export namespace Prisma {
 
   export type itemsUncheckedUpdateWithoutUsersInput = {
     item_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     favorites?: favoritesUncheckedUpdateManyWithoutItemsNestedInput
     monetization?: monetizationUncheckedUpdateManyWithoutItemsNestedInput
@@ -25093,12 +25188,14 @@ export namespace Prisma {
 
   export type itemsUncheckedUpdateManyWithoutItemsInput = {
     item_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     monetization_type?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    visibility?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 

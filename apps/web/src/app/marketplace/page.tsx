@@ -1,9 +1,7 @@
-"use client"
-
 import { AuthenticatedLayout } from "../../../components/authenticated-layout"
 import { useState, useMemo } from "react"
 import { useSearchParams } from "next/navigation"
-import { Search, TrendingUp, Shield, DollarSign } from "lucide-react"
+import { Search, TrendingUp, Shield, DollarSign, Palette, Image as ImageIcon, BookOpen, Volume2, Film } from "lucide-react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
@@ -31,12 +29,12 @@ interface FilterState {
 }
 
 const categories = [
-  { id: "all", label: "All Assets", icon: "🎨" },
-  { id: "art", label: "Art", icon: "🖼️" },
-  { id: "writing", label: "Writing", icon: "✍️" },
-  { id: "audio", label: "Audio", icon: "🎵" },
-  { id: "video", label: "Video", icon: "🎬" },
-  { id: "courses", label: "Courses", icon: "📚" },
+  { id: "all", label: "All Assets", icon: Palette },
+  { id: "art", label: "Art", icon: ImageIcon },
+  { id: "writing", label: "Writing", icon: BookOpen },
+  { id: "audio", label: "Audio", icon: Volume2 },
+  { id: "video", label: "Video", icon: Film },
+  { id: "courses", label: "Courses", icon: BookOpen },
 ]
 
 const stats = [
@@ -128,21 +126,24 @@ export default function MarketplacePage() {
 
           {/* Category Tabs */}
           <div className="flex gap-3 overflow-x-auto pb-2">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={cn(
-                  "px-4 py-2 rounded-full whitespace-nowrap font-medium transition-all duration-200 flex items-center gap-2",
-                  selectedCategory === cat.id
-                    ? "bg-primary text-primary-foreground shadow-lg"
-                    : "bg-card border border-border/50 text-foreground hover:border-primary/50"
-                )}
-              >
-                <span>{cat.icon}</span>
-                {cat.label}
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const IconComponent = cat.icon
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={cn(
+                    "px-4 py-2 rounded-full whitespace-nowrap font-medium transition-all duration-200 flex items-center gap-2",
+                    selectedCategory === cat.id
+                      ? "bg-primary text-primary-foreground shadow-lg"
+                      : "bg-card border border-border/50 text-foreground hover:border-primary/50"
+                  )}
+                >
+                  <IconComponent className="h-4 w-4" />
+                  {cat.label}
+                </button>
+              )
+            })}
           </div>
 
           {/* Search Bar */}
@@ -162,11 +163,6 @@ export default function MarketplacePage() {
         <div className="flex-1 min-h-0 overflow-y-auto">
           {filteredItems.length > 0 ? (
             <div className="space-y-4">
-              <div>
-                <h2 className="font-serif text-2xl font-bold mb-1">All Items</h2>
-                <p className="text-muted-foreground">Showing {filteredItems.length} items</p>
-              </div>
-
               <motion.div
                 className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
                 initial="hidden"
@@ -189,8 +185,8 @@ export default function MarketplacePage() {
                     className="group cursor-pointer"
                   >
                     <div className="aspect-square rounded-xl overflow-hidden mb-3 bg-card border border-border/50 group-hover:border-primary/50 transition-all">
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl">
-                        🎨
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                        <Palette className="h-8 w-8 text-primary/40" />
                       </div>
                     </div>
                     <h3 className="font-semibold text-sm truncate">{item.title}</h3>

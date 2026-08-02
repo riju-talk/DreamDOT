@@ -12,16 +12,21 @@ datasource db {
 }
 
 // ==================== ITEMS_D SCHEMA ====================
+// Note: This schema stores ITEM METADATA (indexable/relational data)
+// Actual item content (script, media, DRM config) is stored in MongoDB collection 'items'
+// Linked via: items.sql_id = mongodb.items._id
 
 model items {
   item_id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id           String         @db.Uuid
+  sql_id            String         @unique // Links to MongoDB item._id
   title             String         @db.VarChar(255)
   description       String?
-  category          String?
+  category          String?        // writing | illustration | audio | video | research | template | code | bundle | other
   price             Decimal?       @db.Decimal(10, 2)
-  monetization_type String?
+  monetization_type String?        // free | paid | subscription | bundle
   availability      Boolean?       @default(true)
+  visibility        String?        @default("private") // private | unlisted | public
   created_at        DateTime?      @default(now()) @db.Timestamp(6)
   favorites         favorites[]
   users             users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)

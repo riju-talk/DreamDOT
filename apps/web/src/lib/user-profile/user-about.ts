@@ -1,4 +1,4 @@
-import { prismaUser} from "@/lib/db"
+import { prismaUser } from "@/lib/prisma/user"
 import { getServerSession } from "next-auth"
 import { authOptions } from "../auth";
 

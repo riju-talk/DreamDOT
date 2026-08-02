@@ -12,8 +12,8 @@ import $Extensions = runtime.Types.Extensions
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
 
 
-export type posts_metadataPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-  name: "posts_metadata"
+export type postsPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  name: "posts"
   objects: {
     comments: commentsPayload<ExtArgs>[]
     likes: likesPayload<ExtArgs>[]
@@ -26,23 +26,24 @@ export type posts_metadataPayload<ExtArgs extends $Extensions.Args = $Extensions
   scalars: $Extensions.GetResult<{
     id: string
     user_id: string
-    description: string | null
+    sql_id: string
+    content: string | null
     visibility: boolean
     created_at: Date
     updated_at: Date
-  }, ExtArgs["result"]["posts_metadata"]>
+  }, ExtArgs["result"]["posts"]>
   composites: {}
 }
 
 /**
- * Model posts_metadata
+ * Model posts
  * 
  */
-export type posts_metadata = runtime.Types.DefaultSelection<posts_metadataPayload>
+export type posts = runtime.Types.DefaultSelection<postsPayload>
 export type posts_analyticsPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   name: "posts_analytics"
   objects: {
-    posts_metadata: posts_metadataPayload<ExtArgs>
+    posts: postsPayload<ExtArgs>
   }
   scalars: $Extensions.GetResult<{
     post_id: string
@@ -64,7 +65,7 @@ export type commentsPayload<ExtArgs extends $Extensions.Args = $Extensions.Defau
   objects: {
     comments: commentsPayload<ExtArgs> | null
     other_comments: commentsPayload<ExtArgs>[]
-    posts_metadata: posts_metadataPayload<ExtArgs>
+    posts: postsPayload<ExtArgs>
   }
   scalars: $Extensions.GetResult<{
     comment_id: string
@@ -85,7 +86,7 @@ export type comments = runtime.Types.DefaultSelection<commentsPayload>
 export type likesPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   name: "likes"
   objects: {
-    posts_metadata: posts_metadataPayload<ExtArgs>
+    posts: postsPayload<ExtArgs>
   }
   scalars: $Extensions.GetResult<{
     user_id: string
@@ -104,7 +105,7 @@ export type likes = runtime.Types.DefaultSelection<likesPayload>
 export type savesPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   name: "saves"
   objects: {
-    posts_metadata: posts_metadataPayload<ExtArgs>
+    posts: postsPayload<ExtArgs>
   }
   scalars: $Extensions.GetResult<{
     save_id: string
@@ -123,7 +124,7 @@ export type saves = runtime.Types.DefaultSelection<savesPayload>
 export type sharesPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   name: "shares"
   objects: {
-    posts_metadata: posts_metadataPayload<ExtArgs>
+    posts: postsPayload<ExtArgs>
   }
   scalars: $Extensions.GetResult<{
     share_id: string
@@ -177,7 +178,7 @@ export type blocking = runtime.Types.DefaultSelection<blockingPayload>
 export type reported_contentPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   name: "reported_content"
   objects: {
-    posts_metadata: posts_metadataPayload<ExtArgs> | null
+    posts: postsPayload<ExtArgs> | null
   }
   scalars: $Extensions.GetResult<{
     id: string
@@ -221,7 +222,7 @@ export type usersPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultA
   name: "users"
   objects: {
     notifications: notificationsPayload<ExtArgs>[]
-    posts_metadata: posts_metadataPayload<ExtArgs>[]
+    posts: postsPayload<ExtArgs>[]
     user_analytics: user_analyticsPayload<ExtArgs> | null
     user_audit_logs: user_audit_logsPayload<ExtArgs>[]
     user_blocklist: user_blocklistPayload<ExtArgs> | null
@@ -430,8 +431,8 @@ export type user_sessions = runtime.Types.DefaultSelection<user_sessionsPayload>
  * @example
  * ```
  * const prisma = new PrismaClient()
- * // Fetch zero or more Posts_metadata
- * const posts_metadata = await prisma.posts_metadata.findMany()
+ * // Fetch zero or more Posts
+ * const posts = await prisma.posts.findMany()
  * ```
  *
  * 
@@ -454,8 +455,8 @@ export class PrismaClient<
    * @example
    * ```
    * const prisma = new PrismaClient()
-   * // Fetch zero or more Posts_metadata
-   * const posts_metadata = await prisma.posts_metadata.findMany()
+   * // Fetch zero or more Posts
+   * const posts = await prisma.posts.findMany()
    * ```
    *
    * 
@@ -549,14 +550,14 @@ export class PrismaClient<
   $extends: $Extensions.ExtendsHook<'extends', Prisma.TypeMapCb, ExtArgs>
 
       /**
-   * `prisma.posts_metadata`: Exposes CRUD operations for the **posts_metadata** model.
+   * `prisma.posts`: Exposes CRUD operations for the **posts** model.
     * Example usage:
     * ```ts
-    * // Fetch zero or more Posts_metadata
-    * const posts_metadata = await prisma.posts_metadata.findMany()
+    * // Fetch zero or more Posts
+    * const posts = await prisma.posts.findMany()
     * ```
     */
-  get posts_metadata(): Prisma.posts_metadataDelegate<GlobalReject, ExtArgs>;
+  get posts(): Prisma.postsDelegate<GlobalReject, ExtArgs>;
 
   /**
    * `prisma.posts_analytics`: Exposes CRUD operations for the **posts_analytics** model.
@@ -1220,7 +1221,7 @@ export namespace Prisma {
 
 
   export const ModelName: {
-    posts_metadata: 'posts_metadata',
+    posts: 'posts',
     posts_analytics: 'posts_analytics',
     comments: 'comments',
     likes: 'likes',
@@ -1255,72 +1256,72 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     meta: {
-      modelProps: 'posts_metadata' | 'posts_analytics' | 'comments' | 'likes' | 'saves' | 'shares' | 'following' | 'blocking' | 'reported_content' | 'notifications' | 'users' | 'user_analytics' | 'user_about' | 'user_audit_logs' | 'user_blocklist' | 'user_certificates' | 'user_profile' | 'user_security' | 'user_sessions'
+      modelProps: 'posts' | 'posts_analytics' | 'comments' | 'likes' | 'saves' | 'shares' | 'following' | 'blocking' | 'reported_content' | 'notifications' | 'users' | 'user_analytics' | 'user_about' | 'user_audit_logs' | 'user_blocklist' | 'user_certificates' | 'user_profile' | 'user_security' | 'user_sessions'
       txIsolationLevel: Prisma.TransactionIsolationLevel
     },
     model: {
-      posts_metadata: {
-        payload: posts_metadataPayload<ExtArgs>
+      posts: {
+        payload: postsPayload<ExtArgs>
         operations: {
           findUnique: {
-            args: Prisma.posts_metadataFindUniqueArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<posts_metadataPayload> | null
+            args: Prisma.postsFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<postsPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.posts_metadataFindUniqueOrThrowArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<posts_metadataPayload>
+            args: Prisma.postsFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<postsPayload>
           }
           findFirst: {
-            args: Prisma.posts_metadataFindFirstArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<posts_metadataPayload> | null
+            args: Prisma.postsFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<postsPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.posts_metadataFindFirstOrThrowArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<posts_metadataPayload>
+            args: Prisma.postsFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<postsPayload>
           }
           findMany: {
-            args: Prisma.posts_metadataFindManyArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<posts_metadataPayload>[]
+            args: Prisma.postsFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<postsPayload>[]
           }
           create: {
-            args: Prisma.posts_metadataCreateArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<posts_metadataPayload>
+            args: Prisma.postsCreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<postsPayload>
           }
           createMany: {
-            args: Prisma.posts_metadataCreateManyArgs<ExtArgs>,
+            args: Prisma.postsCreateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
           }
           delete: {
-            args: Prisma.posts_metadataDeleteArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<posts_metadataPayload>
+            args: Prisma.postsDeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<postsPayload>
           }
           update: {
-            args: Prisma.posts_metadataUpdateArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<posts_metadataPayload>
+            args: Prisma.postsUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<postsPayload>
           }
           deleteMany: {
-            args: Prisma.posts_metadataDeleteManyArgs<ExtArgs>,
+            args: Prisma.postsDeleteManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
           }
           updateMany: {
-            args: Prisma.posts_metadataUpdateManyArgs<ExtArgs>,
+            args: Prisma.postsUpdateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
           }
           upsert: {
-            args: Prisma.posts_metadataUpsertArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<posts_metadataPayload>
+            args: Prisma.postsUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<postsPayload>
           }
           aggregate: {
-            args: Prisma.Posts_metadataAggregateArgs<ExtArgs>,
-            result: $Utils.Optional<AggregatePosts_metadata>
+            args: Prisma.PostsAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregatePosts>
           }
           groupBy: {
-            args: Prisma.Posts_metadataGroupByArgs<ExtArgs>,
-            result: $Utils.Optional<Posts_metadataGroupByOutputType>[]
+            args: Prisma.PostsGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<PostsGroupByOutputType>[]
           }
           count: {
-            args: Prisma.posts_metadataCountArgs<ExtArgs>,
-            result: $Utils.Optional<Posts_metadataCountAggregateOutputType> | number
+            args: Prisma.postsCountArgs<ExtArgs>,
+            result: $Utils.Optional<PostsCountAggregateOutputType> | number
           }
         }
       }
@@ -2671,11 +2672,11 @@ export namespace Prisma {
 
 
   /**
-   * Count Type Posts_metadataCountOutputType
+   * Count Type PostsCountOutputType
    */
 
 
-  export type Posts_metadataCountOutputType = {
+  export type PostsCountOutputType = {
     comments: number
     likes: number
     saves: number
@@ -2683,63 +2684,63 @@ export namespace Prisma {
     reported_content: number
   }
 
-  export type Posts_metadataCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    comments?: boolean | Posts_metadataCountOutputTypeCountCommentsArgs
-    likes?: boolean | Posts_metadataCountOutputTypeCountLikesArgs
-    saves?: boolean | Posts_metadataCountOutputTypeCountSavesArgs
-    shares?: boolean | Posts_metadataCountOutputTypeCountSharesArgs
-    reported_content?: boolean | Posts_metadataCountOutputTypeCountReported_contentArgs
+  export type PostsCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    comments?: boolean | PostsCountOutputTypeCountCommentsArgs
+    likes?: boolean | PostsCountOutputTypeCountLikesArgs
+    saves?: boolean | PostsCountOutputTypeCountSavesArgs
+    shares?: boolean | PostsCountOutputTypeCountSharesArgs
+    reported_content?: boolean | PostsCountOutputTypeCountReported_contentArgs
   }
 
   // Custom InputTypes
 
   /**
-   * Posts_metadataCountOutputType without action
+   * PostsCountOutputType without action
    */
-  export type Posts_metadataCountOutputTypeArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type PostsCountOutputTypeArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Posts_metadataCountOutputType
+     * Select specific fields to fetch from the PostsCountOutputType
      */
-    select?: Posts_metadataCountOutputTypeSelect<ExtArgs> | null
+    select?: PostsCountOutputTypeSelect<ExtArgs> | null
   }
 
 
   /**
-   * Posts_metadataCountOutputType without action
+   * PostsCountOutputType without action
    */
-  export type Posts_metadataCountOutputTypeCountCommentsArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type PostsCountOutputTypeCountCommentsArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: commentsWhereInput
   }
 
 
   /**
-   * Posts_metadataCountOutputType without action
+   * PostsCountOutputType without action
    */
-  export type Posts_metadataCountOutputTypeCountLikesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type PostsCountOutputTypeCountLikesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: likesWhereInput
   }
 
 
   /**
-   * Posts_metadataCountOutputType without action
+   * PostsCountOutputType without action
    */
-  export type Posts_metadataCountOutputTypeCountSavesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type PostsCountOutputTypeCountSavesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: savesWhereInput
   }
 
 
   /**
-   * Posts_metadataCountOutputType without action
+   * PostsCountOutputType without action
    */
-  export type Posts_metadataCountOutputTypeCountSharesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type PostsCountOutputTypeCountSharesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: sharesWhereInput
   }
 
 
   /**
-   * Posts_metadataCountOutputType without action
+   * PostsCountOutputType without action
    */
-  export type Posts_metadataCountOutputTypeCountReported_contentArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type PostsCountOutputTypeCountReported_contentArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: reported_contentWhereInput
   }
 
@@ -2787,14 +2788,14 @@ export namespace Prisma {
 
   export type UsersCountOutputType = {
     notifications: number
-    posts_metadata: number
+    posts: number
     user_audit_logs: number
     user_sessions: number
   }
 
   export type UsersCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     notifications?: boolean | UsersCountOutputTypeCountNotificationsArgs
-    posts_metadata?: boolean | UsersCountOutputTypeCountPosts_metadataArgs
+    posts?: boolean | UsersCountOutputTypeCountPostsArgs
     user_audit_logs?: boolean | UsersCountOutputTypeCountUser_audit_logsArgs
     user_sessions?: boolean | UsersCountOutputTypeCountUser_sessionsArgs
   }
@@ -2823,8 +2824,8 @@ export namespace Prisma {
   /**
    * UsersCountOutputType without action
    */
-  export type UsersCountOutputTypeCountPosts_metadataArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    where?: posts_metadataWhereInput
+  export type UsersCountOutputTypeCountPostsArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: postsWhereInput
   }
 
 
@@ -2850,38 +2851,41 @@ export namespace Prisma {
    */
 
   /**
-   * Model posts_metadata
+   * Model posts
    */
 
 
-  export type AggregatePosts_metadata = {
-    _count: Posts_metadataCountAggregateOutputType | null
-    _min: Posts_metadataMinAggregateOutputType | null
-    _max: Posts_metadataMaxAggregateOutputType | null
+  export type AggregatePosts = {
+    _count: PostsCountAggregateOutputType | null
+    _min: PostsMinAggregateOutputType | null
+    _max: PostsMaxAggregateOutputType | null
   }
 
-  export type Posts_metadataMinAggregateOutputType = {
+  export type PostsMinAggregateOutputType = {
     id: string | null
     user_id: string | null
-    description: string | null
+    sql_id: string | null
+    content: string | null
     visibility: boolean | null
     created_at: Date | null
     updated_at: Date | null
   }
 
-  export type Posts_metadataMaxAggregateOutputType = {
+  export type PostsMaxAggregateOutputType = {
     id: string | null
     user_id: string | null
-    description: string | null
+    sql_id: string | null
+    content: string | null
     visibility: boolean | null
     created_at: Date | null
     updated_at: Date | null
   }
 
-  export type Posts_metadataCountAggregateOutputType = {
+  export type PostsCountAggregateOutputType = {
     id: number
     user_id: number
-    description: number
+    sql_id: number
+    content: number
     visibility: number
     created_at: number
     updated_at: number
@@ -2889,320 +2893,326 @@ export namespace Prisma {
   }
 
 
-  export type Posts_metadataMinAggregateInputType = {
+  export type PostsMinAggregateInputType = {
     id?: true
     user_id?: true
-    description?: true
+    sql_id?: true
+    content?: true
     visibility?: true
     created_at?: true
     updated_at?: true
   }
 
-  export type Posts_metadataMaxAggregateInputType = {
+  export type PostsMaxAggregateInputType = {
     id?: true
     user_id?: true
-    description?: true
+    sql_id?: true
+    content?: true
     visibility?: true
     created_at?: true
     updated_at?: true
   }
 
-  export type Posts_metadataCountAggregateInputType = {
+  export type PostsCountAggregateInputType = {
     id?: true
     user_id?: true
-    description?: true
+    sql_id?: true
+    content?: true
     visibility?: true
     created_at?: true
     updated_at?: true
     _all?: true
   }
 
-  export type Posts_metadataAggregateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type PostsAggregateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * Filter which posts_metadata to aggregate.
+     * Filter which posts to aggregate.
      */
-    where?: posts_metadataWhereInput
+    where?: postsWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of posts_metadata to fetch.
+     * Determine the order of posts to fetch.
      */
-    orderBy?: Enumerable<posts_metadataOrderByWithRelationInput>
+    orderBy?: Enumerable<postsOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
      */
-    cursor?: posts_metadataWhereUniqueInput
+    cursor?: postsWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` posts_metadata from the position of the cursor.
+     * Take `±n` posts from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` posts_metadata.
+     * Skip the first `n` posts.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Count returned posts_metadata
+     * Count returned posts
     **/
-    _count?: true | Posts_metadataCountAggregateInputType
+    _count?: true | PostsCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    _min?: Posts_metadataMinAggregateInputType
+    _min?: PostsMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    _max?: Posts_metadataMaxAggregateInputType
+    _max?: PostsMaxAggregateInputType
   }
 
-  export type GetPosts_metadataAggregateType<T extends Posts_metadataAggregateArgs> = {
-        [P in keyof T & keyof AggregatePosts_metadata]: P extends '_count' | 'count'
+  export type GetPostsAggregateType<T extends PostsAggregateArgs> = {
+        [P in keyof T & keyof AggregatePosts]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregatePosts_metadata[P]>
-      : GetScalarType<T[P], AggregatePosts_metadata[P]>
+        : GetScalarType<T[P], AggregatePosts[P]>
+      : GetScalarType<T[P], AggregatePosts[P]>
   }
 
 
 
 
-  export type Posts_metadataGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    where?: posts_metadataWhereInput
-    orderBy?: Enumerable<posts_metadataOrderByWithAggregationInput>
-    by: Posts_metadataScalarFieldEnum[]
-    having?: posts_metadataScalarWhereWithAggregatesInput
+  export type PostsGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: postsWhereInput
+    orderBy?: Enumerable<postsOrderByWithAggregationInput>
+    by: PostsScalarFieldEnum[]
+    having?: postsScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    _count?: Posts_metadataCountAggregateInputType | true
-    _min?: Posts_metadataMinAggregateInputType
-    _max?: Posts_metadataMaxAggregateInputType
+    _count?: PostsCountAggregateInputType | true
+    _min?: PostsMinAggregateInputType
+    _max?: PostsMaxAggregateInputType
   }
 
 
-  export type Posts_metadataGroupByOutputType = {
+  export type PostsGroupByOutputType = {
     id: string
     user_id: string
-    description: string | null
+    sql_id: string
+    content: string | null
     visibility: boolean
     created_at: Date
     updated_at: Date
-    _count: Posts_metadataCountAggregateOutputType | null
-    _min: Posts_metadataMinAggregateOutputType | null
-    _max: Posts_metadataMaxAggregateOutputType | null
+    _count: PostsCountAggregateOutputType | null
+    _min: PostsMinAggregateOutputType | null
+    _max: PostsMaxAggregateOutputType | null
   }
 
-  type GetPosts_metadataGroupByPayload<T extends Posts_metadataGroupByArgs> = Prisma.PrismaPromise<
+  type GetPostsGroupByPayload<T extends PostsGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<Posts_metadataGroupByOutputType, T['by']> &
+      PickArray<PostsGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof Posts_metadataGroupByOutputType))]: P extends '_count'
+          [P in ((keyof T) & (keyof PostsGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
               ? number
-              : GetScalarType<T[P], Posts_metadataGroupByOutputType[P]>
-            : GetScalarType<T[P], Posts_metadataGroupByOutputType[P]>
+              : GetScalarType<T[P], PostsGroupByOutputType[P]>
+            : GetScalarType<T[P], PostsGroupByOutputType[P]>
         }
       >
     >
 
 
-  export type posts_metadataSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type postsSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     user_id?: boolean
-    description?: boolean
+    sql_id?: boolean
+    content?: boolean
     visibility?: boolean
     created_at?: boolean
     updated_at?: boolean
-    comments?: boolean | posts_metadata$commentsArgs<ExtArgs>
-    likes?: boolean | posts_metadata$likesArgs<ExtArgs>
-    saves?: boolean | posts_metadata$savesArgs<ExtArgs>
-    shares?: boolean | posts_metadata$sharesArgs<ExtArgs>
+    comments?: boolean | posts$commentsArgs<ExtArgs>
+    likes?: boolean | posts$likesArgs<ExtArgs>
+    saves?: boolean | posts$savesArgs<ExtArgs>
+    shares?: boolean | posts$sharesArgs<ExtArgs>
     posts_analytics?: boolean | posts_analyticsArgs<ExtArgs>
     users?: boolean | usersArgs<ExtArgs>
-    reported_content?: boolean | posts_metadata$reported_contentArgs<ExtArgs>
-    _count?: boolean | Posts_metadataCountOutputTypeArgs<ExtArgs>
-  }, ExtArgs["result"]["posts_metadata"]>
+    reported_content?: boolean | posts$reported_contentArgs<ExtArgs>
+    _count?: boolean | PostsCountOutputTypeArgs<ExtArgs>
+  }, ExtArgs["result"]["posts"]>
 
-  export type posts_metadataSelectScalar = {
+  export type postsSelectScalar = {
     id?: boolean
     user_id?: boolean
-    description?: boolean
+    sql_id?: boolean
+    content?: boolean
     visibility?: boolean
     created_at?: boolean
     updated_at?: boolean
   }
 
-  export type posts_metadataInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    comments?: boolean | posts_metadata$commentsArgs<ExtArgs>
-    likes?: boolean | posts_metadata$likesArgs<ExtArgs>
-    saves?: boolean | posts_metadata$savesArgs<ExtArgs>
-    shares?: boolean | posts_metadata$sharesArgs<ExtArgs>
+  export type postsInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    comments?: boolean | posts$commentsArgs<ExtArgs>
+    likes?: boolean | posts$likesArgs<ExtArgs>
+    saves?: boolean | posts$savesArgs<ExtArgs>
+    shares?: boolean | posts$sharesArgs<ExtArgs>
     posts_analytics?: boolean | posts_analyticsArgs<ExtArgs>
     users?: boolean | usersArgs<ExtArgs>
-    reported_content?: boolean | posts_metadata$reported_contentArgs<ExtArgs>
-    _count?: boolean | Posts_metadataCountOutputTypeArgs<ExtArgs>
+    reported_content?: boolean | posts$reported_contentArgs<ExtArgs>
+    _count?: boolean | PostsCountOutputTypeArgs<ExtArgs>
   }
 
 
-  type posts_metadataGetPayload<S extends boolean | null | undefined | posts_metadataArgs> = $Types.GetResult<posts_metadataPayload, S>
+  type postsGetPayload<S extends boolean | null | undefined | postsArgs> = $Types.GetResult<postsPayload, S>
 
-  type posts_metadataCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
-    Omit<posts_metadataFindManyArgs, 'select' | 'include'> & {
-      select?: Posts_metadataCountAggregateInputType | true
+  type postsCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
+    Omit<postsFindManyArgs, 'select' | 'include'> & {
+      select?: PostsCountAggregateInputType | true
     }
 
-  export interface posts_metadataDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['posts_metadata'], meta: { name: 'posts_metadata' } }
+  export interface postsDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['posts'], meta: { name: 'posts' } }
     /**
-     * Find zero or one Posts_metadata that matches the filter.
-     * @param {posts_metadataFindUniqueArgs} args - Arguments to find a Posts_metadata
+     * Find zero or one Posts that matches the filter.
+     * @param {postsFindUniqueArgs} args - Arguments to find a Posts
      * @example
-     * // Get one Posts_metadata
-     * const posts_metadata = await prisma.posts_metadata.findUnique({
+     * // Get one Posts
+     * const posts = await prisma.posts.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findUnique<T extends posts_metadataFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
-      args: SelectSubset<T, posts_metadataFindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'posts_metadata'> extends True ? Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
+    findUnique<T extends postsFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+      args: SelectSubset<T, postsFindUniqueArgs<ExtArgs>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'posts'> extends True ? Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
-     * Find one Posts_metadata that matches the filter or throw an error  with `error.code='P2025'` 
+     * Find one Posts that matches the filter or throw an error  with `error.code='P2025'` 
      *     if no matches were found.
-     * @param {posts_metadataFindUniqueOrThrowArgs} args - Arguments to find a Posts_metadata
+     * @param {postsFindUniqueOrThrowArgs} args - Arguments to find a Posts
      * @example
-     * // Get one Posts_metadata
-     * const posts_metadata = await prisma.posts_metadata.findUniqueOrThrow({
+     * // Get one Posts
+     * const posts = await prisma.posts.findUniqueOrThrow({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findUniqueOrThrow<T extends posts_metadataFindUniqueOrThrowArgs<ExtArgs>>(
-      args?: SelectSubset<T, posts_metadataFindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
+    findUniqueOrThrow<T extends postsFindUniqueOrThrowArgs<ExtArgs>>(
+      args?: SelectSubset<T, postsFindUniqueOrThrowArgs<ExtArgs>>
+    ): Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
-     * Find the first Posts_metadata that matches the filter.
+     * Find the first Posts that matches the filter.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {posts_metadataFindFirstArgs} args - Arguments to find a Posts_metadata
+     * @param {postsFindFirstArgs} args - Arguments to find a Posts
      * @example
-     * // Get one Posts_metadata
-     * const posts_metadata = await prisma.posts_metadata.findFirst({
+     * // Get one Posts
+     * const posts = await prisma.posts.findFirst({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findFirst<T extends posts_metadataFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
-      args?: SelectSubset<T, posts_metadataFindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'posts_metadata'> extends True ? Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
+    findFirst<T extends postsFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+      args?: SelectSubset<T, postsFindFirstArgs<ExtArgs>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'posts'> extends True ? Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
-     * Find the first Posts_metadata that matches the filter or
+     * Find the first Posts that matches the filter or
      * throw `NotFoundError` if no matches were found.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {posts_metadataFindFirstOrThrowArgs} args - Arguments to find a Posts_metadata
+     * @param {postsFindFirstOrThrowArgs} args - Arguments to find a Posts
      * @example
-     * // Get one Posts_metadata
-     * const posts_metadata = await prisma.posts_metadata.findFirstOrThrow({
+     * // Get one Posts
+     * const posts = await prisma.posts.findFirstOrThrow({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findFirstOrThrow<T extends posts_metadataFindFirstOrThrowArgs<ExtArgs>>(
-      args?: SelectSubset<T, posts_metadataFindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
+    findFirstOrThrow<T extends postsFindFirstOrThrowArgs<ExtArgs>>(
+      args?: SelectSubset<T, postsFindFirstOrThrowArgs<ExtArgs>>
+    ): Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
-     * Find zero or more Posts_metadata that matches the filter.
+     * Find zero or more Posts that matches the filter.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {posts_metadataFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {postsFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all Posts_metadata
-     * const posts_metadata = await prisma.posts_metadata.findMany()
+     * // Get all Posts
+     * const posts = await prisma.posts.findMany()
      * 
-     * // Get first 10 Posts_metadata
-     * const posts_metadata = await prisma.posts_metadata.findMany({ take: 10 })
+     * // Get first 10 Posts
+     * const posts = await prisma.posts.findMany({ take: 10 })
      * 
      * // Only select the `id`
-     * const posts_metadataWithIdOnly = await prisma.posts_metadata.findMany({ select: { id: true } })
+     * const postsWithIdOnly = await prisma.posts.findMany({ select: { id: true } })
      * 
     **/
-    findMany<T extends posts_metadataFindManyArgs<ExtArgs>>(
-      args?: SelectSubset<T, posts_metadataFindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'findMany', never>>
+    findMany<T extends postsFindManyArgs<ExtArgs>>(
+      args?: SelectSubset<T, postsFindManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Types.GetResult<postsPayload<ExtArgs>, T, 'findMany', never>>
 
     /**
-     * Create a Posts_metadata.
-     * @param {posts_metadataCreateArgs} args - Arguments to create a Posts_metadata.
+     * Create a Posts.
+     * @param {postsCreateArgs} args - Arguments to create a Posts.
      * @example
-     * // Create one Posts_metadata
-     * const Posts_metadata = await prisma.posts_metadata.create({
+     * // Create one Posts
+     * const Posts = await prisma.posts.create({
      *   data: {
-     *     // ... data to create a Posts_metadata
+     *     // ... data to create a Posts
      *   }
      * })
      * 
     **/
-    create<T extends posts_metadataCreateArgs<ExtArgs>>(
-      args: SelectSubset<T, posts_metadataCreateArgs<ExtArgs>>
-    ): Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
+    create<T extends postsCreateArgs<ExtArgs>>(
+      args: SelectSubset<T, postsCreateArgs<ExtArgs>>
+    ): Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
-     * Create many Posts_metadata.
-     *     @param {posts_metadataCreateManyArgs} args - Arguments to create many Posts_metadata.
+     * Create many Posts.
+     *     @param {postsCreateManyArgs} args - Arguments to create many Posts.
      *     @example
-     *     // Create many Posts_metadata
-     *     const posts_metadata = await prisma.posts_metadata.createMany({
+     *     // Create many Posts
+     *     const posts = await prisma.posts.createMany({
      *       data: {
      *         // ... provide data here
      *       }
      *     })
      *     
     **/
-    createMany<T extends posts_metadataCreateManyArgs<ExtArgs>>(
-      args?: SelectSubset<T, posts_metadataCreateManyArgs<ExtArgs>>
+    createMany<T extends postsCreateManyArgs<ExtArgs>>(
+      args?: SelectSubset<T, postsCreateManyArgs<ExtArgs>>
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Delete a Posts_metadata.
-     * @param {posts_metadataDeleteArgs} args - Arguments to delete one Posts_metadata.
+     * Delete a Posts.
+     * @param {postsDeleteArgs} args - Arguments to delete one Posts.
      * @example
-     * // Delete one Posts_metadata
-     * const Posts_metadata = await prisma.posts_metadata.delete({
+     * // Delete one Posts
+     * const Posts = await prisma.posts.delete({
      *   where: {
-     *     // ... filter to delete one Posts_metadata
+     *     // ... filter to delete one Posts
      *   }
      * })
      * 
     **/
-    delete<T extends posts_metadataDeleteArgs<ExtArgs>>(
-      args: SelectSubset<T, posts_metadataDeleteArgs<ExtArgs>>
-    ): Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
+    delete<T extends postsDeleteArgs<ExtArgs>>(
+      args: SelectSubset<T, postsDeleteArgs<ExtArgs>>
+    ): Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
-     * Update one Posts_metadata.
-     * @param {posts_metadataUpdateArgs} args - Arguments to update one Posts_metadata.
+     * Update one Posts.
+     * @param {postsUpdateArgs} args - Arguments to update one Posts.
      * @example
-     * // Update one Posts_metadata
-     * const posts_metadata = await prisma.posts_metadata.update({
+     * // Update one Posts
+     * const posts = await prisma.posts.update({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -3212,34 +3222,34 @@ export namespace Prisma {
      * })
      * 
     **/
-    update<T extends posts_metadataUpdateArgs<ExtArgs>>(
-      args: SelectSubset<T, posts_metadataUpdateArgs<ExtArgs>>
-    ): Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
+    update<T extends postsUpdateArgs<ExtArgs>>(
+      args: SelectSubset<T, postsUpdateArgs<ExtArgs>>
+    ): Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
-     * Delete zero or more Posts_metadata.
-     * @param {posts_metadataDeleteManyArgs} args - Arguments to filter Posts_metadata to delete.
+     * Delete zero or more Posts.
+     * @param {postsDeleteManyArgs} args - Arguments to filter Posts to delete.
      * @example
-     * // Delete a few Posts_metadata
-     * const { count } = await prisma.posts_metadata.deleteMany({
+     * // Delete a few Posts
+     * const { count } = await prisma.posts.deleteMany({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      * 
     **/
-    deleteMany<T extends posts_metadataDeleteManyArgs<ExtArgs>>(
-      args?: SelectSubset<T, posts_metadataDeleteManyArgs<ExtArgs>>
+    deleteMany<T extends postsDeleteManyArgs<ExtArgs>>(
+      args?: SelectSubset<T, postsDeleteManyArgs<ExtArgs>>
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Update zero or more Posts_metadata.
+     * Update zero or more Posts.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {posts_metadataUpdateManyArgs} args - Arguments to update one or more rows.
+     * @param {postsUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many Posts_metadata
-     * const posts_metadata = await prisma.posts_metadata.updateMany({
+     * // Update many Posts
+     * const posts = await prisma.posts.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -3249,59 +3259,59 @@ export namespace Prisma {
      * })
      * 
     **/
-    updateMany<T extends posts_metadataUpdateManyArgs<ExtArgs>>(
-      args: SelectSubset<T, posts_metadataUpdateManyArgs<ExtArgs>>
+    updateMany<T extends postsUpdateManyArgs<ExtArgs>>(
+      args: SelectSubset<T, postsUpdateManyArgs<ExtArgs>>
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Create or update one Posts_metadata.
-     * @param {posts_metadataUpsertArgs} args - Arguments to update or create a Posts_metadata.
+     * Create or update one Posts.
+     * @param {postsUpsertArgs} args - Arguments to update or create a Posts.
      * @example
-     * // Update or create a Posts_metadata
-     * const posts_metadata = await prisma.posts_metadata.upsert({
+     * // Update or create a Posts
+     * const posts = await prisma.posts.upsert({
      *   create: {
-     *     // ... data to create a Posts_metadata
+     *     // ... data to create a Posts
      *   },
      *   update: {
      *     // ... in case it already exists, update
      *   },
      *   where: {
-     *     // ... the filter for the Posts_metadata we want to update
+     *     // ... the filter for the Posts we want to update
      *   }
      * })
     **/
-    upsert<T extends posts_metadataUpsertArgs<ExtArgs>>(
-      args: SelectSubset<T, posts_metadataUpsertArgs<ExtArgs>>
-    ): Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
+    upsert<T extends postsUpsertArgs<ExtArgs>>(
+      args: SelectSubset<T, postsUpsertArgs<ExtArgs>>
+    ): Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
-     * Count the number of Posts_metadata.
+     * Count the number of Posts.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {posts_metadataCountArgs} args - Arguments to filter Posts_metadata to count.
+     * @param {postsCountArgs} args - Arguments to filter Posts to count.
      * @example
-     * // Count the number of Posts_metadata
-     * const count = await prisma.posts_metadata.count({
+     * // Count the number of Posts
+     * const count = await prisma.posts.count({
      *   where: {
-     *     // ... the filter for the Posts_metadata we want to count
+     *     // ... the filter for the Posts we want to count
      *   }
      * })
     **/
-    count<T extends posts_metadataCountArgs>(
-      args?: Subset<T, posts_metadataCountArgs>,
+    count<T extends postsCountArgs>(
+      args?: Subset<T, postsCountArgs>,
     ): Prisma.PrismaPromise<
       T extends $Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
-          : GetScalarType<T['select'], Posts_metadataCountAggregateOutputType>
+          : GetScalarType<T['select'], PostsCountAggregateOutputType>
         : number
     >
 
     /**
-     * Allows you to perform aggregations operations on a Posts_metadata.
+     * Allows you to perform aggregations operations on a Posts.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {Posts_metadataAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @param {PostsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
      * // Where email contains prisma.io
@@ -3321,13 +3331,13 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends Posts_metadataAggregateArgs>(args: Subset<T, Posts_metadataAggregateArgs>): Prisma.PrismaPromise<GetPosts_metadataAggregateType<T>>
+    aggregate<T extends PostsAggregateArgs>(args: Subset<T, PostsAggregateArgs>): Prisma.PrismaPromise<GetPostsAggregateType<T>>
 
     /**
-     * Group by Posts_metadata.
+     * Group by Posts.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {Posts_metadataGroupByArgs} args - Group by arguments.
+     * @param {PostsGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
      * const result = await prisma.user.groupBy({
@@ -3342,14 +3352,14 @@ export namespace Prisma {
      * 
     **/
     groupBy<
-      T extends Posts_metadataGroupByArgs,
+      T extends PostsGroupByArgs,
       HasSelectOrTake extends Or<
         Extends<'skip', Keys<T>>,
         Extends<'take', Keys<T>>
       >,
       OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: Posts_metadataGroupByArgs['orderBy'] }
-        : { orderBy?: Posts_metadataGroupByArgs['orderBy'] },
+        ? { orderBy: PostsGroupByArgs['orderBy'] }
+        : { orderBy?: PostsGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
@@ -3398,17 +3408,17 @@ export namespace Prisma {
             ? never
             : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
         }[OrderFields]
-    >(args: SubsetIntersection<T, Posts_metadataGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPosts_metadataGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+    >(args: SubsetIntersection<T, PostsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPostsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
 
   }
 
   /**
-   * The delegate class that acts as a "Promise-like" for posts_metadata.
+   * The delegate class that acts as a "Promise-like" for posts.
    * Why is this prefixed with `Prisma__`?
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__posts_metadataClient<T, Null = never, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> implements Prisma.PrismaPromise<T> {
+  export class Prisma__postsClient<T, Null = never, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> implements Prisma.PrismaPromise<T> {
     private readonly _dmmf;
     private readonly _queryType;
     private readonly _rootField;
@@ -3423,19 +3433,19 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    comments<T extends posts_metadata$commentsArgs<ExtArgs> = {}>(args?: Subset<T, posts_metadata$commentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<commentsPayload<ExtArgs>, T, 'findMany', never>| Null>;
+    comments<T extends posts$commentsArgs<ExtArgs> = {}>(args?: Subset<T, posts$commentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<commentsPayload<ExtArgs>, T, 'findMany', never>| Null>;
 
-    likes<T extends posts_metadata$likesArgs<ExtArgs> = {}>(args?: Subset<T, posts_metadata$likesArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<likesPayload<ExtArgs>, T, 'findMany', never>| Null>;
+    likes<T extends posts$likesArgs<ExtArgs> = {}>(args?: Subset<T, posts$likesArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<likesPayload<ExtArgs>, T, 'findMany', never>| Null>;
 
-    saves<T extends posts_metadata$savesArgs<ExtArgs> = {}>(args?: Subset<T, posts_metadata$savesArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<savesPayload<ExtArgs>, T, 'findMany', never>| Null>;
+    saves<T extends posts$savesArgs<ExtArgs> = {}>(args?: Subset<T, posts$savesArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<savesPayload<ExtArgs>, T, 'findMany', never>| Null>;
 
-    shares<T extends posts_metadata$sharesArgs<ExtArgs> = {}>(args?: Subset<T, posts_metadata$sharesArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<sharesPayload<ExtArgs>, T, 'findMany', never>| Null>;
+    shares<T extends posts$sharesArgs<ExtArgs> = {}>(args?: Subset<T, posts$sharesArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<sharesPayload<ExtArgs>, T, 'findMany', never>| Null>;
 
     posts_analytics<T extends posts_analyticsArgs<ExtArgs> = {}>(args?: Subset<T, posts_analyticsArgs<ExtArgs>>): Prisma__posts_analyticsClient<$Types.GetResult<posts_analyticsPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     users<T extends usersArgs<ExtArgs> = {}>(args?: Subset<T, usersArgs<ExtArgs>>): Prisma__usersClient<$Types.GetResult<usersPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
-    reported_content<T extends posts_metadata$reported_contentArgs<ExtArgs> = {}>(args?: Subset<T, posts_metadata$reported_contentArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<reported_contentPayload<ExtArgs>, T, 'findMany', never>| Null>;
+    reported_content<T extends posts$reported_contentArgs<ExtArgs> = {}>(args?: Subset<T, posts$reported_contentArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<reported_contentPayload<ExtArgs>, T, 'findMany', never>| Null>;
 
     private get _document();
     /**
@@ -3465,27 +3475,27 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * posts_metadata base type for findUnique actions
+   * posts base type for findUnique actions
    */
-  export type posts_metadataFindUniqueArgsBase<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type postsFindUniqueArgsBase<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the posts_metadata
+     * Select specific fields to fetch from the posts
      */
-    select?: posts_metadataSelect<ExtArgs> | null
+    select?: postsSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: posts_metadataInclude<ExtArgs> | null
+    include?: postsInclude<ExtArgs> | null
     /**
-     * Filter, which posts_metadata to fetch.
+     * Filter, which posts to fetch.
      */
-    where: posts_metadataWhereUniqueInput
+    where: postsWhereUniqueInput
   }
 
   /**
-   * posts_metadata findUnique
+   * posts findUnique
    */
-  export interface posts_metadataFindUniqueArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> extends posts_metadataFindUniqueArgsBase<ExtArgs> {
+  export interface postsFindUniqueArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> extends postsFindUniqueArgsBase<ExtArgs> {
    /**
     * Throw an Error if query returns no results
     * @deprecated since 4.0.0: use `findUniqueOrThrow` method instead
@@ -3495,76 +3505,76 @@ export namespace Prisma {
       
 
   /**
-   * posts_metadata findUniqueOrThrow
+   * posts findUniqueOrThrow
    */
-  export type posts_metadataFindUniqueOrThrowArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type postsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the posts_metadata
+     * Select specific fields to fetch from the posts
      */
-    select?: posts_metadataSelect<ExtArgs> | null
+    select?: postsSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: posts_metadataInclude<ExtArgs> | null
+    include?: postsInclude<ExtArgs> | null
     /**
-     * Filter, which posts_metadata to fetch.
+     * Filter, which posts to fetch.
      */
-    where: posts_metadataWhereUniqueInput
+    where: postsWhereUniqueInput
   }
 
 
   /**
-   * posts_metadata base type for findFirst actions
+   * posts base type for findFirst actions
    */
-  export type posts_metadataFindFirstArgsBase<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type postsFindFirstArgsBase<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the posts_metadata
+     * Select specific fields to fetch from the posts
      */
-    select?: posts_metadataSelect<ExtArgs> | null
+    select?: postsSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: posts_metadataInclude<ExtArgs> | null
+    include?: postsInclude<ExtArgs> | null
     /**
-     * Filter, which posts_metadata to fetch.
+     * Filter, which posts to fetch.
      */
-    where?: posts_metadataWhereInput
+    where?: postsWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of posts_metadata to fetch.
+     * Determine the order of posts to fetch.
      */
-    orderBy?: Enumerable<posts_metadataOrderByWithRelationInput>
+    orderBy?: Enumerable<postsOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for posts_metadata.
+     * Sets the position for searching for posts.
      */
-    cursor?: posts_metadataWhereUniqueInput
+    cursor?: postsWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` posts_metadata from the position of the cursor.
+     * Take `±n` posts from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` posts_metadata.
+     * Skip the first `n` posts.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
-     * Filter by unique combinations of posts_metadata.
+     * Filter by unique combinations of posts.
      */
-    distinct?: Enumerable<Posts_metadataScalarFieldEnum>
+    distinct?: Enumerable<PostsScalarFieldEnum>
   }
 
   /**
-   * posts_metadata findFirst
+   * posts findFirst
    */
-  export interface posts_metadataFindFirstArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> extends posts_metadataFindFirstArgsBase<ExtArgs> {
+  export interface postsFindFirstArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> extends postsFindFirstArgsBase<ExtArgs> {
    /**
     * Throw an Error if query returns no results
     * @deprecated since 4.0.0: use `findFirstOrThrow` method instead
@@ -3574,228 +3584,228 @@ export namespace Prisma {
       
 
   /**
-   * posts_metadata findFirstOrThrow
+   * posts findFirstOrThrow
    */
-  export type posts_metadataFindFirstOrThrowArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type postsFindFirstOrThrowArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the posts_metadata
+     * Select specific fields to fetch from the posts
      */
-    select?: posts_metadataSelect<ExtArgs> | null
+    select?: postsSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: posts_metadataInclude<ExtArgs> | null
+    include?: postsInclude<ExtArgs> | null
     /**
-     * Filter, which posts_metadata to fetch.
+     * Filter, which posts to fetch.
      */
-    where?: posts_metadataWhereInput
+    where?: postsWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of posts_metadata to fetch.
+     * Determine the order of posts to fetch.
      */
-    orderBy?: Enumerable<posts_metadataOrderByWithRelationInput>
+    orderBy?: Enumerable<postsOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for posts_metadata.
+     * Sets the position for searching for posts.
      */
-    cursor?: posts_metadataWhereUniqueInput
+    cursor?: postsWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` posts_metadata from the position of the cursor.
+     * Take `±n` posts from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` posts_metadata.
+     * Skip the first `n` posts.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
-     * Filter by unique combinations of posts_metadata.
+     * Filter by unique combinations of posts.
      */
-    distinct?: Enumerable<Posts_metadataScalarFieldEnum>
+    distinct?: Enumerable<PostsScalarFieldEnum>
   }
 
 
   /**
-   * posts_metadata findMany
+   * posts findMany
    */
-  export type posts_metadataFindManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type postsFindManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the posts_metadata
+     * Select specific fields to fetch from the posts
      */
-    select?: posts_metadataSelect<ExtArgs> | null
+    select?: postsSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: posts_metadataInclude<ExtArgs> | null
+    include?: postsInclude<ExtArgs> | null
     /**
-     * Filter, which posts_metadata to fetch.
+     * Filter, which posts to fetch.
      */
-    where?: posts_metadataWhereInput
+    where?: postsWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of posts_metadata to fetch.
+     * Determine the order of posts to fetch.
      */
-    orderBy?: Enumerable<posts_metadataOrderByWithRelationInput>
+    orderBy?: Enumerable<postsOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for listing posts_metadata.
+     * Sets the position for listing posts.
      */
-    cursor?: posts_metadataWhereUniqueInput
+    cursor?: postsWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` posts_metadata from the position of the cursor.
+     * Take `±n` posts from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` posts_metadata.
+     * Skip the first `n` posts.
      */
     skip?: number
-    distinct?: Enumerable<Posts_metadataScalarFieldEnum>
+    distinct?: Enumerable<PostsScalarFieldEnum>
   }
 
 
   /**
-   * posts_metadata create
+   * posts create
    */
-  export type posts_metadataCreateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type postsCreateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the posts_metadata
+     * Select specific fields to fetch from the posts
      */
-    select?: posts_metadataSelect<ExtArgs> | null
+    select?: postsSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: posts_metadataInclude<ExtArgs> | null
+    include?: postsInclude<ExtArgs> | null
     /**
-     * The data needed to create a posts_metadata.
+     * The data needed to create a posts.
      */
-    data: XOR<posts_metadataCreateInput, posts_metadataUncheckedCreateInput>
+    data: XOR<postsCreateInput, postsUncheckedCreateInput>
   }
 
 
   /**
-   * posts_metadata createMany
+   * posts createMany
    */
-  export type posts_metadataCreateManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type postsCreateManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * The data used to create many posts_metadata.
+     * The data used to create many posts.
      */
-    data: Enumerable<posts_metadataCreateManyInput>
+    data: Enumerable<postsCreateManyInput>
     skipDuplicates?: boolean
   }
 
 
   /**
-   * posts_metadata update
+   * posts update
    */
-  export type posts_metadataUpdateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type postsUpdateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the posts_metadata
+     * Select specific fields to fetch from the posts
      */
-    select?: posts_metadataSelect<ExtArgs> | null
+    select?: postsSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: posts_metadataInclude<ExtArgs> | null
+    include?: postsInclude<ExtArgs> | null
     /**
-     * The data needed to update a posts_metadata.
+     * The data needed to update a posts.
      */
-    data: XOR<posts_metadataUpdateInput, posts_metadataUncheckedUpdateInput>
+    data: XOR<postsUpdateInput, postsUncheckedUpdateInput>
     /**
-     * Choose, which posts_metadata to update.
+     * Choose, which posts to update.
      */
-    where: posts_metadataWhereUniqueInput
+    where: postsWhereUniqueInput
   }
 
 
   /**
-   * posts_metadata updateMany
+   * posts updateMany
    */
-  export type posts_metadataUpdateManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type postsUpdateManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * The data used to update posts_metadata.
+     * The data used to update posts.
      */
-    data: XOR<posts_metadataUpdateManyMutationInput, posts_metadataUncheckedUpdateManyInput>
+    data: XOR<postsUpdateManyMutationInput, postsUncheckedUpdateManyInput>
     /**
-     * Filter which posts_metadata to update
+     * Filter which posts to update
      */
-    where?: posts_metadataWhereInput
+    where?: postsWhereInput
   }
 
 
   /**
-   * posts_metadata upsert
+   * posts upsert
    */
-  export type posts_metadataUpsertArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type postsUpsertArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the posts_metadata
+     * Select specific fields to fetch from the posts
      */
-    select?: posts_metadataSelect<ExtArgs> | null
+    select?: postsSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: posts_metadataInclude<ExtArgs> | null
+    include?: postsInclude<ExtArgs> | null
     /**
-     * The filter to search for the posts_metadata to update in case it exists.
+     * The filter to search for the posts to update in case it exists.
      */
-    where: posts_metadataWhereUniqueInput
+    where: postsWhereUniqueInput
     /**
-     * In case the posts_metadata found by the `where` argument doesn't exist, create a new posts_metadata with this data.
+     * In case the posts found by the `where` argument doesn't exist, create a new posts with this data.
      */
-    create: XOR<posts_metadataCreateInput, posts_metadataUncheckedCreateInput>
+    create: XOR<postsCreateInput, postsUncheckedCreateInput>
     /**
-     * In case the posts_metadata was found with the provided `where` argument, update it with this data.
+     * In case the posts was found with the provided `where` argument, update it with this data.
      */
-    update: XOR<posts_metadataUpdateInput, posts_metadataUncheckedUpdateInput>
+    update: XOR<postsUpdateInput, postsUncheckedUpdateInput>
   }
 
 
   /**
-   * posts_metadata delete
+   * posts delete
    */
-  export type posts_metadataDeleteArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type postsDeleteArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the posts_metadata
+     * Select specific fields to fetch from the posts
      */
-    select?: posts_metadataSelect<ExtArgs> | null
+    select?: postsSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: posts_metadataInclude<ExtArgs> | null
+    include?: postsInclude<ExtArgs> | null
     /**
-     * Filter which posts_metadata to delete.
+     * Filter which posts to delete.
      */
-    where: posts_metadataWhereUniqueInput
+    where: postsWhereUniqueInput
   }
 
 
   /**
-   * posts_metadata deleteMany
+   * posts deleteMany
    */
-  export type posts_metadataDeleteManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type postsDeleteManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * Filter which posts_metadata to delete
+     * Filter which posts to delete
      */
-    where?: posts_metadataWhereInput
+    where?: postsWhereInput
   }
 
 
   /**
-   * posts_metadata.comments
+   * posts.comments
    */
-  export type posts_metadata$commentsArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type posts$commentsArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the comments
      */
@@ -3814,9 +3824,9 @@ export namespace Prisma {
 
 
   /**
-   * posts_metadata.likes
+   * posts.likes
    */
-  export type posts_metadata$likesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type posts$likesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the likes
      */
@@ -3835,9 +3845,9 @@ export namespace Prisma {
 
 
   /**
-   * posts_metadata.saves
+   * posts.saves
    */
-  export type posts_metadata$savesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type posts$savesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the saves
      */
@@ -3856,9 +3866,9 @@ export namespace Prisma {
 
 
   /**
-   * posts_metadata.shares
+   * posts.shares
    */
-  export type posts_metadata$sharesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type posts$sharesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the shares
      */
@@ -3877,9 +3887,9 @@ export namespace Prisma {
 
 
   /**
-   * posts_metadata.reported_content
+   * posts.reported_content
    */
-  export type posts_metadata$reported_contentArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type posts$reported_contentArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the reported_content
      */
@@ -3898,17 +3908,17 @@ export namespace Prisma {
 
 
   /**
-   * posts_metadata without action
+   * posts without action
    */
-  export type posts_metadataArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type postsArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the posts_metadata
+     * Select specific fields to fetch from the posts
      */
-    select?: posts_metadataSelect<ExtArgs> | null
+    select?: postsSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: posts_metadataInclude<ExtArgs> | null
+    include?: postsInclude<ExtArgs> | null
   }
 
 
@@ -4121,7 +4131,7 @@ export namespace Prisma {
     likes_count?: boolean
     comments_count?: boolean
     updated_at?: boolean
-    posts_metadata?: boolean | posts_metadataArgs<ExtArgs>
+    posts?: boolean | postsArgs<ExtArgs>
   }, ExtArgs["result"]["posts_analytics"]>
 
   export type posts_analyticsSelectScalar = {
@@ -4133,7 +4143,7 @@ export namespace Prisma {
   }
 
   export type posts_analyticsInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    posts_metadata?: boolean | posts_metadataArgs<ExtArgs>
+    posts?: boolean | postsArgs<ExtArgs>
   }
 
 
@@ -4506,7 +4516,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    posts_metadata<T extends posts_metadataArgs<ExtArgs> = {}>(args?: Subset<T, posts_metadataArgs<ExtArgs>>): Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
+    posts<T extends postsArgs<ExtArgs> = {}>(args?: Subset<T, postsArgs<ExtArgs>>): Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     private get _document();
     /**
@@ -5055,7 +5065,7 @@ export namespace Prisma {
     created_at?: boolean
     comments?: boolean | commentsArgs<ExtArgs>
     other_comments?: boolean | comments$other_commentsArgs<ExtArgs>
-    posts_metadata?: boolean | posts_metadataArgs<ExtArgs>
+    posts?: boolean | postsArgs<ExtArgs>
     _count?: boolean | CommentsCountOutputTypeArgs<ExtArgs>
   }, ExtArgs["result"]["comments"]>
 
@@ -5071,7 +5081,7 @@ export namespace Prisma {
   export type commentsInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     comments?: boolean | commentsArgs<ExtArgs>
     other_comments?: boolean | comments$other_commentsArgs<ExtArgs>
-    posts_metadata?: boolean | posts_metadataArgs<ExtArgs>
+    posts?: boolean | postsArgs<ExtArgs>
     _count?: boolean | CommentsCountOutputTypeArgs<ExtArgs>
   }
 
@@ -5449,7 +5459,7 @@ export namespace Prisma {
 
     other_comments<T extends comments$other_commentsArgs<ExtArgs> = {}>(args?: Subset<T, comments$other_commentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<commentsPayload<ExtArgs>, T, 'findMany', never>| Null>;
 
-    posts_metadata<T extends posts_metadataArgs<ExtArgs> = {}>(args?: Subset<T, posts_metadataArgs<ExtArgs>>): Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
+    posts<T extends postsArgs<ExtArgs> = {}>(args?: Subset<T, postsArgs<ExtArgs>>): Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     private get _document();
     /**
@@ -6035,7 +6045,7 @@ export namespace Prisma {
     post_id?: boolean
     liked_at?: boolean
     serial_no?: boolean
-    posts_metadata?: boolean | posts_metadataArgs<ExtArgs>
+    posts?: boolean | postsArgs<ExtArgs>
   }, ExtArgs["result"]["likes"]>
 
   export type likesSelectScalar = {
@@ -6046,7 +6056,7 @@ export namespace Prisma {
   }
 
   export type likesInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    posts_metadata?: boolean | posts_metadataArgs<ExtArgs>
+    posts?: boolean | postsArgs<ExtArgs>
   }
 
 
@@ -6419,7 +6429,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    posts_metadata<T extends posts_metadataArgs<ExtArgs> = {}>(args?: Subset<T, posts_metadataArgs<ExtArgs>>): Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
+    posts<T extends postsArgs<ExtArgs> = {}>(args?: Subset<T, postsArgs<ExtArgs>>): Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     private get _document();
     /**
@@ -6950,7 +6960,7 @@ export namespace Prisma {
     user_id?: boolean
     post_id?: boolean
     saved_at?: boolean
-    posts_metadata?: boolean | posts_metadataArgs<ExtArgs>
+    posts?: boolean | postsArgs<ExtArgs>
   }, ExtArgs["result"]["saves"]>
 
   export type savesSelectScalar = {
@@ -6961,7 +6971,7 @@ export namespace Prisma {
   }
 
   export type savesInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    posts_metadata?: boolean | posts_metadataArgs<ExtArgs>
+    posts?: boolean | postsArgs<ExtArgs>
   }
 
 
@@ -7334,7 +7344,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    posts_metadata<T extends posts_metadataArgs<ExtArgs> = {}>(args?: Subset<T, posts_metadataArgs<ExtArgs>>): Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
+    posts<T extends postsArgs<ExtArgs> = {}>(args?: Subset<T, postsArgs<ExtArgs>>): Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     private get _document();
     /**
@@ -7873,7 +7883,7 @@ export namespace Prisma {
     post_id?: boolean
     shared_at?: boolean
     share_message?: boolean
-    posts_metadata?: boolean | posts_metadataArgs<ExtArgs>
+    posts?: boolean | postsArgs<ExtArgs>
   }, ExtArgs["result"]["shares"]>
 
   export type sharesSelectScalar = {
@@ -7885,7 +7895,7 @@ export namespace Prisma {
   }
 
   export type sharesInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    posts_metadata?: boolean | posts_metadataArgs<ExtArgs>
+    posts?: boolean | postsArgs<ExtArgs>
   }
 
 
@@ -8258,7 +8268,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    posts_metadata<T extends posts_metadataArgs<ExtArgs> = {}>(args?: Subset<T, posts_metadataArgs<ExtArgs>>): Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
+    posts<T extends postsArgs<ExtArgs> = {}>(args?: Subset<T, postsArgs<ExtArgs>>): Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     private get _document();
     /**
@@ -10551,7 +10561,7 @@ export namespace Prisma {
     status?: boolean
     created_at?: boolean
     post_id?: boolean
-    posts_metadata?: boolean | posts_metadataArgs<ExtArgs>
+    posts?: boolean | postsArgs<ExtArgs>
   }, ExtArgs["result"]["reported_content"]>
 
   export type reported_contentSelectScalar = {
@@ -10565,7 +10575,7 @@ export namespace Prisma {
   }
 
   export type reported_contentInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    posts_metadata?: boolean | posts_metadataArgs<ExtArgs>
+    posts?: boolean | postsArgs<ExtArgs>
   }
 
 
@@ -10938,7 +10948,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    posts_metadata<T extends posts_metadataArgs<ExtArgs> = {}>(args?: Subset<T, posts_metadataArgs<ExtArgs>>): Prisma__posts_metadataClient<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
+    posts<T extends postsArgs<ExtArgs> = {}>(args?: Subset<T, postsArgs<ExtArgs>>): Prisma__postsClient<$Types.GetResult<postsPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     private get _document();
     /**
@@ -12493,7 +12503,7 @@ export namespace Prisma {
     user_type?: boolean
     initial_balance?: boolean
     notifications?: boolean | users$notificationsArgs<ExtArgs>
-    posts_metadata?: boolean | users$posts_metadataArgs<ExtArgs>
+    posts?: boolean | users$postsArgs<ExtArgs>
     user_analytics?: boolean | user_analyticsArgs<ExtArgs>
     user_audit_logs?: boolean | users$user_audit_logsArgs<ExtArgs>
     user_blocklist?: boolean | user_blocklistArgs<ExtArgs>
@@ -12521,7 +12531,7 @@ export namespace Prisma {
 
   export type usersInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     notifications?: boolean | users$notificationsArgs<ExtArgs>
-    posts_metadata?: boolean | users$posts_metadataArgs<ExtArgs>
+    posts?: boolean | users$postsArgs<ExtArgs>
     user_analytics?: boolean | user_analyticsArgs<ExtArgs>
     user_audit_logs?: boolean | users$user_audit_logsArgs<ExtArgs>
     user_blocklist?: boolean | user_blocklistArgs<ExtArgs>
@@ -12905,7 +12915,7 @@ export namespace Prisma {
 
     notifications<T extends users$notificationsArgs<ExtArgs> = {}>(args?: Subset<T, users$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<notificationsPayload<ExtArgs>, T, 'findMany', never>| Null>;
 
-    posts_metadata<T extends users$posts_metadataArgs<ExtArgs> = {}>(args?: Subset<T, users$posts_metadataArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<posts_metadataPayload<ExtArgs>, T, 'findMany', never>| Null>;
+    posts<T extends users$postsArgs<ExtArgs> = {}>(args?: Subset<T, users$postsArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<postsPayload<ExtArgs>, T, 'findMany', never>| Null>;
 
     user_analytics<T extends user_analyticsArgs<ExtArgs> = {}>(args?: Subset<T, user_analyticsArgs<ExtArgs>>): Prisma__user_analyticsClient<$Types.GetResult<user_analyticsPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
@@ -13300,23 +13310,23 @@ export namespace Prisma {
 
 
   /**
-   * users.posts_metadata
+   * users.posts
    */
-  export type users$posts_metadataArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  export type users$postsArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the posts_metadata
+     * Select specific fields to fetch from the posts
      */
-    select?: posts_metadataSelect<ExtArgs> | null
+    select?: postsSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: posts_metadataInclude<ExtArgs> | null
-    where?: posts_metadataWhereInput
-    orderBy?: Enumerable<posts_metadataOrderByWithRelationInput>
-    cursor?: posts_metadataWhereUniqueInput
+    include?: postsInclude<ExtArgs> | null
+    where?: postsWhereInput
+    orderBy?: Enumerable<postsOrderByWithRelationInput>
+    cursor?: postsWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<Posts_metadataScalarFieldEnum>
+    distinct?: Enumerable<PostsScalarFieldEnum>
   }
 
 
@@ -20942,16 +20952,17 @@ export namespace Prisma {
   export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
-  export const Posts_metadataScalarFieldEnum: {
+  export const PostsScalarFieldEnum: {
     id: 'id',
     user_id: 'user_id',
-    description: 'description',
+    sql_id: 'sql_id',
+    content: 'content',
     visibility: 'visibility',
     created_at: 'created_at',
     updated_at: 'updated_at'
   };
 
-  export type Posts_metadataScalarFieldEnum = (typeof Posts_metadataScalarFieldEnum)[keyof typeof Posts_metadataScalarFieldEnum]
+  export type PostsScalarFieldEnum = (typeof PostsScalarFieldEnum)[keyof typeof PostsScalarFieldEnum]
 
 
   export const Posts_analyticsScalarFieldEnum: {
@@ -21214,13 +21225,14 @@ export namespace Prisma {
    */
 
 
-  export type posts_metadataWhereInput = {
-    AND?: Enumerable<posts_metadataWhereInput>
-    OR?: Enumerable<posts_metadataWhereInput>
-    NOT?: Enumerable<posts_metadataWhereInput>
+  export type postsWhereInput = {
+    AND?: Enumerable<postsWhereInput>
+    OR?: Enumerable<postsWhereInput>
+    NOT?: Enumerable<postsWhereInput>
     id?: UuidFilter | string
     user_id?: UuidFilter | string
-    description?: StringNullableFilter | string | null
+    sql_id?: StringFilter | string
+    content?: StringNullableFilter | string | null
     visibility?: BoolFilter | boolean
     created_at?: DateTimeFilter | Date | string
     updated_at?: DateTimeFilter | Date | string
@@ -21233,10 +21245,11 @@ export namespace Prisma {
     reported_content?: Reported_contentListRelationFilter
   }
 
-  export type posts_metadataOrderByWithRelationInput = {
+  export type postsOrderByWithRelationInput = {
     id?: SortOrder
     user_id?: SortOrder
-    description?: SortOrderInput | SortOrder
+    sql_id?: SortOrder
+    content?: SortOrderInput | SortOrder
     visibility?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
@@ -21249,29 +21262,32 @@ export namespace Prisma {
     reported_content?: reported_contentOrderByRelationAggregateInput
   }
 
-  export type posts_metadataWhereUniqueInput = {
+  export type postsWhereUniqueInput = {
     id?: string
+    sql_id?: string
   }
 
-  export type posts_metadataOrderByWithAggregationInput = {
+  export type postsOrderByWithAggregationInput = {
     id?: SortOrder
     user_id?: SortOrder
-    description?: SortOrderInput | SortOrder
+    sql_id?: SortOrder
+    content?: SortOrderInput | SortOrder
     visibility?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
-    _count?: posts_metadataCountOrderByAggregateInput
-    _max?: posts_metadataMaxOrderByAggregateInput
-    _min?: posts_metadataMinOrderByAggregateInput
+    _count?: postsCountOrderByAggregateInput
+    _max?: postsMaxOrderByAggregateInput
+    _min?: postsMinOrderByAggregateInput
   }
 
-  export type posts_metadataScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<posts_metadataScalarWhereWithAggregatesInput>
-    OR?: Enumerable<posts_metadataScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<posts_metadataScalarWhereWithAggregatesInput>
+  export type postsScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<postsScalarWhereWithAggregatesInput>
+    OR?: Enumerable<postsScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<postsScalarWhereWithAggregatesInput>
     id?: UuidWithAggregatesFilter | string
     user_id?: UuidWithAggregatesFilter | string
-    description?: StringNullableWithAggregatesFilter | string | null
+    sql_id?: StringWithAggregatesFilter | string
+    content?: StringNullableWithAggregatesFilter | string | null
     visibility?: BoolWithAggregatesFilter | boolean
     created_at?: DateTimeWithAggregatesFilter | Date | string
     updated_at?: DateTimeWithAggregatesFilter | Date | string
@@ -21286,7 +21302,7 @@ export namespace Prisma {
     likes_count?: IntNullableFilter | number | null
     comments_count?: IntNullableFilter | number | null
     updated_at?: DateTimeFilter | Date | string
-    posts_metadata?: XOR<Posts_metadataRelationFilter, posts_metadataWhereInput>
+    posts?: XOR<PostsRelationFilter, postsWhereInput>
   }
 
   export type posts_analyticsOrderByWithRelationInput = {
@@ -21295,7 +21311,7 @@ export namespace Prisma {
     likes_count?: SortOrderInput | SortOrder
     comments_count?: SortOrderInput | SortOrder
     updated_at?: SortOrder
-    posts_metadata?: posts_metadataOrderByWithRelationInput
+    posts?: postsOrderByWithRelationInput
   }
 
   export type posts_analyticsWhereUniqueInput = {
@@ -21338,7 +21354,7 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter | Date | string | null
     comments?: XOR<CommentsRelationFilter, commentsWhereInput> | null
     other_comments?: CommentsListRelationFilter
-    posts_metadata?: XOR<Posts_metadataRelationFilter, posts_metadataWhereInput>
+    posts?: XOR<PostsRelationFilter, postsWhereInput>
   }
 
   export type commentsOrderByWithRelationInput = {
@@ -21350,7 +21366,7 @@ export namespace Prisma {
     created_at?: SortOrderInput | SortOrder
     comments?: commentsOrderByWithRelationInput
     other_comments?: commentsOrderByRelationAggregateInput
-    posts_metadata?: posts_metadataOrderByWithRelationInput
+    posts?: postsOrderByWithRelationInput
   }
 
   export type commentsWhereUniqueInput = {
@@ -21389,7 +21405,7 @@ export namespace Prisma {
     post_id?: UuidFilter | string
     liked_at?: DateTimeNullableFilter | Date | string | null
     serial_no?: BigIntFilter | bigint | number
-    posts_metadata?: XOR<Posts_metadataRelationFilter, posts_metadataWhereInput>
+    posts?: XOR<PostsRelationFilter, postsWhereInput>
   }
 
   export type likesOrderByWithRelationInput = {
@@ -21397,7 +21413,7 @@ export namespace Prisma {
     post_id?: SortOrder
     liked_at?: SortOrderInput | SortOrder
     serial_no?: SortOrder
-    posts_metadata?: posts_metadataOrderByWithRelationInput
+    posts?: postsOrderByWithRelationInput
   }
 
   export type likesWhereUniqueInput = {
@@ -21434,7 +21450,7 @@ export namespace Prisma {
     user_id?: UuidFilter | string
     post_id?: UuidFilter | string
     saved_at?: DateTimeNullableFilter | Date | string | null
-    posts_metadata?: XOR<Posts_metadataRelationFilter, posts_metadataWhereInput>
+    posts?: XOR<PostsRelationFilter, postsWhereInput>
   }
 
   export type savesOrderByWithRelationInput = {
@@ -21442,7 +21458,7 @@ export namespace Prisma {
     user_id?: SortOrder
     post_id?: SortOrder
     saved_at?: SortOrderInput | SortOrder
-    posts_metadata?: posts_metadataOrderByWithRelationInput
+    posts?: postsOrderByWithRelationInput
   }
 
   export type savesWhereUniqueInput = {
@@ -21479,7 +21495,7 @@ export namespace Prisma {
     post_id?: UuidFilter | string
     shared_at?: DateTimeNullableFilter | Date | string | null
     share_message?: StringNullableFilter | string | null
-    posts_metadata?: XOR<Posts_metadataRelationFilter, posts_metadataWhereInput>
+    posts?: XOR<PostsRelationFilter, postsWhereInput>
   }
 
   export type sharesOrderByWithRelationInput = {
@@ -21488,7 +21504,7 @@ export namespace Prisma {
     post_id?: SortOrder
     shared_at?: SortOrderInput | SortOrder
     share_message?: SortOrderInput | SortOrder
-    posts_metadata?: posts_metadataOrderByWithRelationInput
+    posts?: postsOrderByWithRelationInput
   }
 
   export type sharesWhereUniqueInput = {
@@ -21612,7 +21628,7 @@ export namespace Prisma {
     status?: StringNullableFilter | string | null
     created_at?: DateTimeFilter | Date | string
     post_id?: UuidNullableFilter | string | null
-    posts_metadata?: XOR<Posts_metadataRelationFilter, posts_metadataWhereInput> | null
+    posts?: XOR<PostsRelationFilter, postsWhereInput> | null
   }
 
   export type reported_contentOrderByWithRelationInput = {
@@ -21623,7 +21639,7 @@ export namespace Prisma {
     status?: SortOrderInput | SortOrder
     created_at?: SortOrder
     post_id?: SortOrderInput | SortOrder
-    posts_metadata?: posts_metadataOrderByWithRelationInput
+    posts?: postsOrderByWithRelationInput
   }
 
   export type reported_contentWhereUniqueInput = {
@@ -21723,7 +21739,7 @@ export namespace Prisma {
     user_type?: StringNullableFilter | string | null
     initial_balance?: FloatFilter | number
     notifications?: NotificationsListRelationFilter
-    posts_metadata?: Posts_metadataListRelationFilter
+    posts?: PostsListRelationFilter
     user_analytics?: XOR<User_analyticsRelationFilter, user_analyticsWhereInput> | null
     user_audit_logs?: User_audit_logsListRelationFilter
     user_blocklist?: XOR<User_blocklistRelationFilter, user_blocklistWhereInput> | null
@@ -21747,7 +21763,7 @@ export namespace Prisma {
     user_type?: SortOrderInput | SortOrder
     initial_balance?: SortOrder
     notifications?: notificationsOrderByRelationAggregateInput
-    posts_metadata?: posts_metadataOrderByRelationAggregateInput
+    posts?: postsOrderByRelationAggregateInput
     user_analytics?: user_analyticsOrderByWithRelationInput
     user_audit_logs?: user_audit_logsOrderByRelationAggregateInput
     user_blocklist?: user_blocklistOrderByWithRelationInput
@@ -22223,87 +22239,94 @@ export namespace Prisma {
     secret?: StringNullableWithAggregatesFilter | string | null
   }
 
-  export type posts_metadataCreateInput = {
+  export type postsCreateInput = {
     id?: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    comments?: commentsCreateNestedManyWithoutPosts_metadataInput
-    likes?: likesCreateNestedManyWithoutPosts_metadataInput
-    saves?: savesCreateNestedManyWithoutPosts_metadataInput
-    shares?: sharesCreateNestedManyWithoutPosts_metadataInput
-    posts_analytics?: posts_analyticsCreateNestedOneWithoutPosts_metadataInput
-    users: usersCreateNestedOneWithoutPosts_metadataInput
-    reported_content?: reported_contentCreateNestedManyWithoutPosts_metadataInput
+    comments?: commentsCreateNestedManyWithoutPostsInput
+    likes?: likesCreateNestedManyWithoutPostsInput
+    saves?: savesCreateNestedManyWithoutPostsInput
+    shares?: sharesCreateNestedManyWithoutPostsInput
+    posts_analytics?: posts_analyticsCreateNestedOneWithoutPostsInput
+    users: usersCreateNestedOneWithoutPostsInput
+    reported_content?: reported_contentCreateNestedManyWithoutPostsInput
   }
 
-  export type posts_metadataUncheckedCreateInput = {
-    id?: string
-    user_id: string
-    description?: string | null
-    visibility?: boolean
-    created_at?: Date | string
-    updated_at?: Date | string
-    comments?: commentsUncheckedCreateNestedManyWithoutPosts_metadataInput
-    likes?: likesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    saves?: savesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    shares?: sharesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    posts_analytics?: posts_analyticsUncheckedCreateNestedOneWithoutPosts_metadataInput
-    reported_content?: reported_contentUncheckedCreateNestedManyWithoutPosts_metadataInput
-  }
-
-  export type posts_metadataUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    visibility?: BoolFieldUpdateOperationsInput | boolean
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    comments?: commentsUpdateManyWithoutPosts_metadataNestedInput
-    likes?: likesUpdateManyWithoutPosts_metadataNestedInput
-    saves?: savesUpdateManyWithoutPosts_metadataNestedInput
-    shares?: sharesUpdateManyWithoutPosts_metadataNestedInput
-    posts_analytics?: posts_analyticsUpdateOneWithoutPosts_metadataNestedInput
-    users?: usersUpdateOneRequiredWithoutPosts_metadataNestedInput
-    reported_content?: reported_contentUpdateManyWithoutPosts_metadataNestedInput
-  }
-
-  export type posts_metadataUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    user_id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    visibility?: BoolFieldUpdateOperationsInput | boolean
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    comments?: commentsUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    likes?: likesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    saves?: savesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    shares?: sharesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    posts_analytics?: posts_analyticsUncheckedUpdateOneWithoutPosts_metadataNestedInput
-    reported_content?: reported_contentUncheckedUpdateManyWithoutPosts_metadataNestedInput
-  }
-
-  export type posts_metadataCreateManyInput = {
+  export type postsUncheckedCreateInput = {
     id?: string
     user_id: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
+    visibility?: boolean
+    created_at?: Date | string
+    updated_at?: Date | string
+    comments?: commentsUncheckedCreateNestedManyWithoutPostsInput
+    likes?: likesUncheckedCreateNestedManyWithoutPostsInput
+    saves?: savesUncheckedCreateNestedManyWithoutPostsInput
+    shares?: sharesUncheckedCreateNestedManyWithoutPostsInput
+    posts_analytics?: posts_analyticsUncheckedCreateNestedOneWithoutPostsInput
+    reported_content?: reported_contentUncheckedCreateNestedManyWithoutPostsInput
+  }
+
+  export type postsUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    visibility?: BoolFieldUpdateOperationsInput | boolean
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    comments?: commentsUpdateManyWithoutPostsNestedInput
+    likes?: likesUpdateManyWithoutPostsNestedInput
+    saves?: savesUpdateManyWithoutPostsNestedInput
+    shares?: sharesUpdateManyWithoutPostsNestedInput
+    posts_analytics?: posts_analyticsUpdateOneWithoutPostsNestedInput
+    users?: usersUpdateOneRequiredWithoutPostsNestedInput
+    reported_content?: reported_contentUpdateManyWithoutPostsNestedInput
+  }
+
+  export type postsUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    user_id?: StringFieldUpdateOperationsInput | string
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    visibility?: BoolFieldUpdateOperationsInput | boolean
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    comments?: commentsUncheckedUpdateManyWithoutPostsNestedInput
+    likes?: likesUncheckedUpdateManyWithoutPostsNestedInput
+    saves?: savesUncheckedUpdateManyWithoutPostsNestedInput
+    shares?: sharesUncheckedUpdateManyWithoutPostsNestedInput
+    posts_analytics?: posts_analyticsUncheckedUpdateOneWithoutPostsNestedInput
+    reported_content?: reported_contentUncheckedUpdateManyWithoutPostsNestedInput
+  }
+
+  export type postsCreateManyInput = {
+    id?: string
+    user_id: string
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
   }
 
-  export type posts_metadataUpdateManyMutationInput = {
+  export type postsUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type posts_metadataUncheckedUpdateManyInput = {
+  export type postsUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -22314,7 +22337,7 @@ export namespace Prisma {
     likes_count?: number | null
     comments_count?: number | null
     updated_at?: Date | string
-    posts_metadata: posts_metadataCreateNestedOneWithoutPosts_analyticsInput
+    posts: postsCreateNestedOneWithoutPosts_analyticsInput
   }
 
   export type posts_analyticsUncheckedCreateInput = {
@@ -22330,7 +22353,7 @@ export namespace Prisma {
     likes_count?: NullableIntFieldUpdateOperationsInput | number | null
     comments_count?: NullableIntFieldUpdateOperationsInput | number | null
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    posts_metadata?: posts_metadataUpdateOneRequiredWithoutPosts_analyticsNestedInput
+    posts?: postsUpdateOneRequiredWithoutPosts_analyticsNestedInput
   }
 
   export type posts_analyticsUncheckedUpdateInput = {
@@ -22371,7 +22394,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     comments?: commentsCreateNestedOneWithoutOther_commentsInput
     other_comments?: commentsCreateNestedManyWithoutCommentsInput
-    posts_metadata: posts_metadataCreateNestedOneWithoutCommentsInput
+    posts: postsCreateNestedOneWithoutCommentsInput
   }
 
   export type commentsUncheckedCreateInput = {
@@ -22391,7 +22414,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     comments?: commentsUpdateOneWithoutOther_commentsNestedInput
     other_comments?: commentsUpdateManyWithoutCommentsNestedInput
-    posts_metadata?: posts_metadataUpdateOneRequiredWithoutCommentsNestedInput
+    posts?: postsUpdateOneRequiredWithoutCommentsNestedInput
   }
 
   export type commentsUncheckedUpdateInput = {
@@ -22433,7 +22456,7 @@ export namespace Prisma {
     user_id: string
     liked_at?: Date | string | null
     serial_no?: bigint | number
-    posts_metadata: posts_metadataCreateNestedOneWithoutLikesInput
+    posts: postsCreateNestedOneWithoutLikesInput
   }
 
   export type likesUncheckedCreateInput = {
@@ -22447,7 +22470,7 @@ export namespace Prisma {
     user_id?: StringFieldUpdateOperationsInput | string
     liked_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     serial_no?: BigIntFieldUpdateOperationsInput | bigint | number
-    posts_metadata?: posts_metadataUpdateOneRequiredWithoutLikesNestedInput
+    posts?: postsUpdateOneRequiredWithoutLikesNestedInput
   }
 
   export type likesUncheckedUpdateInput = {
@@ -22481,7 +22504,7 @@ export namespace Prisma {
     save_id?: string
     user_id: string
     saved_at?: Date | string | null
-    posts_metadata: posts_metadataCreateNestedOneWithoutSavesInput
+    posts: postsCreateNestedOneWithoutSavesInput
   }
 
   export type savesUncheckedCreateInput = {
@@ -22495,7 +22518,7 @@ export namespace Prisma {
     save_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
     saved_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    posts_metadata?: posts_metadataUpdateOneRequiredWithoutSavesNestedInput
+    posts?: postsUpdateOneRequiredWithoutSavesNestedInput
   }
 
   export type savesUncheckedUpdateInput = {
@@ -22530,7 +22553,7 @@ export namespace Prisma {
     user_id: string
     shared_at?: Date | string | null
     share_message?: string | null
-    posts_metadata: posts_metadataCreateNestedOneWithoutSharesInput
+    posts: postsCreateNestedOneWithoutSharesInput
   }
 
   export type sharesUncheckedCreateInput = {
@@ -22546,7 +22569,7 @@ export namespace Prisma {
     user_id?: StringFieldUpdateOperationsInput | string
     shared_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     share_message?: NullableStringFieldUpdateOperationsInput | string | null
-    posts_metadata?: posts_metadataUpdateOneRequiredWithoutSharesNestedInput
+    posts?: postsUpdateOneRequiredWithoutSharesNestedInput
   }
 
   export type sharesUncheckedUpdateInput = {
@@ -22685,7 +22708,7 @@ export namespace Prisma {
     reason: string
     status?: string | null
     created_at?: Date | string
-    posts_metadata?: posts_metadataCreateNestedOneWithoutReported_contentInput
+    posts?: postsCreateNestedOneWithoutReported_contentInput
   }
 
   export type reported_contentUncheckedCreateInput = {
@@ -22705,7 +22728,7 @@ export namespace Prisma {
     reason?: StringFieldUpdateOperationsInput | string
     status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    posts_metadata?: posts_metadataUpdateOneWithoutReported_contentNestedInput
+    posts?: postsUpdateOneWithoutReported_contentNestedInput
   }
 
   export type reported_contentUncheckedUpdateInput = {
@@ -22822,7 +22845,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataCreateNestedManyWithoutUsersInput
+    posts?: postsCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistCreateNestedOneWithoutUsersInput
@@ -22846,7 +22869,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsUncheckedCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataUncheckedCreateNestedManyWithoutUsersInput
+    posts?: postsUncheckedCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsUncheckedCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsUncheckedCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistUncheckedCreateNestedOneWithoutUsersInput
@@ -22870,7 +22893,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUpdateManyWithoutUsersNestedInput
+    posts?: postsUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUpdateOneWithoutUsersNestedInput
@@ -22894,7 +22917,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUncheckedUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUncheckedUpdateManyWithoutUsersNestedInput
+    posts?: postsUncheckedUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUncheckedUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUncheckedUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUncheckedUpdateOneWithoutUsersNestedInput
@@ -23469,6 +23492,21 @@ export namespace Prisma {
     not?: NestedUuidFilter | string
   }
 
+  export type StringFilter = {
+    equals?: string
+    in?: Enumerable<string> | string
+    notIn?: Enumerable<string> | string
+    lt?: string
+    lte?: string
+    gt?: string
+    gte?: string
+    contains?: string
+    startsWith?: string
+    endsWith?: string
+    mode?: QueryMode
+    not?: NestedStringFilter | string
+  }
+
   export type StringNullableFilter = {
     equals?: string | null
     in?: Enumerable<string> | string | null
@@ -23565,28 +23603,31 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
-  export type posts_metadataCountOrderByAggregateInput = {
+  export type postsCountOrderByAggregateInput = {
     id?: SortOrder
     user_id?: SortOrder
-    description?: SortOrder
+    sql_id?: SortOrder
+    content?: SortOrder
     visibility?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
   }
 
-  export type posts_metadataMaxOrderByAggregateInput = {
+  export type postsMaxOrderByAggregateInput = {
     id?: SortOrder
     user_id?: SortOrder
-    description?: SortOrder
+    sql_id?: SortOrder
+    content?: SortOrder
     visibility?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
   }
 
-  export type posts_metadataMinOrderByAggregateInput = {
+  export type postsMinOrderByAggregateInput = {
     id?: SortOrder
     user_id?: SortOrder
-    description?: SortOrder
+    sql_id?: SortOrder
+    content?: SortOrder
     visibility?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
@@ -23602,6 +23643,24 @@ export namespace Prisma {
     gte?: string
     mode?: QueryMode
     not?: NestedUuidWithAggregatesFilter | string
+    _count?: NestedIntFilter
+    _min?: NestedStringFilter
+    _max?: NestedStringFilter
+  }
+
+  export type StringWithAggregatesFilter = {
+    equals?: string
+    in?: Enumerable<string> | string
+    notIn?: Enumerable<string> | string
+    lt?: string
+    lte?: string
+    gt?: string
+    gte?: string
+    contains?: string
+    startsWith?: string
+    endsWith?: string
+    mode?: QueryMode
+    not?: NestedStringWithAggregatesFilter | string
     _count?: NestedIntFilter
     _min?: NestedStringFilter
     _max?: NestedStringFilter
@@ -23658,9 +23717,9 @@ export namespace Prisma {
     not?: NestedIntNullableFilter | number | null
   }
 
-  export type Posts_metadataRelationFilter = {
-    is?: posts_metadataWhereInput | null
-    isNot?: posts_metadataWhereInput | null
+  export type PostsRelationFilter = {
+    is?: postsWhereInput | null
+    isNot?: postsWhereInput | null
   }
 
   export type posts_analyticsCountOrderByAggregateInput = {
@@ -23727,21 +23786,6 @@ export namespace Prisma {
     not?: NestedUuidNullableFilter | string | null
   }
 
-  export type StringFilter = {
-    equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
-    mode?: QueryMode
-    not?: NestedStringFilter | string
-  }
-
   export type DateTimeNullableFilter = {
     equals?: Date | string | null
     in?: Enumerable<Date> | Enumerable<string> | Date | string | null
@@ -23798,24 +23842,6 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter
     _min?: NestedStringNullableFilter
     _max?: NestedStringNullableFilter
-  }
-
-  export type StringWithAggregatesFilter = {
-    equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
-    mode?: QueryMode
-    not?: NestedStringWithAggregatesFilter | string
-    _count?: NestedIntFilter
-    _min?: NestedStringFilter
-    _max?: NestedStringFilter
   }
 
   export type DateTimeNullableWithAggregatesFilter = {
@@ -24077,10 +24103,10 @@ export namespace Prisma {
     none?: notificationsWhereInput
   }
 
-  export type Posts_metadataListRelationFilter = {
-    every?: posts_metadataWhereInput
-    some?: posts_metadataWhereInput
-    none?: posts_metadataWhereInput
+  export type PostsListRelationFilter = {
+    every?: postsWhereInput
+    some?: postsWhereInput
+    none?: postsWhereInput
   }
 
   export type User_analyticsRelationFilter = {
@@ -24129,7 +24155,7 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
-  export type posts_metadataOrderByRelationAggregateInput = {
+  export type postsOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -24527,91 +24553,91 @@ export namespace Prisma {
     secret?: SortOrder
   }
 
-  export type commentsCreateNestedManyWithoutPosts_metadataInput = {
-    create?: XOR<Enumerable<commentsCreateWithoutPosts_metadataInput>, Enumerable<commentsUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<commentsCreateOrConnectWithoutPosts_metadataInput>
-    createMany?: commentsCreateManyPosts_metadataInputEnvelope
+  export type commentsCreateNestedManyWithoutPostsInput = {
+    create?: XOR<Enumerable<commentsCreateWithoutPostsInput>, Enumerable<commentsUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<commentsCreateOrConnectWithoutPostsInput>
+    createMany?: commentsCreateManyPostsInputEnvelope
     connect?: Enumerable<commentsWhereUniqueInput>
   }
 
-  export type likesCreateNestedManyWithoutPosts_metadataInput = {
-    create?: XOR<Enumerable<likesCreateWithoutPosts_metadataInput>, Enumerable<likesUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<likesCreateOrConnectWithoutPosts_metadataInput>
-    createMany?: likesCreateManyPosts_metadataInputEnvelope
+  export type likesCreateNestedManyWithoutPostsInput = {
+    create?: XOR<Enumerable<likesCreateWithoutPostsInput>, Enumerable<likesUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<likesCreateOrConnectWithoutPostsInput>
+    createMany?: likesCreateManyPostsInputEnvelope
     connect?: Enumerable<likesWhereUniqueInput>
   }
 
-  export type savesCreateNestedManyWithoutPosts_metadataInput = {
-    create?: XOR<Enumerable<savesCreateWithoutPosts_metadataInput>, Enumerable<savesUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<savesCreateOrConnectWithoutPosts_metadataInput>
-    createMany?: savesCreateManyPosts_metadataInputEnvelope
+  export type savesCreateNestedManyWithoutPostsInput = {
+    create?: XOR<Enumerable<savesCreateWithoutPostsInput>, Enumerable<savesUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<savesCreateOrConnectWithoutPostsInput>
+    createMany?: savesCreateManyPostsInputEnvelope
     connect?: Enumerable<savesWhereUniqueInput>
   }
 
-  export type sharesCreateNestedManyWithoutPosts_metadataInput = {
-    create?: XOR<Enumerable<sharesCreateWithoutPosts_metadataInput>, Enumerable<sharesUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<sharesCreateOrConnectWithoutPosts_metadataInput>
-    createMany?: sharesCreateManyPosts_metadataInputEnvelope
+  export type sharesCreateNestedManyWithoutPostsInput = {
+    create?: XOR<Enumerable<sharesCreateWithoutPostsInput>, Enumerable<sharesUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<sharesCreateOrConnectWithoutPostsInput>
+    createMany?: sharesCreateManyPostsInputEnvelope
     connect?: Enumerable<sharesWhereUniqueInput>
   }
 
-  export type posts_analyticsCreateNestedOneWithoutPosts_metadataInput = {
-    create?: XOR<posts_analyticsCreateWithoutPosts_metadataInput, posts_analyticsUncheckedCreateWithoutPosts_metadataInput>
-    connectOrCreate?: posts_analyticsCreateOrConnectWithoutPosts_metadataInput
+  export type posts_analyticsCreateNestedOneWithoutPostsInput = {
+    create?: XOR<posts_analyticsCreateWithoutPostsInput, posts_analyticsUncheckedCreateWithoutPostsInput>
+    connectOrCreate?: posts_analyticsCreateOrConnectWithoutPostsInput
     connect?: posts_analyticsWhereUniqueInput
   }
 
-  export type usersCreateNestedOneWithoutPosts_metadataInput = {
-    create?: XOR<usersCreateWithoutPosts_metadataInput, usersUncheckedCreateWithoutPosts_metadataInput>
-    connectOrCreate?: usersCreateOrConnectWithoutPosts_metadataInput
+  export type usersCreateNestedOneWithoutPostsInput = {
+    create?: XOR<usersCreateWithoutPostsInput, usersUncheckedCreateWithoutPostsInput>
+    connectOrCreate?: usersCreateOrConnectWithoutPostsInput
     connect?: usersWhereUniqueInput
   }
 
-  export type reported_contentCreateNestedManyWithoutPosts_metadataInput = {
-    create?: XOR<Enumerable<reported_contentCreateWithoutPosts_metadataInput>, Enumerable<reported_contentUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<reported_contentCreateOrConnectWithoutPosts_metadataInput>
-    createMany?: reported_contentCreateManyPosts_metadataInputEnvelope
+  export type reported_contentCreateNestedManyWithoutPostsInput = {
+    create?: XOR<Enumerable<reported_contentCreateWithoutPostsInput>, Enumerable<reported_contentUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<reported_contentCreateOrConnectWithoutPostsInput>
+    createMany?: reported_contentCreateManyPostsInputEnvelope
     connect?: Enumerable<reported_contentWhereUniqueInput>
   }
 
-  export type commentsUncheckedCreateNestedManyWithoutPosts_metadataInput = {
-    create?: XOR<Enumerable<commentsCreateWithoutPosts_metadataInput>, Enumerable<commentsUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<commentsCreateOrConnectWithoutPosts_metadataInput>
-    createMany?: commentsCreateManyPosts_metadataInputEnvelope
+  export type commentsUncheckedCreateNestedManyWithoutPostsInput = {
+    create?: XOR<Enumerable<commentsCreateWithoutPostsInput>, Enumerable<commentsUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<commentsCreateOrConnectWithoutPostsInput>
+    createMany?: commentsCreateManyPostsInputEnvelope
     connect?: Enumerable<commentsWhereUniqueInput>
   }
 
-  export type likesUncheckedCreateNestedManyWithoutPosts_metadataInput = {
-    create?: XOR<Enumerable<likesCreateWithoutPosts_metadataInput>, Enumerable<likesUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<likesCreateOrConnectWithoutPosts_metadataInput>
-    createMany?: likesCreateManyPosts_metadataInputEnvelope
+  export type likesUncheckedCreateNestedManyWithoutPostsInput = {
+    create?: XOR<Enumerable<likesCreateWithoutPostsInput>, Enumerable<likesUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<likesCreateOrConnectWithoutPostsInput>
+    createMany?: likesCreateManyPostsInputEnvelope
     connect?: Enumerable<likesWhereUniqueInput>
   }
 
-  export type savesUncheckedCreateNestedManyWithoutPosts_metadataInput = {
-    create?: XOR<Enumerable<savesCreateWithoutPosts_metadataInput>, Enumerable<savesUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<savesCreateOrConnectWithoutPosts_metadataInput>
-    createMany?: savesCreateManyPosts_metadataInputEnvelope
+  export type savesUncheckedCreateNestedManyWithoutPostsInput = {
+    create?: XOR<Enumerable<savesCreateWithoutPostsInput>, Enumerable<savesUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<savesCreateOrConnectWithoutPostsInput>
+    createMany?: savesCreateManyPostsInputEnvelope
     connect?: Enumerable<savesWhereUniqueInput>
   }
 
-  export type sharesUncheckedCreateNestedManyWithoutPosts_metadataInput = {
-    create?: XOR<Enumerable<sharesCreateWithoutPosts_metadataInput>, Enumerable<sharesUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<sharesCreateOrConnectWithoutPosts_metadataInput>
-    createMany?: sharesCreateManyPosts_metadataInputEnvelope
+  export type sharesUncheckedCreateNestedManyWithoutPostsInput = {
+    create?: XOR<Enumerable<sharesCreateWithoutPostsInput>, Enumerable<sharesUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<sharesCreateOrConnectWithoutPostsInput>
+    createMany?: sharesCreateManyPostsInputEnvelope
     connect?: Enumerable<sharesWhereUniqueInput>
   }
 
-  export type posts_analyticsUncheckedCreateNestedOneWithoutPosts_metadataInput = {
-    create?: XOR<posts_analyticsCreateWithoutPosts_metadataInput, posts_analyticsUncheckedCreateWithoutPosts_metadataInput>
-    connectOrCreate?: posts_analyticsCreateOrConnectWithoutPosts_metadataInput
+  export type posts_analyticsUncheckedCreateNestedOneWithoutPostsInput = {
+    create?: XOR<posts_analyticsCreateWithoutPostsInput, posts_analyticsUncheckedCreateWithoutPostsInput>
+    connectOrCreate?: posts_analyticsCreateOrConnectWithoutPostsInput
     connect?: posts_analyticsWhereUniqueInput
   }
 
-  export type reported_contentUncheckedCreateNestedManyWithoutPosts_metadataInput = {
-    create?: XOR<Enumerable<reported_contentCreateWithoutPosts_metadataInput>, Enumerable<reported_contentUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<reported_contentCreateOrConnectWithoutPosts_metadataInput>
-    createMany?: reported_contentCreateManyPosts_metadataInputEnvelope
+  export type reported_contentUncheckedCreateNestedManyWithoutPostsInput = {
+    create?: XOR<Enumerable<reported_contentCreateWithoutPostsInput>, Enumerable<reported_contentUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<reported_contentCreateOrConnectWithoutPostsInput>
+    createMany?: reported_contentCreateManyPostsInputEnvelope
     connect?: Enumerable<reported_contentWhereUniqueInput>
   }
 
@@ -24631,178 +24657,178 @@ export namespace Prisma {
     set?: Date | string
   }
 
-  export type commentsUpdateManyWithoutPosts_metadataNestedInput = {
-    create?: XOR<Enumerable<commentsCreateWithoutPosts_metadataInput>, Enumerable<commentsUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<commentsCreateOrConnectWithoutPosts_metadataInput>
-    upsert?: Enumerable<commentsUpsertWithWhereUniqueWithoutPosts_metadataInput>
-    createMany?: commentsCreateManyPosts_metadataInputEnvelope
+  export type commentsUpdateManyWithoutPostsNestedInput = {
+    create?: XOR<Enumerable<commentsCreateWithoutPostsInput>, Enumerable<commentsUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<commentsCreateOrConnectWithoutPostsInput>
+    upsert?: Enumerable<commentsUpsertWithWhereUniqueWithoutPostsInput>
+    createMany?: commentsCreateManyPostsInputEnvelope
     set?: Enumerable<commentsWhereUniqueInput>
     disconnect?: Enumerable<commentsWhereUniqueInput>
     delete?: Enumerable<commentsWhereUniqueInput>
     connect?: Enumerable<commentsWhereUniqueInput>
-    update?: Enumerable<commentsUpdateWithWhereUniqueWithoutPosts_metadataInput>
-    updateMany?: Enumerable<commentsUpdateManyWithWhereWithoutPosts_metadataInput>
+    update?: Enumerable<commentsUpdateWithWhereUniqueWithoutPostsInput>
+    updateMany?: Enumerable<commentsUpdateManyWithWhereWithoutPostsInput>
     deleteMany?: Enumerable<commentsScalarWhereInput>
   }
 
-  export type likesUpdateManyWithoutPosts_metadataNestedInput = {
-    create?: XOR<Enumerable<likesCreateWithoutPosts_metadataInput>, Enumerable<likesUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<likesCreateOrConnectWithoutPosts_metadataInput>
-    upsert?: Enumerable<likesUpsertWithWhereUniqueWithoutPosts_metadataInput>
-    createMany?: likesCreateManyPosts_metadataInputEnvelope
+  export type likesUpdateManyWithoutPostsNestedInput = {
+    create?: XOR<Enumerable<likesCreateWithoutPostsInput>, Enumerable<likesUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<likesCreateOrConnectWithoutPostsInput>
+    upsert?: Enumerable<likesUpsertWithWhereUniqueWithoutPostsInput>
+    createMany?: likesCreateManyPostsInputEnvelope
     set?: Enumerable<likesWhereUniqueInput>
     disconnect?: Enumerable<likesWhereUniqueInput>
     delete?: Enumerable<likesWhereUniqueInput>
     connect?: Enumerable<likesWhereUniqueInput>
-    update?: Enumerable<likesUpdateWithWhereUniqueWithoutPosts_metadataInput>
-    updateMany?: Enumerable<likesUpdateManyWithWhereWithoutPosts_metadataInput>
+    update?: Enumerable<likesUpdateWithWhereUniqueWithoutPostsInput>
+    updateMany?: Enumerable<likesUpdateManyWithWhereWithoutPostsInput>
     deleteMany?: Enumerable<likesScalarWhereInput>
   }
 
-  export type savesUpdateManyWithoutPosts_metadataNestedInput = {
-    create?: XOR<Enumerable<savesCreateWithoutPosts_metadataInput>, Enumerable<savesUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<savesCreateOrConnectWithoutPosts_metadataInput>
-    upsert?: Enumerable<savesUpsertWithWhereUniqueWithoutPosts_metadataInput>
-    createMany?: savesCreateManyPosts_metadataInputEnvelope
+  export type savesUpdateManyWithoutPostsNestedInput = {
+    create?: XOR<Enumerable<savesCreateWithoutPostsInput>, Enumerable<savesUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<savesCreateOrConnectWithoutPostsInput>
+    upsert?: Enumerable<savesUpsertWithWhereUniqueWithoutPostsInput>
+    createMany?: savesCreateManyPostsInputEnvelope
     set?: Enumerable<savesWhereUniqueInput>
     disconnect?: Enumerable<savesWhereUniqueInput>
     delete?: Enumerable<savesWhereUniqueInput>
     connect?: Enumerable<savesWhereUniqueInput>
-    update?: Enumerable<savesUpdateWithWhereUniqueWithoutPosts_metadataInput>
-    updateMany?: Enumerable<savesUpdateManyWithWhereWithoutPosts_metadataInput>
+    update?: Enumerable<savesUpdateWithWhereUniqueWithoutPostsInput>
+    updateMany?: Enumerable<savesUpdateManyWithWhereWithoutPostsInput>
     deleteMany?: Enumerable<savesScalarWhereInput>
   }
 
-  export type sharesUpdateManyWithoutPosts_metadataNestedInput = {
-    create?: XOR<Enumerable<sharesCreateWithoutPosts_metadataInput>, Enumerable<sharesUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<sharesCreateOrConnectWithoutPosts_metadataInput>
-    upsert?: Enumerable<sharesUpsertWithWhereUniqueWithoutPosts_metadataInput>
-    createMany?: sharesCreateManyPosts_metadataInputEnvelope
+  export type sharesUpdateManyWithoutPostsNestedInput = {
+    create?: XOR<Enumerable<sharesCreateWithoutPostsInput>, Enumerable<sharesUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<sharesCreateOrConnectWithoutPostsInput>
+    upsert?: Enumerable<sharesUpsertWithWhereUniqueWithoutPostsInput>
+    createMany?: sharesCreateManyPostsInputEnvelope
     set?: Enumerable<sharesWhereUniqueInput>
     disconnect?: Enumerable<sharesWhereUniqueInput>
     delete?: Enumerable<sharesWhereUniqueInput>
     connect?: Enumerable<sharesWhereUniqueInput>
-    update?: Enumerable<sharesUpdateWithWhereUniqueWithoutPosts_metadataInput>
-    updateMany?: Enumerable<sharesUpdateManyWithWhereWithoutPosts_metadataInput>
+    update?: Enumerable<sharesUpdateWithWhereUniqueWithoutPostsInput>
+    updateMany?: Enumerable<sharesUpdateManyWithWhereWithoutPostsInput>
     deleteMany?: Enumerable<sharesScalarWhereInput>
   }
 
-  export type posts_analyticsUpdateOneWithoutPosts_metadataNestedInput = {
-    create?: XOR<posts_analyticsCreateWithoutPosts_metadataInput, posts_analyticsUncheckedCreateWithoutPosts_metadataInput>
-    connectOrCreate?: posts_analyticsCreateOrConnectWithoutPosts_metadataInput
-    upsert?: posts_analyticsUpsertWithoutPosts_metadataInput
+  export type posts_analyticsUpdateOneWithoutPostsNestedInput = {
+    create?: XOR<posts_analyticsCreateWithoutPostsInput, posts_analyticsUncheckedCreateWithoutPostsInput>
+    connectOrCreate?: posts_analyticsCreateOrConnectWithoutPostsInput
+    upsert?: posts_analyticsUpsertWithoutPostsInput
     disconnect?: boolean
     delete?: boolean
     connect?: posts_analyticsWhereUniqueInput
-    update?: XOR<posts_analyticsUpdateWithoutPosts_metadataInput, posts_analyticsUncheckedUpdateWithoutPosts_metadataInput>
+    update?: XOR<posts_analyticsUpdateWithoutPostsInput, posts_analyticsUncheckedUpdateWithoutPostsInput>
   }
 
-  export type usersUpdateOneRequiredWithoutPosts_metadataNestedInput = {
-    create?: XOR<usersCreateWithoutPosts_metadataInput, usersUncheckedCreateWithoutPosts_metadataInput>
-    connectOrCreate?: usersCreateOrConnectWithoutPosts_metadataInput
-    upsert?: usersUpsertWithoutPosts_metadataInput
+  export type usersUpdateOneRequiredWithoutPostsNestedInput = {
+    create?: XOR<usersCreateWithoutPostsInput, usersUncheckedCreateWithoutPostsInput>
+    connectOrCreate?: usersCreateOrConnectWithoutPostsInput
+    upsert?: usersUpsertWithoutPostsInput
     connect?: usersWhereUniqueInput
-    update?: XOR<usersUpdateWithoutPosts_metadataInput, usersUncheckedUpdateWithoutPosts_metadataInput>
+    update?: XOR<usersUpdateWithoutPostsInput, usersUncheckedUpdateWithoutPostsInput>
   }
 
-  export type reported_contentUpdateManyWithoutPosts_metadataNestedInput = {
-    create?: XOR<Enumerable<reported_contentCreateWithoutPosts_metadataInput>, Enumerable<reported_contentUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<reported_contentCreateOrConnectWithoutPosts_metadataInput>
-    upsert?: Enumerable<reported_contentUpsertWithWhereUniqueWithoutPosts_metadataInput>
-    createMany?: reported_contentCreateManyPosts_metadataInputEnvelope
+  export type reported_contentUpdateManyWithoutPostsNestedInput = {
+    create?: XOR<Enumerable<reported_contentCreateWithoutPostsInput>, Enumerable<reported_contentUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<reported_contentCreateOrConnectWithoutPostsInput>
+    upsert?: Enumerable<reported_contentUpsertWithWhereUniqueWithoutPostsInput>
+    createMany?: reported_contentCreateManyPostsInputEnvelope
     set?: Enumerable<reported_contentWhereUniqueInput>
     disconnect?: Enumerable<reported_contentWhereUniqueInput>
     delete?: Enumerable<reported_contentWhereUniqueInput>
     connect?: Enumerable<reported_contentWhereUniqueInput>
-    update?: Enumerable<reported_contentUpdateWithWhereUniqueWithoutPosts_metadataInput>
-    updateMany?: Enumerable<reported_contentUpdateManyWithWhereWithoutPosts_metadataInput>
+    update?: Enumerable<reported_contentUpdateWithWhereUniqueWithoutPostsInput>
+    updateMany?: Enumerable<reported_contentUpdateManyWithWhereWithoutPostsInput>
     deleteMany?: Enumerable<reported_contentScalarWhereInput>
   }
 
-  export type commentsUncheckedUpdateManyWithoutPosts_metadataNestedInput = {
-    create?: XOR<Enumerable<commentsCreateWithoutPosts_metadataInput>, Enumerable<commentsUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<commentsCreateOrConnectWithoutPosts_metadataInput>
-    upsert?: Enumerable<commentsUpsertWithWhereUniqueWithoutPosts_metadataInput>
-    createMany?: commentsCreateManyPosts_metadataInputEnvelope
+  export type commentsUncheckedUpdateManyWithoutPostsNestedInput = {
+    create?: XOR<Enumerable<commentsCreateWithoutPostsInput>, Enumerable<commentsUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<commentsCreateOrConnectWithoutPostsInput>
+    upsert?: Enumerable<commentsUpsertWithWhereUniqueWithoutPostsInput>
+    createMany?: commentsCreateManyPostsInputEnvelope
     set?: Enumerable<commentsWhereUniqueInput>
     disconnect?: Enumerable<commentsWhereUniqueInput>
     delete?: Enumerable<commentsWhereUniqueInput>
     connect?: Enumerable<commentsWhereUniqueInput>
-    update?: Enumerable<commentsUpdateWithWhereUniqueWithoutPosts_metadataInput>
-    updateMany?: Enumerable<commentsUpdateManyWithWhereWithoutPosts_metadataInput>
+    update?: Enumerable<commentsUpdateWithWhereUniqueWithoutPostsInput>
+    updateMany?: Enumerable<commentsUpdateManyWithWhereWithoutPostsInput>
     deleteMany?: Enumerable<commentsScalarWhereInput>
   }
 
-  export type likesUncheckedUpdateManyWithoutPosts_metadataNestedInput = {
-    create?: XOR<Enumerable<likesCreateWithoutPosts_metadataInput>, Enumerable<likesUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<likesCreateOrConnectWithoutPosts_metadataInput>
-    upsert?: Enumerable<likesUpsertWithWhereUniqueWithoutPosts_metadataInput>
-    createMany?: likesCreateManyPosts_metadataInputEnvelope
+  export type likesUncheckedUpdateManyWithoutPostsNestedInput = {
+    create?: XOR<Enumerable<likesCreateWithoutPostsInput>, Enumerable<likesUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<likesCreateOrConnectWithoutPostsInput>
+    upsert?: Enumerable<likesUpsertWithWhereUniqueWithoutPostsInput>
+    createMany?: likesCreateManyPostsInputEnvelope
     set?: Enumerable<likesWhereUniqueInput>
     disconnect?: Enumerable<likesWhereUniqueInput>
     delete?: Enumerable<likesWhereUniqueInput>
     connect?: Enumerable<likesWhereUniqueInput>
-    update?: Enumerable<likesUpdateWithWhereUniqueWithoutPosts_metadataInput>
-    updateMany?: Enumerable<likesUpdateManyWithWhereWithoutPosts_metadataInput>
+    update?: Enumerable<likesUpdateWithWhereUniqueWithoutPostsInput>
+    updateMany?: Enumerable<likesUpdateManyWithWhereWithoutPostsInput>
     deleteMany?: Enumerable<likesScalarWhereInput>
   }
 
-  export type savesUncheckedUpdateManyWithoutPosts_metadataNestedInput = {
-    create?: XOR<Enumerable<savesCreateWithoutPosts_metadataInput>, Enumerable<savesUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<savesCreateOrConnectWithoutPosts_metadataInput>
-    upsert?: Enumerable<savesUpsertWithWhereUniqueWithoutPosts_metadataInput>
-    createMany?: savesCreateManyPosts_metadataInputEnvelope
+  export type savesUncheckedUpdateManyWithoutPostsNestedInput = {
+    create?: XOR<Enumerable<savesCreateWithoutPostsInput>, Enumerable<savesUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<savesCreateOrConnectWithoutPostsInput>
+    upsert?: Enumerable<savesUpsertWithWhereUniqueWithoutPostsInput>
+    createMany?: savesCreateManyPostsInputEnvelope
     set?: Enumerable<savesWhereUniqueInput>
     disconnect?: Enumerable<savesWhereUniqueInput>
     delete?: Enumerable<savesWhereUniqueInput>
     connect?: Enumerable<savesWhereUniqueInput>
-    update?: Enumerable<savesUpdateWithWhereUniqueWithoutPosts_metadataInput>
-    updateMany?: Enumerable<savesUpdateManyWithWhereWithoutPosts_metadataInput>
+    update?: Enumerable<savesUpdateWithWhereUniqueWithoutPostsInput>
+    updateMany?: Enumerable<savesUpdateManyWithWhereWithoutPostsInput>
     deleteMany?: Enumerable<savesScalarWhereInput>
   }
 
-  export type sharesUncheckedUpdateManyWithoutPosts_metadataNestedInput = {
-    create?: XOR<Enumerable<sharesCreateWithoutPosts_metadataInput>, Enumerable<sharesUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<sharesCreateOrConnectWithoutPosts_metadataInput>
-    upsert?: Enumerable<sharesUpsertWithWhereUniqueWithoutPosts_metadataInput>
-    createMany?: sharesCreateManyPosts_metadataInputEnvelope
+  export type sharesUncheckedUpdateManyWithoutPostsNestedInput = {
+    create?: XOR<Enumerable<sharesCreateWithoutPostsInput>, Enumerable<sharesUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<sharesCreateOrConnectWithoutPostsInput>
+    upsert?: Enumerable<sharesUpsertWithWhereUniqueWithoutPostsInput>
+    createMany?: sharesCreateManyPostsInputEnvelope
     set?: Enumerable<sharesWhereUniqueInput>
     disconnect?: Enumerable<sharesWhereUniqueInput>
     delete?: Enumerable<sharesWhereUniqueInput>
     connect?: Enumerable<sharesWhereUniqueInput>
-    update?: Enumerable<sharesUpdateWithWhereUniqueWithoutPosts_metadataInput>
-    updateMany?: Enumerable<sharesUpdateManyWithWhereWithoutPosts_metadataInput>
+    update?: Enumerable<sharesUpdateWithWhereUniqueWithoutPostsInput>
+    updateMany?: Enumerable<sharesUpdateManyWithWhereWithoutPostsInput>
     deleteMany?: Enumerable<sharesScalarWhereInput>
   }
 
-  export type posts_analyticsUncheckedUpdateOneWithoutPosts_metadataNestedInput = {
-    create?: XOR<posts_analyticsCreateWithoutPosts_metadataInput, posts_analyticsUncheckedCreateWithoutPosts_metadataInput>
-    connectOrCreate?: posts_analyticsCreateOrConnectWithoutPosts_metadataInput
-    upsert?: posts_analyticsUpsertWithoutPosts_metadataInput
+  export type posts_analyticsUncheckedUpdateOneWithoutPostsNestedInput = {
+    create?: XOR<posts_analyticsCreateWithoutPostsInput, posts_analyticsUncheckedCreateWithoutPostsInput>
+    connectOrCreate?: posts_analyticsCreateOrConnectWithoutPostsInput
+    upsert?: posts_analyticsUpsertWithoutPostsInput
     disconnect?: boolean
     delete?: boolean
     connect?: posts_analyticsWhereUniqueInput
-    update?: XOR<posts_analyticsUpdateWithoutPosts_metadataInput, posts_analyticsUncheckedUpdateWithoutPosts_metadataInput>
+    update?: XOR<posts_analyticsUpdateWithoutPostsInput, posts_analyticsUncheckedUpdateWithoutPostsInput>
   }
 
-  export type reported_contentUncheckedUpdateManyWithoutPosts_metadataNestedInput = {
-    create?: XOR<Enumerable<reported_contentCreateWithoutPosts_metadataInput>, Enumerable<reported_contentUncheckedCreateWithoutPosts_metadataInput>>
-    connectOrCreate?: Enumerable<reported_contentCreateOrConnectWithoutPosts_metadataInput>
-    upsert?: Enumerable<reported_contentUpsertWithWhereUniqueWithoutPosts_metadataInput>
-    createMany?: reported_contentCreateManyPosts_metadataInputEnvelope
+  export type reported_contentUncheckedUpdateManyWithoutPostsNestedInput = {
+    create?: XOR<Enumerable<reported_contentCreateWithoutPostsInput>, Enumerable<reported_contentUncheckedCreateWithoutPostsInput>>
+    connectOrCreate?: Enumerable<reported_contentCreateOrConnectWithoutPostsInput>
+    upsert?: Enumerable<reported_contentUpsertWithWhereUniqueWithoutPostsInput>
+    createMany?: reported_contentCreateManyPostsInputEnvelope
     set?: Enumerable<reported_contentWhereUniqueInput>
     disconnect?: Enumerable<reported_contentWhereUniqueInput>
     delete?: Enumerable<reported_contentWhereUniqueInput>
     connect?: Enumerable<reported_contentWhereUniqueInput>
-    update?: Enumerable<reported_contentUpdateWithWhereUniqueWithoutPosts_metadataInput>
-    updateMany?: Enumerable<reported_contentUpdateManyWithWhereWithoutPosts_metadataInput>
+    update?: Enumerable<reported_contentUpdateWithWhereUniqueWithoutPostsInput>
+    updateMany?: Enumerable<reported_contentUpdateManyWithWhereWithoutPostsInput>
     deleteMany?: Enumerable<reported_contentScalarWhereInput>
   }
 
-  export type posts_metadataCreateNestedOneWithoutPosts_analyticsInput = {
-    create?: XOR<posts_metadataCreateWithoutPosts_analyticsInput, posts_metadataUncheckedCreateWithoutPosts_analyticsInput>
-    connectOrCreate?: posts_metadataCreateOrConnectWithoutPosts_analyticsInput
-    connect?: posts_metadataWhereUniqueInput
+  export type postsCreateNestedOneWithoutPosts_analyticsInput = {
+    create?: XOR<postsCreateWithoutPosts_analyticsInput, postsUncheckedCreateWithoutPosts_analyticsInput>
+    connectOrCreate?: postsCreateOrConnectWithoutPosts_analyticsInput
+    connect?: postsWhereUniqueInput
   }
 
   export type NullableIntFieldUpdateOperationsInput = {
@@ -24813,12 +24839,12 @@ export namespace Prisma {
     divide?: number
   }
 
-  export type posts_metadataUpdateOneRequiredWithoutPosts_analyticsNestedInput = {
-    create?: XOR<posts_metadataCreateWithoutPosts_analyticsInput, posts_metadataUncheckedCreateWithoutPosts_analyticsInput>
-    connectOrCreate?: posts_metadataCreateOrConnectWithoutPosts_analyticsInput
-    upsert?: posts_metadataUpsertWithoutPosts_analyticsInput
-    connect?: posts_metadataWhereUniqueInput
-    update?: XOR<posts_metadataUpdateWithoutPosts_analyticsInput, posts_metadataUncheckedUpdateWithoutPosts_analyticsInput>
+  export type postsUpdateOneRequiredWithoutPosts_analyticsNestedInput = {
+    create?: XOR<postsCreateWithoutPosts_analyticsInput, postsUncheckedCreateWithoutPosts_analyticsInput>
+    connectOrCreate?: postsCreateOrConnectWithoutPosts_analyticsInput
+    upsert?: postsUpsertWithoutPosts_analyticsInput
+    connect?: postsWhereUniqueInput
+    update?: XOR<postsUpdateWithoutPosts_analyticsInput, postsUncheckedUpdateWithoutPosts_analyticsInput>
   }
 
   export type commentsCreateNestedOneWithoutOther_commentsInput = {
@@ -24834,10 +24860,10 @@ export namespace Prisma {
     connect?: Enumerable<commentsWhereUniqueInput>
   }
 
-  export type posts_metadataCreateNestedOneWithoutCommentsInput = {
-    create?: XOR<posts_metadataCreateWithoutCommentsInput, posts_metadataUncheckedCreateWithoutCommentsInput>
-    connectOrCreate?: posts_metadataCreateOrConnectWithoutCommentsInput
-    connect?: posts_metadataWhereUniqueInput
+  export type postsCreateNestedOneWithoutCommentsInput = {
+    create?: XOR<postsCreateWithoutCommentsInput, postsUncheckedCreateWithoutCommentsInput>
+    connectOrCreate?: postsCreateOrConnectWithoutCommentsInput
+    connect?: postsWhereUniqueInput
   }
 
   export type commentsUncheckedCreateNestedManyWithoutCommentsInput = {
@@ -24875,12 +24901,12 @@ export namespace Prisma {
     deleteMany?: Enumerable<commentsScalarWhereInput>
   }
 
-  export type posts_metadataUpdateOneRequiredWithoutCommentsNestedInput = {
-    create?: XOR<posts_metadataCreateWithoutCommentsInput, posts_metadataUncheckedCreateWithoutCommentsInput>
-    connectOrCreate?: posts_metadataCreateOrConnectWithoutCommentsInput
-    upsert?: posts_metadataUpsertWithoutCommentsInput
-    connect?: posts_metadataWhereUniqueInput
-    update?: XOR<posts_metadataUpdateWithoutCommentsInput, posts_metadataUncheckedUpdateWithoutCommentsInput>
+  export type postsUpdateOneRequiredWithoutCommentsNestedInput = {
+    create?: XOR<postsCreateWithoutCommentsInput, postsUncheckedCreateWithoutCommentsInput>
+    connectOrCreate?: postsCreateOrConnectWithoutCommentsInput
+    upsert?: postsUpsertWithoutCommentsInput
+    connect?: postsWhereUniqueInput
+    update?: XOR<postsUpdateWithoutCommentsInput, postsUncheckedUpdateWithoutCommentsInput>
   }
 
   export type commentsUncheckedUpdateManyWithoutCommentsNestedInput = {
@@ -24897,10 +24923,10 @@ export namespace Prisma {
     deleteMany?: Enumerable<commentsScalarWhereInput>
   }
 
-  export type posts_metadataCreateNestedOneWithoutLikesInput = {
-    create?: XOR<posts_metadataCreateWithoutLikesInput, posts_metadataUncheckedCreateWithoutLikesInput>
-    connectOrCreate?: posts_metadataCreateOrConnectWithoutLikesInput
-    connect?: posts_metadataWhereUniqueInput
+  export type postsCreateNestedOneWithoutLikesInput = {
+    create?: XOR<postsCreateWithoutLikesInput, postsUncheckedCreateWithoutLikesInput>
+    connectOrCreate?: postsCreateOrConnectWithoutLikesInput
+    connect?: postsWhereUniqueInput
   }
 
   export type BigIntFieldUpdateOperationsInput = {
@@ -24911,56 +24937,56 @@ export namespace Prisma {
     divide?: bigint | number
   }
 
-  export type posts_metadataUpdateOneRequiredWithoutLikesNestedInput = {
-    create?: XOR<posts_metadataCreateWithoutLikesInput, posts_metadataUncheckedCreateWithoutLikesInput>
-    connectOrCreate?: posts_metadataCreateOrConnectWithoutLikesInput
-    upsert?: posts_metadataUpsertWithoutLikesInput
-    connect?: posts_metadataWhereUniqueInput
-    update?: XOR<posts_metadataUpdateWithoutLikesInput, posts_metadataUncheckedUpdateWithoutLikesInput>
+  export type postsUpdateOneRequiredWithoutLikesNestedInput = {
+    create?: XOR<postsCreateWithoutLikesInput, postsUncheckedCreateWithoutLikesInput>
+    connectOrCreate?: postsCreateOrConnectWithoutLikesInput
+    upsert?: postsUpsertWithoutLikesInput
+    connect?: postsWhereUniqueInput
+    update?: XOR<postsUpdateWithoutLikesInput, postsUncheckedUpdateWithoutLikesInput>
   }
 
-  export type posts_metadataCreateNestedOneWithoutSavesInput = {
-    create?: XOR<posts_metadataCreateWithoutSavesInput, posts_metadataUncheckedCreateWithoutSavesInput>
-    connectOrCreate?: posts_metadataCreateOrConnectWithoutSavesInput
-    connect?: posts_metadataWhereUniqueInput
+  export type postsCreateNestedOneWithoutSavesInput = {
+    create?: XOR<postsCreateWithoutSavesInput, postsUncheckedCreateWithoutSavesInput>
+    connectOrCreate?: postsCreateOrConnectWithoutSavesInput
+    connect?: postsWhereUniqueInput
   }
 
-  export type posts_metadataUpdateOneRequiredWithoutSavesNestedInput = {
-    create?: XOR<posts_metadataCreateWithoutSavesInput, posts_metadataUncheckedCreateWithoutSavesInput>
-    connectOrCreate?: posts_metadataCreateOrConnectWithoutSavesInput
-    upsert?: posts_metadataUpsertWithoutSavesInput
-    connect?: posts_metadataWhereUniqueInput
-    update?: XOR<posts_metadataUpdateWithoutSavesInput, posts_metadataUncheckedUpdateWithoutSavesInput>
+  export type postsUpdateOneRequiredWithoutSavesNestedInput = {
+    create?: XOR<postsCreateWithoutSavesInput, postsUncheckedCreateWithoutSavesInput>
+    connectOrCreate?: postsCreateOrConnectWithoutSavesInput
+    upsert?: postsUpsertWithoutSavesInput
+    connect?: postsWhereUniqueInput
+    update?: XOR<postsUpdateWithoutSavesInput, postsUncheckedUpdateWithoutSavesInput>
   }
 
-  export type posts_metadataCreateNestedOneWithoutSharesInput = {
-    create?: XOR<posts_metadataCreateWithoutSharesInput, posts_metadataUncheckedCreateWithoutSharesInput>
-    connectOrCreate?: posts_metadataCreateOrConnectWithoutSharesInput
-    connect?: posts_metadataWhereUniqueInput
+  export type postsCreateNestedOneWithoutSharesInput = {
+    create?: XOR<postsCreateWithoutSharesInput, postsUncheckedCreateWithoutSharesInput>
+    connectOrCreate?: postsCreateOrConnectWithoutSharesInput
+    connect?: postsWhereUniqueInput
   }
 
-  export type posts_metadataUpdateOneRequiredWithoutSharesNestedInput = {
-    create?: XOR<posts_metadataCreateWithoutSharesInput, posts_metadataUncheckedCreateWithoutSharesInput>
-    connectOrCreate?: posts_metadataCreateOrConnectWithoutSharesInput
-    upsert?: posts_metadataUpsertWithoutSharesInput
-    connect?: posts_metadataWhereUniqueInput
-    update?: XOR<posts_metadataUpdateWithoutSharesInput, posts_metadataUncheckedUpdateWithoutSharesInput>
+  export type postsUpdateOneRequiredWithoutSharesNestedInput = {
+    create?: XOR<postsCreateWithoutSharesInput, postsUncheckedCreateWithoutSharesInput>
+    connectOrCreate?: postsCreateOrConnectWithoutSharesInput
+    upsert?: postsUpsertWithoutSharesInput
+    connect?: postsWhereUniqueInput
+    update?: XOR<postsUpdateWithoutSharesInput, postsUncheckedUpdateWithoutSharesInput>
   }
 
-  export type posts_metadataCreateNestedOneWithoutReported_contentInput = {
-    create?: XOR<posts_metadataCreateWithoutReported_contentInput, posts_metadataUncheckedCreateWithoutReported_contentInput>
-    connectOrCreate?: posts_metadataCreateOrConnectWithoutReported_contentInput
-    connect?: posts_metadataWhereUniqueInput
+  export type postsCreateNestedOneWithoutReported_contentInput = {
+    create?: XOR<postsCreateWithoutReported_contentInput, postsUncheckedCreateWithoutReported_contentInput>
+    connectOrCreate?: postsCreateOrConnectWithoutReported_contentInput
+    connect?: postsWhereUniqueInput
   }
 
-  export type posts_metadataUpdateOneWithoutReported_contentNestedInput = {
-    create?: XOR<posts_metadataCreateWithoutReported_contentInput, posts_metadataUncheckedCreateWithoutReported_contentInput>
-    connectOrCreate?: posts_metadataCreateOrConnectWithoutReported_contentInput
-    upsert?: posts_metadataUpsertWithoutReported_contentInput
+  export type postsUpdateOneWithoutReported_contentNestedInput = {
+    create?: XOR<postsCreateWithoutReported_contentInput, postsUncheckedCreateWithoutReported_contentInput>
+    connectOrCreate?: postsCreateOrConnectWithoutReported_contentInput
+    upsert?: postsUpsertWithoutReported_contentInput
     disconnect?: boolean
     delete?: boolean
-    connect?: posts_metadataWhereUniqueInput
-    update?: XOR<posts_metadataUpdateWithoutReported_contentInput, posts_metadataUncheckedUpdateWithoutReported_contentInput>
+    connect?: postsWhereUniqueInput
+    update?: XOR<postsUpdateWithoutReported_contentInput, postsUncheckedUpdateWithoutReported_contentInput>
   }
 
   export type usersCreateNestedOneWithoutNotificationsInput = {
@@ -24988,11 +25014,11 @@ export namespace Prisma {
     connect?: Enumerable<notificationsWhereUniqueInput>
   }
 
-  export type posts_metadataCreateNestedManyWithoutUsersInput = {
-    create?: XOR<Enumerable<posts_metadataCreateWithoutUsersInput>, Enumerable<posts_metadataUncheckedCreateWithoutUsersInput>>
-    connectOrCreate?: Enumerable<posts_metadataCreateOrConnectWithoutUsersInput>
-    createMany?: posts_metadataCreateManyUsersInputEnvelope
-    connect?: Enumerable<posts_metadataWhereUniqueInput>
+  export type postsCreateNestedManyWithoutUsersInput = {
+    create?: XOR<Enumerable<postsCreateWithoutUsersInput>, Enumerable<postsUncheckedCreateWithoutUsersInput>>
+    connectOrCreate?: Enumerable<postsCreateOrConnectWithoutUsersInput>
+    createMany?: postsCreateManyUsersInputEnvelope
+    connect?: Enumerable<postsWhereUniqueInput>
   }
 
   export type user_analyticsCreateNestedOneWithoutUsersInput = {
@@ -25052,11 +25078,11 @@ export namespace Prisma {
     connect?: Enumerable<notificationsWhereUniqueInput>
   }
 
-  export type posts_metadataUncheckedCreateNestedManyWithoutUsersInput = {
-    create?: XOR<Enumerable<posts_metadataCreateWithoutUsersInput>, Enumerable<posts_metadataUncheckedCreateWithoutUsersInput>>
-    connectOrCreate?: Enumerable<posts_metadataCreateOrConnectWithoutUsersInput>
-    createMany?: posts_metadataCreateManyUsersInputEnvelope
-    connect?: Enumerable<posts_metadataWhereUniqueInput>
+  export type postsUncheckedCreateNestedManyWithoutUsersInput = {
+    create?: XOR<Enumerable<postsCreateWithoutUsersInput>, Enumerable<postsUncheckedCreateWithoutUsersInput>>
+    connectOrCreate?: Enumerable<postsCreateOrConnectWithoutUsersInput>
+    createMany?: postsCreateManyUsersInputEnvelope
+    connect?: Enumerable<postsWhereUniqueInput>
   }
 
   export type user_analyticsUncheckedCreateNestedOneWithoutUsersInput = {
@@ -25131,18 +25157,18 @@ export namespace Prisma {
     deleteMany?: Enumerable<notificationsScalarWhereInput>
   }
 
-  export type posts_metadataUpdateManyWithoutUsersNestedInput = {
-    create?: XOR<Enumerable<posts_metadataCreateWithoutUsersInput>, Enumerable<posts_metadataUncheckedCreateWithoutUsersInput>>
-    connectOrCreate?: Enumerable<posts_metadataCreateOrConnectWithoutUsersInput>
-    upsert?: Enumerable<posts_metadataUpsertWithWhereUniqueWithoutUsersInput>
-    createMany?: posts_metadataCreateManyUsersInputEnvelope
-    set?: Enumerable<posts_metadataWhereUniqueInput>
-    disconnect?: Enumerable<posts_metadataWhereUniqueInput>
-    delete?: Enumerable<posts_metadataWhereUniqueInput>
-    connect?: Enumerable<posts_metadataWhereUniqueInput>
-    update?: Enumerable<posts_metadataUpdateWithWhereUniqueWithoutUsersInput>
-    updateMany?: Enumerable<posts_metadataUpdateManyWithWhereWithoutUsersInput>
-    deleteMany?: Enumerable<posts_metadataScalarWhereInput>
+  export type postsUpdateManyWithoutUsersNestedInput = {
+    create?: XOR<Enumerable<postsCreateWithoutUsersInput>, Enumerable<postsUncheckedCreateWithoutUsersInput>>
+    connectOrCreate?: Enumerable<postsCreateOrConnectWithoutUsersInput>
+    upsert?: Enumerable<postsUpsertWithWhereUniqueWithoutUsersInput>
+    createMany?: postsCreateManyUsersInputEnvelope
+    set?: Enumerable<postsWhereUniqueInput>
+    disconnect?: Enumerable<postsWhereUniqueInput>
+    delete?: Enumerable<postsWhereUniqueInput>
+    connect?: Enumerable<postsWhereUniqueInput>
+    update?: Enumerable<postsUpdateWithWhereUniqueWithoutUsersInput>
+    updateMany?: Enumerable<postsUpdateManyWithWhereWithoutUsersInput>
+    deleteMany?: Enumerable<postsScalarWhereInput>
   }
 
   export type user_analyticsUpdateOneWithoutUsersNestedInput = {
@@ -25247,18 +25273,18 @@ export namespace Prisma {
     deleteMany?: Enumerable<notificationsScalarWhereInput>
   }
 
-  export type posts_metadataUncheckedUpdateManyWithoutUsersNestedInput = {
-    create?: XOR<Enumerable<posts_metadataCreateWithoutUsersInput>, Enumerable<posts_metadataUncheckedCreateWithoutUsersInput>>
-    connectOrCreate?: Enumerable<posts_metadataCreateOrConnectWithoutUsersInput>
-    upsert?: Enumerable<posts_metadataUpsertWithWhereUniqueWithoutUsersInput>
-    createMany?: posts_metadataCreateManyUsersInputEnvelope
-    set?: Enumerable<posts_metadataWhereUniqueInput>
-    disconnect?: Enumerable<posts_metadataWhereUniqueInput>
-    delete?: Enumerable<posts_metadataWhereUniqueInput>
-    connect?: Enumerable<posts_metadataWhereUniqueInput>
-    update?: Enumerable<posts_metadataUpdateWithWhereUniqueWithoutUsersInput>
-    updateMany?: Enumerable<posts_metadataUpdateManyWithWhereWithoutUsersInput>
-    deleteMany?: Enumerable<posts_metadataScalarWhereInput>
+  export type postsUncheckedUpdateManyWithoutUsersNestedInput = {
+    create?: XOR<Enumerable<postsCreateWithoutUsersInput>, Enumerable<postsUncheckedCreateWithoutUsersInput>>
+    connectOrCreate?: Enumerable<postsCreateOrConnectWithoutUsersInput>
+    upsert?: Enumerable<postsUpsertWithWhereUniqueWithoutUsersInput>
+    createMany?: postsCreateManyUsersInputEnvelope
+    set?: Enumerable<postsWhereUniqueInput>
+    disconnect?: Enumerable<postsWhereUniqueInput>
+    delete?: Enumerable<postsWhereUniqueInput>
+    connect?: Enumerable<postsWhereUniqueInput>
+    update?: Enumerable<postsUpdateWithWhereUniqueWithoutUsersInput>
+    updateMany?: Enumerable<postsUpdateManyWithWhereWithoutUsersInput>
+    deleteMany?: Enumerable<postsScalarWhereInput>
   }
 
   export type user_analyticsUncheckedUpdateOneWithoutUsersNestedInput = {
@@ -25502,6 +25528,20 @@ export namespace Prisma {
     not?: NestedUuidFilter | string
   }
 
+  export type NestedStringFilter = {
+    equals?: string
+    in?: Enumerable<string> | string
+    notIn?: Enumerable<string> | string
+    lt?: string
+    lte?: string
+    gt?: string
+    gte?: string
+    contains?: string
+    startsWith?: string
+    endsWith?: string
+    not?: NestedStringFilter | string
+  }
+
   export type NestedStringNullableFilter = {
     equals?: string | null
     in?: Enumerable<string> | string | null
@@ -25557,7 +25597,7 @@ export namespace Prisma {
     not?: NestedIntFilter | number
   }
 
-  export type NestedStringFilter = {
+  export type NestedStringWithAggregatesFilter = {
     equals?: string
     in?: Enumerable<string> | string
     notIn?: Enumerable<string> | string
@@ -25568,7 +25608,10 @@ export namespace Prisma {
     contains?: string
     startsWith?: string
     endsWith?: string
-    not?: NestedStringFilter | string
+    not?: NestedStringWithAggregatesFilter | string
+    _count?: NestedIntFilter
+    _min?: NestedStringFilter
+    _max?: NestedStringFilter
   }
 
   export type NestedStringNullableWithAggregatesFilter = {
@@ -25682,23 +25725,6 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter
     _min?: NestedStringNullableFilter
     _max?: NestedStringNullableFilter
-  }
-
-  export type NestedStringWithAggregatesFilter = {
-    equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
-    not?: NestedStringWithAggregatesFilter | string
-    _count?: NestedIntFilter
-    _min?: NestedStringFilter
-    _max?: NestedStringFilter
   }
 
   export type NestedDateTimeNullableWithAggregatesFilter = {
@@ -25831,7 +25857,7 @@ export namespace Prisma {
     not?: InputJsonValue | JsonNullValueFilter
   }
 
-  export type commentsCreateWithoutPosts_metadataInput = {
+  export type commentsCreateWithoutPostsInput = {
     comment_id?: string
     user_id: string
     content: string
@@ -25840,7 +25866,7 @@ export namespace Prisma {
     other_comments?: commentsCreateNestedManyWithoutCommentsInput
   }
 
-  export type commentsUncheckedCreateWithoutPosts_metadataInput = {
+  export type commentsUncheckedCreateWithoutPostsInput = {
     comment_id?: string
     user_id: string
     parent_comment_id?: string | null
@@ -25849,104 +25875,104 @@ export namespace Prisma {
     other_comments?: commentsUncheckedCreateNestedManyWithoutCommentsInput
   }
 
-  export type commentsCreateOrConnectWithoutPosts_metadataInput = {
+  export type commentsCreateOrConnectWithoutPostsInput = {
     where: commentsWhereUniqueInput
-    create: XOR<commentsCreateWithoutPosts_metadataInput, commentsUncheckedCreateWithoutPosts_metadataInput>
+    create: XOR<commentsCreateWithoutPostsInput, commentsUncheckedCreateWithoutPostsInput>
   }
 
-  export type commentsCreateManyPosts_metadataInputEnvelope = {
-    data: Enumerable<commentsCreateManyPosts_metadataInput>
+  export type commentsCreateManyPostsInputEnvelope = {
+    data: Enumerable<commentsCreateManyPostsInput>
     skipDuplicates?: boolean
   }
 
-  export type likesCreateWithoutPosts_metadataInput = {
+  export type likesCreateWithoutPostsInput = {
     user_id: string
     liked_at?: Date | string | null
     serial_no?: bigint | number
   }
 
-  export type likesUncheckedCreateWithoutPosts_metadataInput = {
+  export type likesUncheckedCreateWithoutPostsInput = {
     user_id: string
     liked_at?: Date | string | null
     serial_no?: bigint | number
   }
 
-  export type likesCreateOrConnectWithoutPosts_metadataInput = {
+  export type likesCreateOrConnectWithoutPostsInput = {
     where: likesWhereUniqueInput
-    create: XOR<likesCreateWithoutPosts_metadataInput, likesUncheckedCreateWithoutPosts_metadataInput>
+    create: XOR<likesCreateWithoutPostsInput, likesUncheckedCreateWithoutPostsInput>
   }
 
-  export type likesCreateManyPosts_metadataInputEnvelope = {
-    data: Enumerable<likesCreateManyPosts_metadataInput>
+  export type likesCreateManyPostsInputEnvelope = {
+    data: Enumerable<likesCreateManyPostsInput>
     skipDuplicates?: boolean
   }
 
-  export type savesCreateWithoutPosts_metadataInput = {
+  export type savesCreateWithoutPostsInput = {
     save_id?: string
     user_id: string
     saved_at?: Date | string | null
   }
 
-  export type savesUncheckedCreateWithoutPosts_metadataInput = {
+  export type savesUncheckedCreateWithoutPostsInput = {
     save_id?: string
     user_id: string
     saved_at?: Date | string | null
   }
 
-  export type savesCreateOrConnectWithoutPosts_metadataInput = {
+  export type savesCreateOrConnectWithoutPostsInput = {
     where: savesWhereUniqueInput
-    create: XOR<savesCreateWithoutPosts_metadataInput, savesUncheckedCreateWithoutPosts_metadataInput>
+    create: XOR<savesCreateWithoutPostsInput, savesUncheckedCreateWithoutPostsInput>
   }
 
-  export type savesCreateManyPosts_metadataInputEnvelope = {
-    data: Enumerable<savesCreateManyPosts_metadataInput>
+  export type savesCreateManyPostsInputEnvelope = {
+    data: Enumerable<savesCreateManyPostsInput>
     skipDuplicates?: boolean
   }
 
-  export type sharesCreateWithoutPosts_metadataInput = {
+  export type sharesCreateWithoutPostsInput = {
     share_id?: string
     user_id: string
     shared_at?: Date | string | null
     share_message?: string | null
   }
 
-  export type sharesUncheckedCreateWithoutPosts_metadataInput = {
+  export type sharesUncheckedCreateWithoutPostsInput = {
     share_id?: string
     user_id: string
     shared_at?: Date | string | null
     share_message?: string | null
   }
 
-  export type sharesCreateOrConnectWithoutPosts_metadataInput = {
+  export type sharesCreateOrConnectWithoutPostsInput = {
     where: sharesWhereUniqueInput
-    create: XOR<sharesCreateWithoutPosts_metadataInput, sharesUncheckedCreateWithoutPosts_metadataInput>
+    create: XOR<sharesCreateWithoutPostsInput, sharesUncheckedCreateWithoutPostsInput>
   }
 
-  export type sharesCreateManyPosts_metadataInputEnvelope = {
-    data: Enumerable<sharesCreateManyPosts_metadataInput>
+  export type sharesCreateManyPostsInputEnvelope = {
+    data: Enumerable<sharesCreateManyPostsInput>
     skipDuplicates?: boolean
   }
 
-  export type posts_analyticsCreateWithoutPosts_metadataInput = {
+  export type posts_analyticsCreateWithoutPostsInput = {
     views_count?: number | null
     likes_count?: number | null
     comments_count?: number | null
     updated_at?: Date | string
   }
 
-  export type posts_analyticsUncheckedCreateWithoutPosts_metadataInput = {
+  export type posts_analyticsUncheckedCreateWithoutPostsInput = {
     views_count?: number | null
     likes_count?: number | null
     comments_count?: number | null
     updated_at?: Date | string
   }
 
-  export type posts_analyticsCreateOrConnectWithoutPosts_metadataInput = {
+  export type posts_analyticsCreateOrConnectWithoutPostsInput = {
     where: posts_analyticsWhereUniqueInput
-    create: XOR<posts_analyticsCreateWithoutPosts_metadataInput, posts_analyticsUncheckedCreateWithoutPosts_metadataInput>
+    create: XOR<posts_analyticsCreateWithoutPostsInput, posts_analyticsUncheckedCreateWithoutPostsInput>
   }
 
-  export type usersCreateWithoutPosts_metadataInput = {
+  export type usersCreateWithoutPostsInput = {
     id?: string
     email: string
     phone?: string | null
@@ -25969,7 +25995,7 @@ export namespace Prisma {
     user_about?: user_aboutCreateNestedOneWithoutUsersInput
   }
 
-  export type usersUncheckedCreateWithoutPosts_metadataInput = {
+  export type usersUncheckedCreateWithoutPostsInput = {
     id?: string
     email: string
     phone?: string | null
@@ -25992,12 +26018,12 @@ export namespace Prisma {
     user_about?: user_aboutUncheckedCreateNestedOneWithoutUsersInput
   }
 
-  export type usersCreateOrConnectWithoutPosts_metadataInput = {
+  export type usersCreateOrConnectWithoutPostsInput = {
     where: usersWhereUniqueInput
-    create: XOR<usersCreateWithoutPosts_metadataInput, usersUncheckedCreateWithoutPosts_metadataInput>
+    create: XOR<usersCreateWithoutPostsInput, usersUncheckedCreateWithoutPostsInput>
   }
 
-  export type reported_contentCreateWithoutPosts_metadataInput = {
+  export type reported_contentCreateWithoutPostsInput = {
     id?: string
     reporter_id: string
     reported_user_id?: string | null
@@ -26006,7 +26032,7 @@ export namespace Prisma {
     created_at?: Date | string
   }
 
-  export type reported_contentUncheckedCreateWithoutPosts_metadataInput = {
+  export type reported_contentUncheckedCreateWithoutPostsInput = {
     id?: string
     reporter_id: string
     reported_user_id?: string | null
@@ -26015,28 +26041,28 @@ export namespace Prisma {
     created_at?: Date | string
   }
 
-  export type reported_contentCreateOrConnectWithoutPosts_metadataInput = {
+  export type reported_contentCreateOrConnectWithoutPostsInput = {
     where: reported_contentWhereUniqueInput
-    create: XOR<reported_contentCreateWithoutPosts_metadataInput, reported_contentUncheckedCreateWithoutPosts_metadataInput>
+    create: XOR<reported_contentCreateWithoutPostsInput, reported_contentUncheckedCreateWithoutPostsInput>
   }
 
-  export type reported_contentCreateManyPosts_metadataInputEnvelope = {
-    data: Enumerable<reported_contentCreateManyPosts_metadataInput>
+  export type reported_contentCreateManyPostsInputEnvelope = {
+    data: Enumerable<reported_contentCreateManyPostsInput>
     skipDuplicates?: boolean
   }
 
-  export type commentsUpsertWithWhereUniqueWithoutPosts_metadataInput = {
+  export type commentsUpsertWithWhereUniqueWithoutPostsInput = {
     where: commentsWhereUniqueInput
-    update: XOR<commentsUpdateWithoutPosts_metadataInput, commentsUncheckedUpdateWithoutPosts_metadataInput>
-    create: XOR<commentsCreateWithoutPosts_metadataInput, commentsUncheckedCreateWithoutPosts_metadataInput>
+    update: XOR<commentsUpdateWithoutPostsInput, commentsUncheckedUpdateWithoutPostsInput>
+    create: XOR<commentsCreateWithoutPostsInput, commentsUncheckedCreateWithoutPostsInput>
   }
 
-  export type commentsUpdateWithWhereUniqueWithoutPosts_metadataInput = {
+  export type commentsUpdateWithWhereUniqueWithoutPostsInput = {
     where: commentsWhereUniqueInput
-    data: XOR<commentsUpdateWithoutPosts_metadataInput, commentsUncheckedUpdateWithoutPosts_metadataInput>
+    data: XOR<commentsUpdateWithoutPostsInput, commentsUncheckedUpdateWithoutPostsInput>
   }
 
-  export type commentsUpdateManyWithWhereWithoutPosts_metadataInput = {
+  export type commentsUpdateManyWithWhereWithoutPostsInput = {
     where: commentsScalarWhereInput
     data: XOR<commentsUpdateManyMutationInput, commentsUncheckedUpdateManyWithoutCommentsInput>
   }
@@ -26053,18 +26079,18 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter | Date | string | null
   }
 
-  export type likesUpsertWithWhereUniqueWithoutPosts_metadataInput = {
+  export type likesUpsertWithWhereUniqueWithoutPostsInput = {
     where: likesWhereUniqueInput
-    update: XOR<likesUpdateWithoutPosts_metadataInput, likesUncheckedUpdateWithoutPosts_metadataInput>
-    create: XOR<likesCreateWithoutPosts_metadataInput, likesUncheckedCreateWithoutPosts_metadataInput>
+    update: XOR<likesUpdateWithoutPostsInput, likesUncheckedUpdateWithoutPostsInput>
+    create: XOR<likesCreateWithoutPostsInput, likesUncheckedCreateWithoutPostsInput>
   }
 
-  export type likesUpdateWithWhereUniqueWithoutPosts_metadataInput = {
+  export type likesUpdateWithWhereUniqueWithoutPostsInput = {
     where: likesWhereUniqueInput
-    data: XOR<likesUpdateWithoutPosts_metadataInput, likesUncheckedUpdateWithoutPosts_metadataInput>
+    data: XOR<likesUpdateWithoutPostsInput, likesUncheckedUpdateWithoutPostsInput>
   }
 
-  export type likesUpdateManyWithWhereWithoutPosts_metadataInput = {
+  export type likesUpdateManyWithWhereWithoutPostsInput = {
     where: likesScalarWhereInput
     data: XOR<likesUpdateManyMutationInput, likesUncheckedUpdateManyWithoutLikesInput>
   }
@@ -26079,18 +26105,18 @@ export namespace Prisma {
     serial_no?: BigIntFilter | bigint | number
   }
 
-  export type savesUpsertWithWhereUniqueWithoutPosts_metadataInput = {
+  export type savesUpsertWithWhereUniqueWithoutPostsInput = {
     where: savesWhereUniqueInput
-    update: XOR<savesUpdateWithoutPosts_metadataInput, savesUncheckedUpdateWithoutPosts_metadataInput>
-    create: XOR<savesCreateWithoutPosts_metadataInput, savesUncheckedCreateWithoutPosts_metadataInput>
+    update: XOR<savesUpdateWithoutPostsInput, savesUncheckedUpdateWithoutPostsInput>
+    create: XOR<savesCreateWithoutPostsInput, savesUncheckedCreateWithoutPostsInput>
   }
 
-  export type savesUpdateWithWhereUniqueWithoutPosts_metadataInput = {
+  export type savesUpdateWithWhereUniqueWithoutPostsInput = {
     where: savesWhereUniqueInput
-    data: XOR<savesUpdateWithoutPosts_metadataInput, savesUncheckedUpdateWithoutPosts_metadataInput>
+    data: XOR<savesUpdateWithoutPostsInput, savesUncheckedUpdateWithoutPostsInput>
   }
 
-  export type savesUpdateManyWithWhereWithoutPosts_metadataInput = {
+  export type savesUpdateManyWithWhereWithoutPostsInput = {
     where: savesScalarWhereInput
     data: XOR<savesUpdateManyMutationInput, savesUncheckedUpdateManyWithoutSavesInput>
   }
@@ -26105,18 +26131,18 @@ export namespace Prisma {
     saved_at?: DateTimeNullableFilter | Date | string | null
   }
 
-  export type sharesUpsertWithWhereUniqueWithoutPosts_metadataInput = {
+  export type sharesUpsertWithWhereUniqueWithoutPostsInput = {
     where: sharesWhereUniqueInput
-    update: XOR<sharesUpdateWithoutPosts_metadataInput, sharesUncheckedUpdateWithoutPosts_metadataInput>
-    create: XOR<sharesCreateWithoutPosts_metadataInput, sharesUncheckedCreateWithoutPosts_metadataInput>
+    update: XOR<sharesUpdateWithoutPostsInput, sharesUncheckedUpdateWithoutPostsInput>
+    create: XOR<sharesCreateWithoutPostsInput, sharesUncheckedCreateWithoutPostsInput>
   }
 
-  export type sharesUpdateWithWhereUniqueWithoutPosts_metadataInput = {
+  export type sharesUpdateWithWhereUniqueWithoutPostsInput = {
     where: sharesWhereUniqueInput
-    data: XOR<sharesUpdateWithoutPosts_metadataInput, sharesUncheckedUpdateWithoutPosts_metadataInput>
+    data: XOR<sharesUpdateWithoutPostsInput, sharesUncheckedUpdateWithoutPostsInput>
   }
 
-  export type sharesUpdateManyWithWhereWithoutPosts_metadataInput = {
+  export type sharesUpdateManyWithWhereWithoutPostsInput = {
     where: sharesScalarWhereInput
     data: XOR<sharesUpdateManyMutationInput, sharesUncheckedUpdateManyWithoutSharesInput>
   }
@@ -26132,31 +26158,31 @@ export namespace Prisma {
     share_message?: StringNullableFilter | string | null
   }
 
-  export type posts_analyticsUpsertWithoutPosts_metadataInput = {
-    update: XOR<posts_analyticsUpdateWithoutPosts_metadataInput, posts_analyticsUncheckedUpdateWithoutPosts_metadataInput>
-    create: XOR<posts_analyticsCreateWithoutPosts_metadataInput, posts_analyticsUncheckedCreateWithoutPosts_metadataInput>
+  export type posts_analyticsUpsertWithoutPostsInput = {
+    update: XOR<posts_analyticsUpdateWithoutPostsInput, posts_analyticsUncheckedUpdateWithoutPostsInput>
+    create: XOR<posts_analyticsCreateWithoutPostsInput, posts_analyticsUncheckedCreateWithoutPostsInput>
   }
 
-  export type posts_analyticsUpdateWithoutPosts_metadataInput = {
+  export type posts_analyticsUpdateWithoutPostsInput = {
     views_count?: NullableIntFieldUpdateOperationsInput | number | null
     likes_count?: NullableIntFieldUpdateOperationsInput | number | null
     comments_count?: NullableIntFieldUpdateOperationsInput | number | null
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type posts_analyticsUncheckedUpdateWithoutPosts_metadataInput = {
+  export type posts_analyticsUncheckedUpdateWithoutPostsInput = {
     views_count?: NullableIntFieldUpdateOperationsInput | number | null
     likes_count?: NullableIntFieldUpdateOperationsInput | number | null
     comments_count?: NullableIntFieldUpdateOperationsInput | number | null
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type usersUpsertWithoutPosts_metadataInput = {
-    update: XOR<usersUpdateWithoutPosts_metadataInput, usersUncheckedUpdateWithoutPosts_metadataInput>
-    create: XOR<usersCreateWithoutPosts_metadataInput, usersUncheckedCreateWithoutPosts_metadataInput>
+  export type usersUpsertWithoutPostsInput = {
+    update: XOR<usersUpdateWithoutPostsInput, usersUncheckedUpdateWithoutPostsInput>
+    create: XOR<usersCreateWithoutPostsInput, usersUncheckedCreateWithoutPostsInput>
   }
 
-  export type usersUpdateWithoutPosts_metadataInput = {
+  export type usersUpdateWithoutPostsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     phone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -26179,7 +26205,7 @@ export namespace Prisma {
     user_about?: user_aboutUpdateOneWithoutUsersNestedInput
   }
 
-  export type usersUncheckedUpdateWithoutPosts_metadataInput = {
+  export type usersUncheckedUpdateWithoutPostsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     phone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -26202,18 +26228,18 @@ export namespace Prisma {
     user_about?: user_aboutUncheckedUpdateOneWithoutUsersNestedInput
   }
 
-  export type reported_contentUpsertWithWhereUniqueWithoutPosts_metadataInput = {
+  export type reported_contentUpsertWithWhereUniqueWithoutPostsInput = {
     where: reported_contentWhereUniqueInput
-    update: XOR<reported_contentUpdateWithoutPosts_metadataInput, reported_contentUncheckedUpdateWithoutPosts_metadataInput>
-    create: XOR<reported_contentCreateWithoutPosts_metadataInput, reported_contentUncheckedCreateWithoutPosts_metadataInput>
+    update: XOR<reported_contentUpdateWithoutPostsInput, reported_contentUncheckedUpdateWithoutPostsInput>
+    create: XOR<reported_contentCreateWithoutPostsInput, reported_contentUncheckedCreateWithoutPostsInput>
   }
 
-  export type reported_contentUpdateWithWhereUniqueWithoutPosts_metadataInput = {
+  export type reported_contentUpdateWithWhereUniqueWithoutPostsInput = {
     where: reported_contentWhereUniqueInput
-    data: XOR<reported_contentUpdateWithoutPosts_metadataInput, reported_contentUncheckedUpdateWithoutPosts_metadataInput>
+    data: XOR<reported_contentUpdateWithoutPostsInput, reported_contentUncheckedUpdateWithoutPostsInput>
   }
 
-  export type reported_contentUpdateManyWithWhereWithoutPosts_metadataInput = {
+  export type reported_contentUpdateManyWithWhereWithoutPostsInput = {
     where: reported_contentScalarWhereInput
     data: XOR<reported_contentUpdateManyMutationInput, reported_contentUncheckedUpdateManyWithoutReported_contentInput>
   }
@@ -26231,70 +26257,74 @@ export namespace Prisma {
     post_id?: UuidNullableFilter | string | null
   }
 
-  export type posts_metadataCreateWithoutPosts_analyticsInput = {
+  export type postsCreateWithoutPosts_analyticsInput = {
     id?: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    comments?: commentsCreateNestedManyWithoutPosts_metadataInput
-    likes?: likesCreateNestedManyWithoutPosts_metadataInput
-    saves?: savesCreateNestedManyWithoutPosts_metadataInput
-    shares?: sharesCreateNestedManyWithoutPosts_metadataInput
-    users: usersCreateNestedOneWithoutPosts_metadataInput
-    reported_content?: reported_contentCreateNestedManyWithoutPosts_metadataInput
+    comments?: commentsCreateNestedManyWithoutPostsInput
+    likes?: likesCreateNestedManyWithoutPostsInput
+    saves?: savesCreateNestedManyWithoutPostsInput
+    shares?: sharesCreateNestedManyWithoutPostsInput
+    users: usersCreateNestedOneWithoutPostsInput
+    reported_content?: reported_contentCreateNestedManyWithoutPostsInput
   }
 
-  export type posts_metadataUncheckedCreateWithoutPosts_analyticsInput = {
+  export type postsUncheckedCreateWithoutPosts_analyticsInput = {
     id?: string
     user_id: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    comments?: commentsUncheckedCreateNestedManyWithoutPosts_metadataInput
-    likes?: likesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    saves?: savesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    shares?: sharesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    reported_content?: reported_contentUncheckedCreateNestedManyWithoutPosts_metadataInput
+    comments?: commentsUncheckedCreateNestedManyWithoutPostsInput
+    likes?: likesUncheckedCreateNestedManyWithoutPostsInput
+    saves?: savesUncheckedCreateNestedManyWithoutPostsInput
+    shares?: sharesUncheckedCreateNestedManyWithoutPostsInput
+    reported_content?: reported_contentUncheckedCreateNestedManyWithoutPostsInput
   }
 
-  export type posts_metadataCreateOrConnectWithoutPosts_analyticsInput = {
-    where: posts_metadataWhereUniqueInput
-    create: XOR<posts_metadataCreateWithoutPosts_analyticsInput, posts_metadataUncheckedCreateWithoutPosts_analyticsInput>
+  export type postsCreateOrConnectWithoutPosts_analyticsInput = {
+    where: postsWhereUniqueInput
+    create: XOR<postsCreateWithoutPosts_analyticsInput, postsUncheckedCreateWithoutPosts_analyticsInput>
   }
 
-  export type posts_metadataUpsertWithoutPosts_analyticsInput = {
-    update: XOR<posts_metadataUpdateWithoutPosts_analyticsInput, posts_metadataUncheckedUpdateWithoutPosts_analyticsInput>
-    create: XOR<posts_metadataCreateWithoutPosts_analyticsInput, posts_metadataUncheckedCreateWithoutPosts_analyticsInput>
+  export type postsUpsertWithoutPosts_analyticsInput = {
+    update: XOR<postsUpdateWithoutPosts_analyticsInput, postsUncheckedUpdateWithoutPosts_analyticsInput>
+    create: XOR<postsCreateWithoutPosts_analyticsInput, postsUncheckedCreateWithoutPosts_analyticsInput>
   }
 
-  export type posts_metadataUpdateWithoutPosts_analyticsInput = {
+  export type postsUpdateWithoutPosts_analyticsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    comments?: commentsUpdateManyWithoutPosts_metadataNestedInput
-    likes?: likesUpdateManyWithoutPosts_metadataNestedInput
-    saves?: savesUpdateManyWithoutPosts_metadataNestedInput
-    shares?: sharesUpdateManyWithoutPosts_metadataNestedInput
-    users?: usersUpdateOneRequiredWithoutPosts_metadataNestedInput
-    reported_content?: reported_contentUpdateManyWithoutPosts_metadataNestedInput
+    comments?: commentsUpdateManyWithoutPostsNestedInput
+    likes?: likesUpdateManyWithoutPostsNestedInput
+    saves?: savesUpdateManyWithoutPostsNestedInput
+    shares?: sharesUpdateManyWithoutPostsNestedInput
+    users?: usersUpdateOneRequiredWithoutPostsNestedInput
+    reported_content?: reported_contentUpdateManyWithoutPostsNestedInput
   }
 
-  export type posts_metadataUncheckedUpdateWithoutPosts_analyticsInput = {
+  export type postsUncheckedUpdateWithoutPosts_analyticsInput = {
     id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    comments?: commentsUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    likes?: likesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    saves?: savesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    shares?: sharesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    reported_content?: reported_contentUncheckedUpdateManyWithoutPosts_metadataNestedInput
+    comments?: commentsUncheckedUpdateManyWithoutPostsNestedInput
+    likes?: likesUncheckedUpdateManyWithoutPostsNestedInput
+    saves?: savesUncheckedUpdateManyWithoutPostsNestedInput
+    shares?: sharesUncheckedUpdateManyWithoutPostsNestedInput
+    reported_content?: reported_contentUncheckedUpdateManyWithoutPostsNestedInput
   }
 
   export type commentsCreateWithoutOther_commentsInput = {
@@ -26303,7 +26333,7 @@ export namespace Prisma {
     content: string
     created_at?: Date | string | null
     comments?: commentsCreateNestedOneWithoutOther_commentsInput
-    posts_metadata: posts_metadataCreateNestedOneWithoutCommentsInput
+    posts: postsCreateNestedOneWithoutCommentsInput
   }
 
   export type commentsUncheckedCreateWithoutOther_commentsInput = {
@@ -26326,7 +26356,7 @@ export namespace Prisma {
     content: string
     created_at?: Date | string | null
     other_comments?: commentsCreateNestedManyWithoutCommentsInput
-    posts_metadata: posts_metadataCreateNestedOneWithoutCommentsInput
+    posts: postsCreateNestedOneWithoutCommentsInput
   }
 
   export type commentsUncheckedCreateWithoutCommentsInput = {
@@ -26348,37 +26378,39 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type posts_metadataCreateWithoutCommentsInput = {
+  export type postsCreateWithoutCommentsInput = {
     id?: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    likes?: likesCreateNestedManyWithoutPosts_metadataInput
-    saves?: savesCreateNestedManyWithoutPosts_metadataInput
-    shares?: sharesCreateNestedManyWithoutPosts_metadataInput
-    posts_analytics?: posts_analyticsCreateNestedOneWithoutPosts_metadataInput
-    users: usersCreateNestedOneWithoutPosts_metadataInput
-    reported_content?: reported_contentCreateNestedManyWithoutPosts_metadataInput
+    likes?: likesCreateNestedManyWithoutPostsInput
+    saves?: savesCreateNestedManyWithoutPostsInput
+    shares?: sharesCreateNestedManyWithoutPostsInput
+    posts_analytics?: posts_analyticsCreateNestedOneWithoutPostsInput
+    users: usersCreateNestedOneWithoutPostsInput
+    reported_content?: reported_contentCreateNestedManyWithoutPostsInput
   }
 
-  export type posts_metadataUncheckedCreateWithoutCommentsInput = {
+  export type postsUncheckedCreateWithoutCommentsInput = {
     id?: string
     user_id: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    likes?: likesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    saves?: savesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    shares?: sharesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    posts_analytics?: posts_analyticsUncheckedCreateNestedOneWithoutPosts_metadataInput
-    reported_content?: reported_contentUncheckedCreateNestedManyWithoutPosts_metadataInput
+    likes?: likesUncheckedCreateNestedManyWithoutPostsInput
+    saves?: savesUncheckedCreateNestedManyWithoutPostsInput
+    shares?: sharesUncheckedCreateNestedManyWithoutPostsInput
+    posts_analytics?: posts_analyticsUncheckedCreateNestedOneWithoutPostsInput
+    reported_content?: reported_contentUncheckedCreateNestedManyWithoutPostsInput
   }
 
-  export type posts_metadataCreateOrConnectWithoutCommentsInput = {
-    where: posts_metadataWhereUniqueInput
-    create: XOR<posts_metadataCreateWithoutCommentsInput, posts_metadataUncheckedCreateWithoutCommentsInput>
+  export type postsCreateOrConnectWithoutCommentsInput = {
+    where: postsWhereUniqueInput
+    create: XOR<postsCreateWithoutCommentsInput, postsUncheckedCreateWithoutCommentsInput>
   }
 
   export type commentsUpsertWithoutOther_commentsInput = {
@@ -26392,7 +26424,7 @@ export namespace Prisma {
     content?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     comments?: commentsUpdateOneWithoutOther_commentsNestedInput
-    posts_metadata?: posts_metadataUpdateOneRequiredWithoutCommentsNestedInput
+    posts?: postsUpdateOneRequiredWithoutCommentsNestedInput
   }
 
   export type commentsUncheckedUpdateWithoutOther_commentsInput = {
@@ -26420,301 +26452,319 @@ export namespace Prisma {
     data: XOR<commentsUpdateManyMutationInput, commentsUncheckedUpdateManyWithoutOther_commentsInput>
   }
 
-  export type posts_metadataUpsertWithoutCommentsInput = {
-    update: XOR<posts_metadataUpdateWithoutCommentsInput, posts_metadataUncheckedUpdateWithoutCommentsInput>
-    create: XOR<posts_metadataCreateWithoutCommentsInput, posts_metadataUncheckedCreateWithoutCommentsInput>
+  export type postsUpsertWithoutCommentsInput = {
+    update: XOR<postsUpdateWithoutCommentsInput, postsUncheckedUpdateWithoutCommentsInput>
+    create: XOR<postsCreateWithoutCommentsInput, postsUncheckedCreateWithoutCommentsInput>
   }
 
-  export type posts_metadataUpdateWithoutCommentsInput = {
+  export type postsUpdateWithoutCommentsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    likes?: likesUpdateManyWithoutPosts_metadataNestedInput
-    saves?: savesUpdateManyWithoutPosts_metadataNestedInput
-    shares?: sharesUpdateManyWithoutPosts_metadataNestedInput
-    posts_analytics?: posts_analyticsUpdateOneWithoutPosts_metadataNestedInput
-    users?: usersUpdateOneRequiredWithoutPosts_metadataNestedInput
-    reported_content?: reported_contentUpdateManyWithoutPosts_metadataNestedInput
+    likes?: likesUpdateManyWithoutPostsNestedInput
+    saves?: savesUpdateManyWithoutPostsNestedInput
+    shares?: sharesUpdateManyWithoutPostsNestedInput
+    posts_analytics?: posts_analyticsUpdateOneWithoutPostsNestedInput
+    users?: usersUpdateOneRequiredWithoutPostsNestedInput
+    reported_content?: reported_contentUpdateManyWithoutPostsNestedInput
   }
 
-  export type posts_metadataUncheckedUpdateWithoutCommentsInput = {
+  export type postsUncheckedUpdateWithoutCommentsInput = {
     id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    likes?: likesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    saves?: savesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    shares?: sharesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    posts_analytics?: posts_analyticsUncheckedUpdateOneWithoutPosts_metadataNestedInput
-    reported_content?: reported_contentUncheckedUpdateManyWithoutPosts_metadataNestedInput
+    likes?: likesUncheckedUpdateManyWithoutPostsNestedInput
+    saves?: savesUncheckedUpdateManyWithoutPostsNestedInput
+    shares?: sharesUncheckedUpdateManyWithoutPostsNestedInput
+    posts_analytics?: posts_analyticsUncheckedUpdateOneWithoutPostsNestedInput
+    reported_content?: reported_contentUncheckedUpdateManyWithoutPostsNestedInput
   }
 
-  export type posts_metadataCreateWithoutLikesInput = {
+  export type postsCreateWithoutLikesInput = {
     id?: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    comments?: commentsCreateNestedManyWithoutPosts_metadataInput
-    saves?: savesCreateNestedManyWithoutPosts_metadataInput
-    shares?: sharesCreateNestedManyWithoutPosts_metadataInput
-    posts_analytics?: posts_analyticsCreateNestedOneWithoutPosts_metadataInput
-    users: usersCreateNestedOneWithoutPosts_metadataInput
-    reported_content?: reported_contentCreateNestedManyWithoutPosts_metadataInput
+    comments?: commentsCreateNestedManyWithoutPostsInput
+    saves?: savesCreateNestedManyWithoutPostsInput
+    shares?: sharesCreateNestedManyWithoutPostsInput
+    posts_analytics?: posts_analyticsCreateNestedOneWithoutPostsInput
+    users: usersCreateNestedOneWithoutPostsInput
+    reported_content?: reported_contentCreateNestedManyWithoutPostsInput
   }
 
-  export type posts_metadataUncheckedCreateWithoutLikesInput = {
+  export type postsUncheckedCreateWithoutLikesInput = {
     id?: string
     user_id: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    comments?: commentsUncheckedCreateNestedManyWithoutPosts_metadataInput
-    saves?: savesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    shares?: sharesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    posts_analytics?: posts_analyticsUncheckedCreateNestedOneWithoutPosts_metadataInput
-    reported_content?: reported_contentUncheckedCreateNestedManyWithoutPosts_metadataInput
+    comments?: commentsUncheckedCreateNestedManyWithoutPostsInput
+    saves?: savesUncheckedCreateNestedManyWithoutPostsInput
+    shares?: sharesUncheckedCreateNestedManyWithoutPostsInput
+    posts_analytics?: posts_analyticsUncheckedCreateNestedOneWithoutPostsInput
+    reported_content?: reported_contentUncheckedCreateNestedManyWithoutPostsInput
   }
 
-  export type posts_metadataCreateOrConnectWithoutLikesInput = {
-    where: posts_metadataWhereUniqueInput
-    create: XOR<posts_metadataCreateWithoutLikesInput, posts_metadataUncheckedCreateWithoutLikesInput>
+  export type postsCreateOrConnectWithoutLikesInput = {
+    where: postsWhereUniqueInput
+    create: XOR<postsCreateWithoutLikesInput, postsUncheckedCreateWithoutLikesInput>
   }
 
-  export type posts_metadataUpsertWithoutLikesInput = {
-    update: XOR<posts_metadataUpdateWithoutLikesInput, posts_metadataUncheckedUpdateWithoutLikesInput>
-    create: XOR<posts_metadataCreateWithoutLikesInput, posts_metadataUncheckedCreateWithoutLikesInput>
+  export type postsUpsertWithoutLikesInput = {
+    update: XOR<postsUpdateWithoutLikesInput, postsUncheckedUpdateWithoutLikesInput>
+    create: XOR<postsCreateWithoutLikesInput, postsUncheckedCreateWithoutLikesInput>
   }
 
-  export type posts_metadataUpdateWithoutLikesInput = {
+  export type postsUpdateWithoutLikesInput = {
     id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    comments?: commentsUpdateManyWithoutPosts_metadataNestedInput
-    saves?: savesUpdateManyWithoutPosts_metadataNestedInput
-    shares?: sharesUpdateManyWithoutPosts_metadataNestedInput
-    posts_analytics?: posts_analyticsUpdateOneWithoutPosts_metadataNestedInput
-    users?: usersUpdateOneRequiredWithoutPosts_metadataNestedInput
-    reported_content?: reported_contentUpdateManyWithoutPosts_metadataNestedInput
+    comments?: commentsUpdateManyWithoutPostsNestedInput
+    saves?: savesUpdateManyWithoutPostsNestedInput
+    shares?: sharesUpdateManyWithoutPostsNestedInput
+    posts_analytics?: posts_analyticsUpdateOneWithoutPostsNestedInput
+    users?: usersUpdateOneRequiredWithoutPostsNestedInput
+    reported_content?: reported_contentUpdateManyWithoutPostsNestedInput
   }
 
-  export type posts_metadataUncheckedUpdateWithoutLikesInput = {
+  export type postsUncheckedUpdateWithoutLikesInput = {
     id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    comments?: commentsUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    saves?: savesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    shares?: sharesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    posts_analytics?: posts_analyticsUncheckedUpdateOneWithoutPosts_metadataNestedInput
-    reported_content?: reported_contentUncheckedUpdateManyWithoutPosts_metadataNestedInput
+    comments?: commentsUncheckedUpdateManyWithoutPostsNestedInput
+    saves?: savesUncheckedUpdateManyWithoutPostsNestedInput
+    shares?: sharesUncheckedUpdateManyWithoutPostsNestedInput
+    posts_analytics?: posts_analyticsUncheckedUpdateOneWithoutPostsNestedInput
+    reported_content?: reported_contentUncheckedUpdateManyWithoutPostsNestedInput
   }
 
-  export type posts_metadataCreateWithoutSavesInput = {
+  export type postsCreateWithoutSavesInput = {
     id?: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    comments?: commentsCreateNestedManyWithoutPosts_metadataInput
-    likes?: likesCreateNestedManyWithoutPosts_metadataInput
-    shares?: sharesCreateNestedManyWithoutPosts_metadataInput
-    posts_analytics?: posts_analyticsCreateNestedOneWithoutPosts_metadataInput
-    users: usersCreateNestedOneWithoutPosts_metadataInput
-    reported_content?: reported_contentCreateNestedManyWithoutPosts_metadataInput
+    comments?: commentsCreateNestedManyWithoutPostsInput
+    likes?: likesCreateNestedManyWithoutPostsInput
+    shares?: sharesCreateNestedManyWithoutPostsInput
+    posts_analytics?: posts_analyticsCreateNestedOneWithoutPostsInput
+    users: usersCreateNestedOneWithoutPostsInput
+    reported_content?: reported_contentCreateNestedManyWithoutPostsInput
   }
 
-  export type posts_metadataUncheckedCreateWithoutSavesInput = {
+  export type postsUncheckedCreateWithoutSavesInput = {
     id?: string
     user_id: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    comments?: commentsUncheckedCreateNestedManyWithoutPosts_metadataInput
-    likes?: likesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    shares?: sharesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    posts_analytics?: posts_analyticsUncheckedCreateNestedOneWithoutPosts_metadataInput
-    reported_content?: reported_contentUncheckedCreateNestedManyWithoutPosts_metadataInput
+    comments?: commentsUncheckedCreateNestedManyWithoutPostsInput
+    likes?: likesUncheckedCreateNestedManyWithoutPostsInput
+    shares?: sharesUncheckedCreateNestedManyWithoutPostsInput
+    posts_analytics?: posts_analyticsUncheckedCreateNestedOneWithoutPostsInput
+    reported_content?: reported_contentUncheckedCreateNestedManyWithoutPostsInput
   }
 
-  export type posts_metadataCreateOrConnectWithoutSavesInput = {
-    where: posts_metadataWhereUniqueInput
-    create: XOR<posts_metadataCreateWithoutSavesInput, posts_metadataUncheckedCreateWithoutSavesInput>
+  export type postsCreateOrConnectWithoutSavesInput = {
+    where: postsWhereUniqueInput
+    create: XOR<postsCreateWithoutSavesInput, postsUncheckedCreateWithoutSavesInput>
   }
 
-  export type posts_metadataUpsertWithoutSavesInput = {
-    update: XOR<posts_metadataUpdateWithoutSavesInput, posts_metadataUncheckedUpdateWithoutSavesInput>
-    create: XOR<posts_metadataCreateWithoutSavesInput, posts_metadataUncheckedCreateWithoutSavesInput>
+  export type postsUpsertWithoutSavesInput = {
+    update: XOR<postsUpdateWithoutSavesInput, postsUncheckedUpdateWithoutSavesInput>
+    create: XOR<postsCreateWithoutSavesInput, postsUncheckedCreateWithoutSavesInput>
   }
 
-  export type posts_metadataUpdateWithoutSavesInput = {
+  export type postsUpdateWithoutSavesInput = {
     id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    comments?: commentsUpdateManyWithoutPosts_metadataNestedInput
-    likes?: likesUpdateManyWithoutPosts_metadataNestedInput
-    shares?: sharesUpdateManyWithoutPosts_metadataNestedInput
-    posts_analytics?: posts_analyticsUpdateOneWithoutPosts_metadataNestedInput
-    users?: usersUpdateOneRequiredWithoutPosts_metadataNestedInput
-    reported_content?: reported_contentUpdateManyWithoutPosts_metadataNestedInput
+    comments?: commentsUpdateManyWithoutPostsNestedInput
+    likes?: likesUpdateManyWithoutPostsNestedInput
+    shares?: sharesUpdateManyWithoutPostsNestedInput
+    posts_analytics?: posts_analyticsUpdateOneWithoutPostsNestedInput
+    users?: usersUpdateOneRequiredWithoutPostsNestedInput
+    reported_content?: reported_contentUpdateManyWithoutPostsNestedInput
   }
 
-  export type posts_metadataUncheckedUpdateWithoutSavesInput = {
+  export type postsUncheckedUpdateWithoutSavesInput = {
     id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    comments?: commentsUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    likes?: likesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    shares?: sharesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    posts_analytics?: posts_analyticsUncheckedUpdateOneWithoutPosts_metadataNestedInput
-    reported_content?: reported_contentUncheckedUpdateManyWithoutPosts_metadataNestedInput
+    comments?: commentsUncheckedUpdateManyWithoutPostsNestedInput
+    likes?: likesUncheckedUpdateManyWithoutPostsNestedInput
+    shares?: sharesUncheckedUpdateManyWithoutPostsNestedInput
+    posts_analytics?: posts_analyticsUncheckedUpdateOneWithoutPostsNestedInput
+    reported_content?: reported_contentUncheckedUpdateManyWithoutPostsNestedInput
   }
 
-  export type posts_metadataCreateWithoutSharesInput = {
+  export type postsCreateWithoutSharesInput = {
     id?: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    comments?: commentsCreateNestedManyWithoutPosts_metadataInput
-    likes?: likesCreateNestedManyWithoutPosts_metadataInput
-    saves?: savesCreateNestedManyWithoutPosts_metadataInput
-    posts_analytics?: posts_analyticsCreateNestedOneWithoutPosts_metadataInput
-    users: usersCreateNestedOneWithoutPosts_metadataInput
-    reported_content?: reported_contentCreateNestedManyWithoutPosts_metadataInput
+    comments?: commentsCreateNestedManyWithoutPostsInput
+    likes?: likesCreateNestedManyWithoutPostsInput
+    saves?: savesCreateNestedManyWithoutPostsInput
+    posts_analytics?: posts_analyticsCreateNestedOneWithoutPostsInput
+    users: usersCreateNestedOneWithoutPostsInput
+    reported_content?: reported_contentCreateNestedManyWithoutPostsInput
   }
 
-  export type posts_metadataUncheckedCreateWithoutSharesInput = {
+  export type postsUncheckedCreateWithoutSharesInput = {
     id?: string
     user_id: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    comments?: commentsUncheckedCreateNestedManyWithoutPosts_metadataInput
-    likes?: likesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    saves?: savesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    posts_analytics?: posts_analyticsUncheckedCreateNestedOneWithoutPosts_metadataInput
-    reported_content?: reported_contentUncheckedCreateNestedManyWithoutPosts_metadataInput
+    comments?: commentsUncheckedCreateNestedManyWithoutPostsInput
+    likes?: likesUncheckedCreateNestedManyWithoutPostsInput
+    saves?: savesUncheckedCreateNestedManyWithoutPostsInput
+    posts_analytics?: posts_analyticsUncheckedCreateNestedOneWithoutPostsInput
+    reported_content?: reported_contentUncheckedCreateNestedManyWithoutPostsInput
   }
 
-  export type posts_metadataCreateOrConnectWithoutSharesInput = {
-    where: posts_metadataWhereUniqueInput
-    create: XOR<posts_metadataCreateWithoutSharesInput, posts_metadataUncheckedCreateWithoutSharesInput>
+  export type postsCreateOrConnectWithoutSharesInput = {
+    where: postsWhereUniqueInput
+    create: XOR<postsCreateWithoutSharesInput, postsUncheckedCreateWithoutSharesInput>
   }
 
-  export type posts_metadataUpsertWithoutSharesInput = {
-    update: XOR<posts_metadataUpdateWithoutSharesInput, posts_metadataUncheckedUpdateWithoutSharesInput>
-    create: XOR<posts_metadataCreateWithoutSharesInput, posts_metadataUncheckedCreateWithoutSharesInput>
+  export type postsUpsertWithoutSharesInput = {
+    update: XOR<postsUpdateWithoutSharesInput, postsUncheckedUpdateWithoutSharesInput>
+    create: XOR<postsCreateWithoutSharesInput, postsUncheckedCreateWithoutSharesInput>
   }
 
-  export type posts_metadataUpdateWithoutSharesInput = {
+  export type postsUpdateWithoutSharesInput = {
     id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    comments?: commentsUpdateManyWithoutPosts_metadataNestedInput
-    likes?: likesUpdateManyWithoutPosts_metadataNestedInput
-    saves?: savesUpdateManyWithoutPosts_metadataNestedInput
-    posts_analytics?: posts_analyticsUpdateOneWithoutPosts_metadataNestedInput
-    users?: usersUpdateOneRequiredWithoutPosts_metadataNestedInput
-    reported_content?: reported_contentUpdateManyWithoutPosts_metadataNestedInput
+    comments?: commentsUpdateManyWithoutPostsNestedInput
+    likes?: likesUpdateManyWithoutPostsNestedInput
+    saves?: savesUpdateManyWithoutPostsNestedInput
+    posts_analytics?: posts_analyticsUpdateOneWithoutPostsNestedInput
+    users?: usersUpdateOneRequiredWithoutPostsNestedInput
+    reported_content?: reported_contentUpdateManyWithoutPostsNestedInput
   }
 
-  export type posts_metadataUncheckedUpdateWithoutSharesInput = {
+  export type postsUncheckedUpdateWithoutSharesInput = {
     id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    comments?: commentsUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    likes?: likesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    saves?: savesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    posts_analytics?: posts_analyticsUncheckedUpdateOneWithoutPosts_metadataNestedInput
-    reported_content?: reported_contentUncheckedUpdateManyWithoutPosts_metadataNestedInput
+    comments?: commentsUncheckedUpdateManyWithoutPostsNestedInput
+    likes?: likesUncheckedUpdateManyWithoutPostsNestedInput
+    saves?: savesUncheckedUpdateManyWithoutPostsNestedInput
+    posts_analytics?: posts_analyticsUncheckedUpdateOneWithoutPostsNestedInput
+    reported_content?: reported_contentUncheckedUpdateManyWithoutPostsNestedInput
   }
 
-  export type posts_metadataCreateWithoutReported_contentInput = {
+  export type postsCreateWithoutReported_contentInput = {
     id?: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    comments?: commentsCreateNestedManyWithoutPosts_metadataInput
-    likes?: likesCreateNestedManyWithoutPosts_metadataInput
-    saves?: savesCreateNestedManyWithoutPosts_metadataInput
-    shares?: sharesCreateNestedManyWithoutPosts_metadataInput
-    posts_analytics?: posts_analyticsCreateNestedOneWithoutPosts_metadataInput
-    users: usersCreateNestedOneWithoutPosts_metadataInput
+    comments?: commentsCreateNestedManyWithoutPostsInput
+    likes?: likesCreateNestedManyWithoutPostsInput
+    saves?: savesCreateNestedManyWithoutPostsInput
+    shares?: sharesCreateNestedManyWithoutPostsInput
+    posts_analytics?: posts_analyticsCreateNestedOneWithoutPostsInput
+    users: usersCreateNestedOneWithoutPostsInput
   }
 
-  export type posts_metadataUncheckedCreateWithoutReported_contentInput = {
+  export type postsUncheckedCreateWithoutReported_contentInput = {
     id?: string
     user_id: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    comments?: commentsUncheckedCreateNestedManyWithoutPosts_metadataInput
-    likes?: likesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    saves?: savesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    shares?: sharesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    posts_analytics?: posts_analyticsUncheckedCreateNestedOneWithoutPosts_metadataInput
+    comments?: commentsUncheckedCreateNestedManyWithoutPostsInput
+    likes?: likesUncheckedCreateNestedManyWithoutPostsInput
+    saves?: savesUncheckedCreateNestedManyWithoutPostsInput
+    shares?: sharesUncheckedCreateNestedManyWithoutPostsInput
+    posts_analytics?: posts_analyticsUncheckedCreateNestedOneWithoutPostsInput
   }
 
-  export type posts_metadataCreateOrConnectWithoutReported_contentInput = {
-    where: posts_metadataWhereUniqueInput
-    create: XOR<posts_metadataCreateWithoutReported_contentInput, posts_metadataUncheckedCreateWithoutReported_contentInput>
+  export type postsCreateOrConnectWithoutReported_contentInput = {
+    where: postsWhereUniqueInput
+    create: XOR<postsCreateWithoutReported_contentInput, postsUncheckedCreateWithoutReported_contentInput>
   }
 
-  export type posts_metadataUpsertWithoutReported_contentInput = {
-    update: XOR<posts_metadataUpdateWithoutReported_contentInput, posts_metadataUncheckedUpdateWithoutReported_contentInput>
-    create: XOR<posts_metadataCreateWithoutReported_contentInput, posts_metadataUncheckedCreateWithoutReported_contentInput>
+  export type postsUpsertWithoutReported_contentInput = {
+    update: XOR<postsUpdateWithoutReported_contentInput, postsUncheckedUpdateWithoutReported_contentInput>
+    create: XOR<postsCreateWithoutReported_contentInput, postsUncheckedCreateWithoutReported_contentInput>
   }
 
-  export type posts_metadataUpdateWithoutReported_contentInput = {
+  export type postsUpdateWithoutReported_contentInput = {
     id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    comments?: commentsUpdateManyWithoutPosts_metadataNestedInput
-    likes?: likesUpdateManyWithoutPosts_metadataNestedInput
-    saves?: savesUpdateManyWithoutPosts_metadataNestedInput
-    shares?: sharesUpdateManyWithoutPosts_metadataNestedInput
-    posts_analytics?: posts_analyticsUpdateOneWithoutPosts_metadataNestedInput
-    users?: usersUpdateOneRequiredWithoutPosts_metadataNestedInput
+    comments?: commentsUpdateManyWithoutPostsNestedInput
+    likes?: likesUpdateManyWithoutPostsNestedInput
+    saves?: savesUpdateManyWithoutPostsNestedInput
+    shares?: sharesUpdateManyWithoutPostsNestedInput
+    posts_analytics?: posts_analyticsUpdateOneWithoutPostsNestedInput
+    users?: usersUpdateOneRequiredWithoutPostsNestedInput
   }
 
-  export type posts_metadataUncheckedUpdateWithoutReported_contentInput = {
+  export type postsUncheckedUpdateWithoutReported_contentInput = {
     id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    comments?: commentsUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    likes?: likesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    saves?: savesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    shares?: sharesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    posts_analytics?: posts_analyticsUncheckedUpdateOneWithoutPosts_metadataNestedInput
+    comments?: commentsUncheckedUpdateManyWithoutPostsNestedInput
+    likes?: likesUncheckedUpdateManyWithoutPostsNestedInput
+    saves?: savesUncheckedUpdateManyWithoutPostsNestedInput
+    shares?: sharesUncheckedUpdateManyWithoutPostsNestedInput
+    posts_analytics?: posts_analyticsUncheckedUpdateOneWithoutPostsNestedInput
   }
 
   export type usersCreateWithoutNotificationsInput = {
@@ -26729,7 +26779,7 @@ export namespace Prisma {
     pass_salts?: string | null
     user_type?: string | null
     initial_balance?: number
-    posts_metadata?: posts_metadataCreateNestedManyWithoutUsersInput
+    posts?: postsCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistCreateNestedOneWithoutUsersInput
@@ -26752,7 +26802,7 @@ export namespace Prisma {
     pass_salts?: string | null
     user_type?: string | null
     initial_balance?: number
-    posts_metadata?: posts_metadataUncheckedCreateNestedManyWithoutUsersInput
+    posts?: postsUncheckedCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsUncheckedCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsUncheckedCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistUncheckedCreateNestedOneWithoutUsersInput
@@ -26785,7 +26835,7 @@ export namespace Prisma {
     pass_salts?: NullableStringFieldUpdateOperationsInput | string | null
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
-    posts_metadata?: posts_metadataUpdateManyWithoutUsersNestedInput
+    posts?: postsUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUpdateOneWithoutUsersNestedInput
@@ -26808,7 +26858,7 @@ export namespace Prisma {
     pass_salts?: NullableStringFieldUpdateOperationsInput | string | null
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
-    posts_metadata?: posts_metadataUncheckedUpdateManyWithoutUsersNestedInput
+    posts?: postsUncheckedUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUncheckedUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUncheckedUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUncheckedUpdateOneWithoutUsersNestedInput
@@ -26845,41 +26895,43 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type posts_metadataCreateWithoutUsersInput = {
+  export type postsCreateWithoutUsersInput = {
     id?: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    comments?: commentsCreateNestedManyWithoutPosts_metadataInput
-    likes?: likesCreateNestedManyWithoutPosts_metadataInput
-    saves?: savesCreateNestedManyWithoutPosts_metadataInput
-    shares?: sharesCreateNestedManyWithoutPosts_metadataInput
-    posts_analytics?: posts_analyticsCreateNestedOneWithoutPosts_metadataInput
-    reported_content?: reported_contentCreateNestedManyWithoutPosts_metadataInput
+    comments?: commentsCreateNestedManyWithoutPostsInput
+    likes?: likesCreateNestedManyWithoutPostsInput
+    saves?: savesCreateNestedManyWithoutPostsInput
+    shares?: sharesCreateNestedManyWithoutPostsInput
+    posts_analytics?: posts_analyticsCreateNestedOneWithoutPostsInput
+    reported_content?: reported_contentCreateNestedManyWithoutPostsInput
   }
 
-  export type posts_metadataUncheckedCreateWithoutUsersInput = {
+  export type postsUncheckedCreateWithoutUsersInput = {
     id?: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
-    comments?: commentsUncheckedCreateNestedManyWithoutPosts_metadataInput
-    likes?: likesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    saves?: savesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    shares?: sharesUncheckedCreateNestedManyWithoutPosts_metadataInput
-    posts_analytics?: posts_analyticsUncheckedCreateNestedOneWithoutPosts_metadataInput
-    reported_content?: reported_contentUncheckedCreateNestedManyWithoutPosts_metadataInput
+    comments?: commentsUncheckedCreateNestedManyWithoutPostsInput
+    likes?: likesUncheckedCreateNestedManyWithoutPostsInput
+    saves?: savesUncheckedCreateNestedManyWithoutPostsInput
+    shares?: sharesUncheckedCreateNestedManyWithoutPostsInput
+    posts_analytics?: posts_analyticsUncheckedCreateNestedOneWithoutPostsInput
+    reported_content?: reported_contentUncheckedCreateNestedManyWithoutPostsInput
   }
 
-  export type posts_metadataCreateOrConnectWithoutUsersInput = {
-    where: posts_metadataWhereUniqueInput
-    create: XOR<posts_metadataCreateWithoutUsersInput, posts_metadataUncheckedCreateWithoutUsersInput>
+  export type postsCreateOrConnectWithoutUsersInput = {
+    where: postsWhereUniqueInput
+    create: XOR<postsCreateWithoutUsersInput, postsUncheckedCreateWithoutUsersInput>
   }
 
-  export type posts_metadataCreateManyUsersInputEnvelope = {
-    data: Enumerable<posts_metadataCreateManyUsersInput>
+  export type postsCreateManyUsersInputEnvelope = {
+    data: Enumerable<postsCreateManyUsersInput>
     skipDuplicates?: boolean
   }
 
@@ -27093,29 +27145,30 @@ export namespace Prisma {
     created_at?: DateTimeFilter | Date | string
   }
 
-  export type posts_metadataUpsertWithWhereUniqueWithoutUsersInput = {
-    where: posts_metadataWhereUniqueInput
-    update: XOR<posts_metadataUpdateWithoutUsersInput, posts_metadataUncheckedUpdateWithoutUsersInput>
-    create: XOR<posts_metadataCreateWithoutUsersInput, posts_metadataUncheckedCreateWithoutUsersInput>
+  export type postsUpsertWithWhereUniqueWithoutUsersInput = {
+    where: postsWhereUniqueInput
+    update: XOR<postsUpdateWithoutUsersInput, postsUncheckedUpdateWithoutUsersInput>
+    create: XOR<postsCreateWithoutUsersInput, postsUncheckedCreateWithoutUsersInput>
   }
 
-  export type posts_metadataUpdateWithWhereUniqueWithoutUsersInput = {
-    where: posts_metadataWhereUniqueInput
-    data: XOR<posts_metadataUpdateWithoutUsersInput, posts_metadataUncheckedUpdateWithoutUsersInput>
+  export type postsUpdateWithWhereUniqueWithoutUsersInput = {
+    where: postsWhereUniqueInput
+    data: XOR<postsUpdateWithoutUsersInput, postsUncheckedUpdateWithoutUsersInput>
   }
 
-  export type posts_metadataUpdateManyWithWhereWithoutUsersInput = {
-    where: posts_metadataScalarWhereInput
-    data: XOR<posts_metadataUpdateManyMutationInput, posts_metadataUncheckedUpdateManyWithoutPosts_metadataInput>
+  export type postsUpdateManyWithWhereWithoutUsersInput = {
+    where: postsScalarWhereInput
+    data: XOR<postsUpdateManyMutationInput, postsUncheckedUpdateManyWithoutPostsInput>
   }
 
-  export type posts_metadataScalarWhereInput = {
-    AND?: Enumerable<posts_metadataScalarWhereInput>
-    OR?: Enumerable<posts_metadataScalarWhereInput>
-    NOT?: Enumerable<posts_metadataScalarWhereInput>
+  export type postsScalarWhereInput = {
+    AND?: Enumerable<postsScalarWhereInput>
+    OR?: Enumerable<postsScalarWhereInput>
+    NOT?: Enumerable<postsScalarWhereInput>
     id?: UuidFilter | string
     user_id?: UuidFilter | string
-    description?: StringNullableFilter | string | null
+    sql_id?: StringFilter | string
+    content?: StringNullableFilter | string | null
     visibility?: BoolFilter | boolean
     created_at?: DateTimeFilter | Date | string
     updated_at?: DateTimeFilter | Date | string
@@ -27320,7 +27373,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataCreateNestedManyWithoutUsersInput
+    posts?: postsCreateNestedManyWithoutUsersInput
     user_audit_logs?: user_audit_logsCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistCreateNestedOneWithoutUsersInput
     user_certificates?: user_certificatesCreateNestedOneWithoutUsersInput
@@ -27343,7 +27396,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsUncheckedCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataUncheckedCreateNestedManyWithoutUsersInput
+    posts?: postsUncheckedCreateNestedManyWithoutUsersInput
     user_audit_logs?: user_audit_logsUncheckedCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistUncheckedCreateNestedOneWithoutUsersInput
     user_certificates?: user_certificatesUncheckedCreateNestedOneWithoutUsersInput
@@ -27376,7 +27429,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUpdateManyWithoutUsersNestedInput
+    posts?: postsUpdateManyWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUpdateOneWithoutUsersNestedInput
     user_certificates?: user_certificatesUpdateOneWithoutUsersNestedInput
@@ -27399,7 +27452,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUncheckedUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUncheckedUpdateManyWithoutUsersNestedInput
+    posts?: postsUncheckedUpdateManyWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUncheckedUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUncheckedUpdateOneWithoutUsersNestedInput
     user_certificates?: user_certificatesUncheckedUpdateOneWithoutUsersNestedInput
@@ -27422,7 +27475,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataCreateNestedManyWithoutUsersInput
+    posts?: postsCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistCreateNestedOneWithoutUsersInput
@@ -27445,7 +27498,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsUncheckedCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataUncheckedCreateNestedManyWithoutUsersInput
+    posts?: postsUncheckedCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsUncheckedCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsUncheckedCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistUncheckedCreateNestedOneWithoutUsersInput
@@ -27478,7 +27531,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUpdateManyWithoutUsersNestedInput
+    posts?: postsUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUpdateOneWithoutUsersNestedInput
@@ -27501,7 +27554,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUncheckedUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUncheckedUpdateManyWithoutUsersNestedInput
+    posts?: postsUncheckedUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUncheckedUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUncheckedUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUncheckedUpdateOneWithoutUsersNestedInput
@@ -27524,7 +27577,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataCreateNestedManyWithoutUsersInput
+    posts?: postsCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsCreateNestedOneWithoutUsersInput
     user_blocklist?: user_blocklistCreateNestedOneWithoutUsersInput
     user_certificates?: user_certificatesCreateNestedOneWithoutUsersInput
@@ -27547,7 +27600,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsUncheckedCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataUncheckedCreateNestedManyWithoutUsersInput
+    posts?: postsUncheckedCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsUncheckedCreateNestedOneWithoutUsersInput
     user_blocklist?: user_blocklistUncheckedCreateNestedOneWithoutUsersInput
     user_certificates?: user_certificatesUncheckedCreateNestedOneWithoutUsersInput
@@ -27580,7 +27633,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUpdateManyWithoutUsersNestedInput
+    posts?: postsUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUpdateOneWithoutUsersNestedInput
     user_blocklist?: user_blocklistUpdateOneWithoutUsersNestedInput
     user_certificates?: user_certificatesUpdateOneWithoutUsersNestedInput
@@ -27603,7 +27656,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUncheckedUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUncheckedUpdateManyWithoutUsersNestedInput
+    posts?: postsUncheckedUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUncheckedUpdateOneWithoutUsersNestedInput
     user_blocklist?: user_blocklistUncheckedUpdateOneWithoutUsersNestedInput
     user_certificates?: user_certificatesUncheckedUpdateOneWithoutUsersNestedInput
@@ -27626,7 +27679,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataCreateNestedManyWithoutUsersInput
+    posts?: postsCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsCreateNestedManyWithoutUsersInput
     user_certificates?: user_certificatesCreateNestedOneWithoutUsersInput
@@ -27649,7 +27702,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsUncheckedCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataUncheckedCreateNestedManyWithoutUsersInput
+    posts?: postsUncheckedCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsUncheckedCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsUncheckedCreateNestedManyWithoutUsersInput
     user_certificates?: user_certificatesUncheckedCreateNestedOneWithoutUsersInput
@@ -27682,7 +27735,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUpdateManyWithoutUsersNestedInput
+    posts?: postsUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUpdateManyWithoutUsersNestedInput
     user_certificates?: user_certificatesUpdateOneWithoutUsersNestedInput
@@ -27705,7 +27758,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUncheckedUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUncheckedUpdateManyWithoutUsersNestedInput
+    posts?: postsUncheckedUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUncheckedUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUncheckedUpdateManyWithoutUsersNestedInput
     user_certificates?: user_certificatesUncheckedUpdateOneWithoutUsersNestedInput
@@ -27728,7 +27781,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataCreateNestedManyWithoutUsersInput
+    posts?: postsCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistCreateNestedOneWithoutUsersInput
@@ -27751,7 +27804,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsUncheckedCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataUncheckedCreateNestedManyWithoutUsersInput
+    posts?: postsUncheckedCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsUncheckedCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsUncheckedCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistUncheckedCreateNestedOneWithoutUsersInput
@@ -27784,7 +27837,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUpdateManyWithoutUsersNestedInput
+    posts?: postsUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUpdateOneWithoutUsersNestedInput
@@ -27807,7 +27860,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUncheckedUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUncheckedUpdateManyWithoutUsersNestedInput
+    posts?: postsUncheckedUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUncheckedUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUncheckedUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUncheckedUpdateOneWithoutUsersNestedInput
@@ -27830,7 +27883,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataCreateNestedManyWithoutUsersInput
+    posts?: postsCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistCreateNestedOneWithoutUsersInput
@@ -27853,7 +27906,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsUncheckedCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataUncheckedCreateNestedManyWithoutUsersInput
+    posts?: postsUncheckedCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsUncheckedCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsUncheckedCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistUncheckedCreateNestedOneWithoutUsersInput
@@ -27886,7 +27939,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUpdateManyWithoutUsersNestedInput
+    posts?: postsUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUpdateOneWithoutUsersNestedInput
@@ -27909,7 +27962,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUncheckedUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUncheckedUpdateManyWithoutUsersNestedInput
+    posts?: postsUncheckedUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUncheckedUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUncheckedUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUncheckedUpdateOneWithoutUsersNestedInput
@@ -27932,7 +27985,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataCreateNestedManyWithoutUsersInput
+    posts?: postsCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistCreateNestedOneWithoutUsersInput
@@ -27955,7 +28008,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsUncheckedCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataUncheckedCreateNestedManyWithoutUsersInput
+    posts?: postsUncheckedCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsUncheckedCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsUncheckedCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistUncheckedCreateNestedOneWithoutUsersInput
@@ -27988,7 +28041,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUpdateManyWithoutUsersNestedInput
+    posts?: postsUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUpdateOneWithoutUsersNestedInput
@@ -28011,7 +28064,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUncheckedUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUncheckedUpdateManyWithoutUsersNestedInput
+    posts?: postsUncheckedUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUncheckedUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUncheckedUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUncheckedUpdateOneWithoutUsersNestedInput
@@ -28034,7 +28087,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataCreateNestedManyWithoutUsersInput
+    posts?: postsCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistCreateNestedOneWithoutUsersInput
@@ -28057,7 +28110,7 @@ export namespace Prisma {
     user_type?: string | null
     initial_balance?: number
     notifications?: notificationsUncheckedCreateNestedManyWithoutUsersInput
-    posts_metadata?: posts_metadataUncheckedCreateNestedManyWithoutUsersInput
+    posts?: postsUncheckedCreateNestedManyWithoutUsersInput
     user_analytics?: user_analyticsUncheckedCreateNestedOneWithoutUsersInput
     user_audit_logs?: user_audit_logsUncheckedCreateNestedManyWithoutUsersInput
     user_blocklist?: user_blocklistUncheckedCreateNestedOneWithoutUsersInput
@@ -28090,7 +28143,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUpdateManyWithoutUsersNestedInput
+    posts?: postsUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUpdateOneWithoutUsersNestedInput
@@ -28113,7 +28166,7 @@ export namespace Prisma {
     user_type?: NullableStringFieldUpdateOperationsInput | string | null
     initial_balance?: FloatFieldUpdateOperationsInput | number
     notifications?: notificationsUncheckedUpdateManyWithoutUsersNestedInput
-    posts_metadata?: posts_metadataUncheckedUpdateManyWithoutUsersNestedInput
+    posts?: postsUncheckedUpdateManyWithoutUsersNestedInput
     user_analytics?: user_analyticsUncheckedUpdateOneWithoutUsersNestedInput
     user_audit_logs?: user_audit_logsUncheckedUpdateManyWithoutUsersNestedInput
     user_blocklist?: user_blocklistUncheckedUpdateOneWithoutUsersNestedInput
@@ -28123,7 +28176,7 @@ export namespace Prisma {
     user_about?: user_aboutUncheckedUpdateOneWithoutUsersNestedInput
   }
 
-  export type commentsCreateManyPosts_metadataInput = {
+  export type commentsCreateManyPostsInput = {
     comment_id?: string
     user_id: string
     parent_comment_id?: string | null
@@ -28131,26 +28184,26 @@ export namespace Prisma {
     created_at?: Date | string | null
   }
 
-  export type likesCreateManyPosts_metadataInput = {
+  export type likesCreateManyPostsInput = {
     user_id: string
     liked_at?: Date | string | null
     serial_no?: bigint | number
   }
 
-  export type savesCreateManyPosts_metadataInput = {
+  export type savesCreateManyPostsInput = {
     save_id?: string
     user_id: string
     saved_at?: Date | string | null
   }
 
-  export type sharesCreateManyPosts_metadataInput = {
+  export type sharesCreateManyPostsInput = {
     share_id?: string
     user_id: string
     shared_at?: Date | string | null
     share_message?: string | null
   }
 
-  export type reported_contentCreateManyPosts_metadataInput = {
+  export type reported_contentCreateManyPostsInput = {
     id?: string
     reporter_id: string
     reported_user_id?: string | null
@@ -28159,7 +28212,7 @@ export namespace Prisma {
     created_at?: Date | string
   }
 
-  export type commentsUpdateWithoutPosts_metadataInput = {
+  export type commentsUpdateWithoutPostsInput = {
     comment_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
@@ -28168,7 +28221,7 @@ export namespace Prisma {
     other_comments?: commentsUpdateManyWithoutCommentsNestedInput
   }
 
-  export type commentsUncheckedUpdateWithoutPosts_metadataInput = {
+  export type commentsUncheckedUpdateWithoutPostsInput = {
     comment_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
     parent_comment_id?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28185,13 +28238,13 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
-  export type likesUpdateWithoutPosts_metadataInput = {
+  export type likesUpdateWithoutPostsInput = {
     user_id?: StringFieldUpdateOperationsInput | string
     liked_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     serial_no?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
-  export type likesUncheckedUpdateWithoutPosts_metadataInput = {
+  export type likesUncheckedUpdateWithoutPostsInput = {
     user_id?: StringFieldUpdateOperationsInput | string
     liked_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     serial_no?: BigIntFieldUpdateOperationsInput | bigint | number
@@ -28203,13 +28256,13 @@ export namespace Prisma {
     serial_no?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
-  export type savesUpdateWithoutPosts_metadataInput = {
+  export type savesUpdateWithoutPostsInput = {
     save_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
     saved_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
-  export type savesUncheckedUpdateWithoutPosts_metadataInput = {
+  export type savesUncheckedUpdateWithoutPostsInput = {
     save_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
     saved_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -28221,14 +28274,14 @@ export namespace Prisma {
     saved_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
-  export type sharesUpdateWithoutPosts_metadataInput = {
+  export type sharesUpdateWithoutPostsInput = {
     share_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
     shared_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     share_message?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type sharesUncheckedUpdateWithoutPosts_metadataInput = {
+  export type sharesUncheckedUpdateWithoutPostsInput = {
     share_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
     shared_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -28242,7 +28295,7 @@ export namespace Prisma {
     share_message?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type reported_contentUpdateWithoutPosts_metadataInput = {
+  export type reported_contentUpdateWithoutPostsInput = {
     id?: StringFieldUpdateOperationsInput | string
     reporter_id?: StringFieldUpdateOperationsInput | string
     reported_user_id?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28251,7 +28304,7 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type reported_contentUncheckedUpdateWithoutPosts_metadataInput = {
+  export type reported_contentUncheckedUpdateWithoutPostsInput = {
     id?: StringFieldUpdateOperationsInput | string
     reporter_id?: StringFieldUpdateOperationsInput | string
     reported_user_id?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28283,7 +28336,7 @@ export namespace Prisma {
     content?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     other_comments?: commentsUpdateManyWithoutCommentsNestedInput
-    posts_metadata?: posts_metadataUpdateOneRequiredWithoutCommentsNestedInput
+    posts?: postsUpdateOneRequiredWithoutCommentsNestedInput
   }
 
   export type commentsUncheckedUpdateWithoutCommentsInput = {
@@ -28311,9 +28364,10 @@ export namespace Prisma {
     created_at?: Date | string
   }
 
-  export type posts_metadataCreateManyUsersInput = {
+  export type postsCreateManyUsersInput = {
     id?: string
-    description?: string | null
+    sql_id: string
+    content?: string | null
     visibility?: boolean
     created_at?: Date | string
     updated_at?: Date | string
@@ -28359,37 +28413,40 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type posts_metadataUpdateWithoutUsersInput = {
+  export type postsUpdateWithoutUsersInput = {
     id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    comments?: commentsUpdateManyWithoutPosts_metadataNestedInput
-    likes?: likesUpdateManyWithoutPosts_metadataNestedInput
-    saves?: savesUpdateManyWithoutPosts_metadataNestedInput
-    shares?: sharesUpdateManyWithoutPosts_metadataNestedInput
-    posts_analytics?: posts_analyticsUpdateOneWithoutPosts_metadataNestedInput
-    reported_content?: reported_contentUpdateManyWithoutPosts_metadataNestedInput
+    comments?: commentsUpdateManyWithoutPostsNestedInput
+    likes?: likesUpdateManyWithoutPostsNestedInput
+    saves?: savesUpdateManyWithoutPostsNestedInput
+    shares?: sharesUpdateManyWithoutPostsNestedInput
+    posts_analytics?: posts_analyticsUpdateOneWithoutPostsNestedInput
+    reported_content?: reported_contentUpdateManyWithoutPostsNestedInput
   }
 
-  export type posts_metadataUncheckedUpdateWithoutUsersInput = {
+  export type postsUncheckedUpdateWithoutUsersInput = {
     id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    comments?: commentsUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    likes?: likesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    saves?: savesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    shares?: sharesUncheckedUpdateManyWithoutPosts_metadataNestedInput
-    posts_analytics?: posts_analyticsUncheckedUpdateOneWithoutPosts_metadataNestedInput
-    reported_content?: reported_contentUncheckedUpdateManyWithoutPosts_metadataNestedInput
+    comments?: commentsUncheckedUpdateManyWithoutPostsNestedInput
+    likes?: likesUncheckedUpdateManyWithoutPostsNestedInput
+    saves?: savesUncheckedUpdateManyWithoutPostsNestedInput
+    shares?: sharesUncheckedUpdateManyWithoutPostsNestedInput
+    posts_analytics?: posts_analyticsUncheckedUpdateOneWithoutPostsNestedInput
+    reported_content?: reported_contentUncheckedUpdateManyWithoutPostsNestedInput
   }
 
-  export type posts_metadataUncheckedUpdateManyWithoutPosts_metadataInput = {
+  export type postsUncheckedUpdateManyWithoutPostsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    sql_id?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
     visibility?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string

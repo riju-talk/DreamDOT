@@ -20,7 +20,7 @@ model posts {
   id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id          String             @db.Uuid
   sql_id           String             @unique // Links to MongoDB post._id
-  description      String?            // Short metadata description
+  content          String?            // Post content/body
   visibility       Boolean            @default(true)
   created_at       DateTime           @default(now()) @db.Timestamp(6)
   updated_at       DateTime           @default(now()) @db.Timestamp(6)

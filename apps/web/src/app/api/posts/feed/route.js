@@ -1,179 +1,124 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { PrismaClient, PrismaClientInitializationError } from '@/generated/social/client'
-
-const prisma = new PrismaClient()
+import { prismaSocial } from '@/lib/prisma/social'
+import { prismaItems } from '@/lib/prisma/items'
 
 /**
  * GET /api/posts/feed
- * Get feed posts based on user's follows, with optional filters
+ * Main feed - randomized posts and items with lazy loading
  * Query params:
- *  - filter: 'following' | 'for-you' | 'trending' (default: 'for-you')
  *  - page: page number (default: 1)
- *  - limit: posts per page (default: 10)
- *  - search: search term (optional)
+ *  - limit: items per page (default: 10, max 50)
  */
 export async function GET(request) {
   try {
-    const session = await getServerSession()
     const { searchParams } = new URL(request.url)
 
-    const page = parseInt(searchParams.get('page') || '1', 10)
-    const limit = parseInt(searchParams.get('limit') || '10', 10)
-    const filter = searchParams.get('filter') || 'for-you'
-    const search = searchParams.get('search') || ''
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '10', 10)), 50)
+    const offset = (page - 1) * limit
 
-    // Validate pagination
-    if (page < 1 || limit < 1 || limit > 100) {
-      return NextResponse.json(
-        { error: 'Invalid pagination parameters' },
-        { status: 400 }
-      )
-    }
+    let feed = []
 
-    let query = { visibility: true }
-
-    // For 'following' filter, only show posts from users being followed
-    if (filter === 'following' && session?.user?.email) {
-      try {
-        const user = await prisma.users.findUnique({
-          where: { email: session.user.email }
-        })
-
-        if (user) {
-          // Get list of users being followed
-          const following = await prisma.following.findMany({
-            where: { follower_id: user.id },
-            select: { followee_id: true },
-          })
-
-          const followeeIds = following.map(f => f.followee_id)
-
-          // Include own posts + followed users' posts
-          query = {
-            AND: [
-              { visibility: true },
-              {
-                OR: [
-                  { user_id: user.id },
-                  { user_id: { in: followeeIds } },
-                ]
-              }
-            ]
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching user following data:', error)
-        // Continue with default query if following data fetch fails
-      }
-    }
-
-    // Apply search filter
-    if (search.trim()) {
-      const searchTerm = search.trim().toLowerCase()
-      query = {
-        AND: [
-          query,
-          {
-            description: {
-              contains: searchTerm,
-              mode: 'insensitive'
-            }
-          }
-        ]
-      }
-    }
-
-    // Get total count with error handling
-    let total = 0
-    try {
-      total = await prisma.posts_metadata.count({ where: query })
-    } catch (error) {
-      console.error('Error counting posts:', error)
-      if (error instanceof PrismaClientInitializationError) {
-        return NextResponse.json(
-          { error: 'Database connection failed. Please try again later.' },
-          { status: 503 }
-        )
-      }
-      throw error
-    }
-
-    // Determine sort order
-    let orderBy = { created_at: 'desc' }
-    if (filter === 'trending') {
-      // Sort by likes (from posts_analytics)
-      orderBy = [
-        { posts_analytics: { likes_count: 'desc' } },
-        { created_at: 'desc' }
-      ]
-    }
-
-    // Query posts with pagination and error handling
-    let posts = []
-    try {
-      posts = await prisma.posts_metadata.findMany({
-        where: query,
-        include: {
-          users: {
-            select: { id: true, email: true }
-          },
-          posts_analytics: true,
+    // Fetch all visible posts
+    const allPosts = await prismaSocial.posts.findMany({
+      where: { visibility: true },
+      include: {
+        users: {
+          select: { id: true, email: true }
         },
-        orderBy,
-        skip: (page - 1) * limit,
-        take: limit,
-      })
-    } catch (error) {
-      console.error('Error fetching posts:', error)
-      if (error instanceof PrismaClientInitializationError) {
-        return NextResponse.json(
-          { error: 'Database connection failed. Please try again later.' },
-          { status: 503 }
-        )
-      }
-      throw error
-    }
+        posts_analytics: true,
+      },
+    })
 
-    // Format response
-    const formattedPosts = posts.map(post => ({
-      id: post.id,
-      userId: post.user_id,
-      description: post.description,
-      visibility: post.visibility,
-      createdAt: post.created_at,
-      likes: post.posts_analytics?.likes_count || 0,
-      comments: post.posts_analytics?.comments_count || 0,
-      author: {
-        id: post.users.id,
-        email: post.users.email,
+      // Format posts
+      const formattedPosts = allPosts.map(post => ({
+        id: post.id,
+        type: 'post',
+        userId: post.user_id,
+        content: post.content,
+        visibility: post.visibility,
+        createdAt: post.created_at,
+        likes: post.posts_analytics?.likes_count ? Array(post.posts_analytics.likes_count).fill('') : [],
+        comments: [],
+        author: {
+          id: post.users.id,
+          email: post.users.email,
+          name: post.users.email?.split('@')[0] || 'User',
+          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
+          verified: false,
+        }
+      }))
+
+    feed.push(...formattedPosts)
+
+    // Fetch all public items
+    const allItems = await prismaItems.items.findMany({
+      where: { visibility: 'public' },
+      include: {
+        users: {
+          select: { id: true }
+        },
+      },
+    })
+
+    // Format items
+    const formattedItems = allItems.map(item => ({
+      id: item.item_id,
+      type: 'item',
+      userId: item.user_id,
+      title: item.title,
+      description: item.description,
+      category: item.category || 'general',
+      price: parseFloat(item.price?.toString() || '0'),
+      image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&h=500&fit=crop',
+      rating: Math.floor(Math.random() * 5),
+      sales: Math.floor(Math.random() * 100),
+      views: Math.floor(Math.random() * 1000),
+      visibility: item.visibility,
+      createdAt: item.created_at,
+      creator: {
+        id: item.users.id,
+        name: `Creator ${item.users.id?.slice(0, 4)}`,
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
+        verified: false,
       }
     }))
 
+    feed.push(...formattedItems)
+
+    // Shuffle entire feed randomly
+    feed = shuffleArray(feed)
+
+    const total = feed.length
+
+    // Apply lazy loading with offset and limit
+    const paginatedFeed = feed.slice(offset, offset + limit)
+
     return NextResponse.json(
       {
-        posts: formattedPosts,
-        hasMore: (page - 1) * limit + limit < total,
-        total,
-        page,
-        limit,
+        posts: paginatedFeed,
+        hasMore: offset + limit < total,
       },
       { status: 200 }
     )
   } catch (error) {
     console.error('Error fetching feed:', error)
-    
-    // Check if it's a database initialization error
-    if (error instanceof PrismaClientInitializationError) {
-      return NextResponse.json(
-        { error: 'Database connection failed. Please try again later.' },
-        { status: 503 }
-      )
-    }
-    
+
     return NextResponse.json(
-      { error: 'Failed to fetch feed' },
+      { posts: [], hasMore: false },
       { status: 500 }
     )
   }
+}
+
+/**
+ * Fisher-Yates shuffle algorithm for randomization
+ */
+function shuffleArray(array) {
+  const shuffled = [...array]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
 }

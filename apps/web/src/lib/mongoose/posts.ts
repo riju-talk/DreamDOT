@@ -1,6 +1,6 @@
 import { Collection } from "mongoose";
 import { connectToDatabase } from "./connection";
-import { prismaSocial } from "../db";
+import { prismaSocial } from "../prisma/social";
 // import { Post } from "./types/Post"; // Using shared model instead
 import { Post } from "@repo/database-mongo";
 
@@ -24,11 +24,17 @@ export async function fetchPosts(options: FetchPostsOptions = {}) {
     // Step 1: Fetch PostgreSQL metadata
     const sqlTimerLabel = `⏱ SQL Fetch Time (${Date.now()})`;
     console.time(sqlTimerLabel);
-    const sqlPosts = await prismaSocial.posts_metadata.findMany({
+    const sqlPosts = await prismaSocial.posts.findMany({
       skip,
       take: limit,
       orderBy: { created_at: "desc" },
-      include: {
+      select: {
+        id: true,
+        user_id: true,
+        sql_id: true,
+        visibility: true,
+        created_at: true,
+        updated_at: true,
         posts_analytics: true,
         users: {
           select: {
@@ -48,7 +54,7 @@ export async function fetchPosts(options: FetchPostsOptions = {}) {
     });
     console.timeEnd(sqlTimerLabel);
 
-    const totalCount = await prismaSocial.posts_metadata.count({
+    const totalCount = await prismaSocial.posts.count({
       where: userId ? { user_id: userId } : {},
     });
     if (sqlPosts.length === 0) {

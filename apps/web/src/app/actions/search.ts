@@ -1,4 +1,3 @@
-// src/lib/search.ts — server-only Fuse.js search over Prisma results
 "use server"
 
 import { prismaUser } from "@/lib/prisma/user";
@@ -51,43 +50,26 @@ function aliasGetFn(obj: object, path: string): string | string[] {
   for (const p of candidates) {
     try {
       const v = fuseDefaultGetFn(obj, p);
-      if (v === undefined || v === null) continue;
-      if (Array.isArray(v)) {
-        if (v.length) return v;
-        continue;
-      }
-      const s = String(v).trim();
-      if (s.length) return s;
-    } catch {
-      // ignore and try next candidate
-    }
+      if (v !== "" && v !== []) return v;
+    } catch {}
   }
   return "";
 }
 
-// PROFILE options — permissive enough for partial display name match
+// USER/PROFILE options — more permissive for broader reach
 export const profileSearchOptions: IFuseOptions<object> = {
   includeScore: true,
-  threshold: 0.55,         // tuned: not too strict, not too loose
+  threshold: 0.6,
   minMatchCharLength: 1,
   ignoreLocation: true,
   keys: [
     { name: "username", weight: 3.0 },
-    { name: "display_name", weight: 2.2 },
-    { name: "bio", weight: 1.0 },
-    { name: "country", weight: 0.8 },
-    { name: "skills", weight: 1.2 },
+    { name: "display_name", weight: 2.5 },
+    { name: "bio", weight: 1.5 },
+    { name: "country", weight: 1.0 },
+    { name: "skills", weight: 1.0 },
   ],
-  getFn: (obj: object, path: string | string[]) => {
-    const p = Array.isArray(path) ? path[0] : path;
-    if (p === "skills") {
-      const v = aliasGetFn(obj, p);
-      if (Array.isArray(v)) return v;
-      if (typeof v === "string") return v.split(",").map((s: string) => s.trim()).filter(Boolean);
-      return [];
-    }
-    return aliasGetFn(obj, p);
-  },
+  getFn: (obj: object, path: string | string[]) => aliasGetFn(obj, Array.isArray(path) ? path[0] : path),
 };
 
 // MARKETPLACE options — slightly stricter for relevance
@@ -128,7 +110,7 @@ export async function unifiedSearch(query: string, limit = 10): Promise<SearchRe
       display_name: true,
       bio: true,
       avatar_url: true,
-      country: true,    // was "location" — not a column; user_profile has "country"
+      country: true,
     },
   });
 
@@ -184,19 +166,33 @@ export async function unifiedSearch(query: string, limit = 10): Promise<SearchRe
     }),
   ];
 
-  // lower score = better; undefined score => treat as worst (1)
-  return results.sort((a, b) => (a.score ?? 1) - (b.score ?? 1)).slice(0, limit);
+  // --- Sort by score and dedup
+  const sorted = results
+    .sort((a, b) => (a.score ?? 999) - (b.score ?? 999))
+    .reduce(
+      (acc, cur) => {
+        if (!acc.seenIds.has(cur.id)) {
+          acc.seenIds.add(cur.id);
+          acc.results.push(cur);
+        }
+        return acc;
+      },
+      { results: [], seenIds: new Set<string>() }
+    );
+
+  return sorted.results.slice(0, limit);
 }
 
 // Quick wrapper that keeps score + metadata for UI
 export async function quickSearch(query: string, limit = 5) {
   const res = await unifiedSearch(query, limit);
-  return res.map(r => ({ id: r.id, type: r.type, title: r.title, url: r.url, image: r.image, score: r.score, metadata: r.metadata }));
-}
-
-// highlight util (unchanged)
-export function highlightMatches(text: string, query: string) {
-  if (!text || !query) return text;
-  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
-  return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-800">$1</mark>');
+  return res.map((r) => ({
+    id: r.id,
+    type: r.type,
+    title: r.title,
+    url: r.url,
+    image: r.image,
+    score: r.score,
+    metadata: r.metadata,
+  }));
 }

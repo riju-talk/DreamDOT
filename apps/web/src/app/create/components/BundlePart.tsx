@@ -23,17 +23,24 @@ export function BundlePart() {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        // Mock data - in production, fetch from API
-        const mockItems: BundleItem[] = [
-          { id: '1', title: 'Item 1', price: 50, category: 'writing' },
-          { id: '2', title: 'Item 2', price: 75, category: 'art' },
-          { id: '3', title: 'Item 3', price: 100, category: 'video' },
-          { id: '4', title: 'Item 4', price: 60, category: 'audio' },
-        ]
-        setItems(mockItems)
-        setFilteredItems(mockItems)
+        const response = await fetch('/api/Items/my-items')
+        if (!response.ok) throw new Error('Failed to fetch items')
+        
+        const data = await response.json()
+        // Map database items to BundleItem interface
+        const mappedItems: BundleItem[] = data.items.map((item: any) => ({
+          id: item._id,
+          title: item.title,
+          price: item.price || 0,
+          category: item.category || 'other',
+        }))
+        
+        setItems(mappedItems)
+        setFilteredItems(mappedItems)
       } catch (error) {
         console.error('Failed to fetch items:', error)
+        setItems([])
+        setFilteredItems([])
       } finally {
         setLoading(false)
       }

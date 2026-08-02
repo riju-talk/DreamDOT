@@ -13,7 +13,7 @@ import { Search, User, X, ShoppingBag, Sparkles } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
-import { quickSearch } from "@/lib/search"
+import { quickSearch } from "@/app/actions/search"
 import Link from "next/link"
 
 interface SearchResult {

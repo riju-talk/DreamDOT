@@ -5,7 +5,8 @@ import { WriterPart } from './components/WriterPart'
 import { MediaPart } from './components/MediaPart'
 import { BundlePart } from './components/BundlePart'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { AuthenticatedLayout } from '@/components/authenticated-layout'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -16,10 +17,12 @@ import {
   PenTool,
   Image as ImageIcon,
   Package,
-  ArrowRight,
-  ArrowLeft
+  Sparkles,
+  Zap,
+  Target,
 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
 
 export default function CreatePage() {
   const router = useRouter()
@@ -27,27 +30,15 @@ export default function CreatePage() {
   const [publishing, setPublishing] = useState(false)
   const [publishError, setPublishError] = useState('')
   const [publishSuccess, setPublishSuccess] = useState(false)
+  const [showGuide, setShowGuide] = useState(false)
 
-  const tabs = [
-    { id: 'writer', label: 'Writer', icon: PenTool, desc: 'Create your content' },
-    { id: 'media', label: 'Media', icon: ImageIcon, desc: 'Upload assets' },
-    { id: 'bundle', label: 'Bundle', icon: Package, desc: 'Group items' },
+  const assetTypes = [
+    { id: 'writer', label: 'Writer', icon: PenTool, desc: 'Create your content', subtitle: 'Write engaging stories, articles, and descriptions' },
+    { id: 'media', label: 'Media', icon: ImageIcon, desc: 'Upload assets', subtitle: 'Add images, videos, audio, and 3D files' },
+    { id: 'bundle', label: 'Bundle', icon: Package, desc: 'Group items', subtitle: 'Package assets for better monetization' },
   ]
 
-  const stepNumber = tabs.findIndex((t) => t.id === step) + 1
-  const currentTab = tabs.find((t) => t.id === step)
-
-  const handleNext = () => {
-    if (validateDraft()) {
-      const nextStep = tabs[stepNumber]?.id
-      if (nextStep) setStep(nextStep as any)
-    }
-  }
-
-  const handlePrevious = () => {
-    const prevStep = tabs[stepNumber - 2]?.id
-    if (prevStep) setStep(prevStep as any)
-  }
+  const currentAsset = assetTypes.find((t) => t.id === step)
 
   const handlePublish = async () => {
     if (!validateDraft()) {
@@ -82,73 +73,145 @@ export default function CreatePage() {
         >
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
-              {currentTab && <currentTab.icon className="h-6 w-6 text-primary" />}
+              {currentAsset && <currentAsset.icon className="h-6 w-6 text-primary" />}
             </div>
             <div>
               <h1 className="text-4xl font-bold text-foreground">Creator Studio</h1>
-              <p className="text-muted-foreground">Step {stepNumber} of {tabs.length} • {currentTab?.desc}</p>
+              <p className="text-muted-foreground">{currentAsset?.desc}</p>
             </div>
           </div>
         </motion.div>
 
-        {/* Progress Bar */}
+        {/* Title & Description - Mandatory Fields */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Zap className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Essential Details</h2>
+            <Badge className="ml-auto bg-primary/20 text-primary border-primary/30">Required</Badge>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Title Input */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-foreground flex items-center gap-1">
+                Title <span className="text-destructive">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Give your asset a compelling title..."
+                value={draft.title || ''}
+                onChange={(e) => {
+                  // Update store
+                  const store = useCreatorStudioStore.getState()
+                  store.updateDraft({ title: e.target.value })
+                }}
+                maxLength={100}
+                className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none transition-colors"
+              />
+              <p className="text-xs text-muted-foreground">{(draft.title || '').length}/100 characters</p>
+            </div>
+
+            {/* Category Select */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-foreground flex items-center gap-1">
+                Category <span className="text-destructive">*</span>
+              </label>
+              <select
+                value={draft.category || ''}
+                onChange={(e) => {
+                  // Update store
+                  const store = useCreatorStudioStore.getState()
+                  store.updateDraft({ category: e.target.value })
+                }}
+                className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:border-primary focus:outline-none transition-colors"
+              >
+                <option value="">Select a category...</option>
+                <option value="art">Digital Art</option>
+                <option value="design">Design</option>
+                <option value="photography">Photography</option>
+                <option value="animation">Animation</option>
+                <option value="music">Music</option>
+                <option value="3d">3D Assets</option>
+                <option value="code">Code</option>
+                <option value="writing">Writing</option>
+                <option value="education">Education</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Description Input */}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-foreground flex items-center gap-1">
+              Description <span className="text-destructive">*</span>
+            </label>
+            <textarea
+              placeholder="Describe your asset in detail. What makes it unique? Who is it for? Include relevant details about the content..."
+              value={draft.script || ''}
+              onChange={(e) => {
+                // Update store
+                const store = useCreatorStudioStore.getState()
+                store.updateDraft({ script: e.target.value })
+              }}
+              maxLength={500}
+              rows={4}
+              className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none transition-colors resize-none"
+            />
+            <p className="text-xs text-muted-foreground">{(draft.script || '').length}/500 characters</p>
+          </div>
+        </motion.div>
+
+        {/* Asset Type Selection Grid */}
         <div className="relative">
-          <div className="flex gap-3">
-            {tabs.map((tab, idx) => {
-              const TabIcon = tab.icon
-              const isActive = step === tab.id
-              const isPassed = idx < stepNumber - 1
+          <div className="grid grid-cols-3 gap-4">
+            {assetTypes.map((assetType) => {
+              const AssetIcon = assetType.icon
+              const isActive = step === assetType.id
               
               return (
                 <motion.button
-                  key={tab.id}
-                  onClick={() => setStep(tab.id as any)}
-                  className="relative flex-1 group"
+                  key={assetType.id}
+                  onClick={() => setStep(assetType.id as any)}
                   whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <div 
-                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                  <Card 
+                    className={`h-full transition-all duration-200 cursor-pointer ${
                       isActive 
-                        ? 'border-primary bg-primary/10' 
-                        : isPassed
-                        ? 'border-primary/50 bg-primary/5'
-                        : 'border-border bg-card hover:border-primary/30'
+                        ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20' 
+                        : 'border-border hover:border-primary/30 hover:bg-card/50'
                     }`}
                   >
-                    <div className={`p-2 rounded-lg ${
-                      isActive 
-                        ? 'bg-primary/20' 
-                        : isPassed
-                        ? 'bg-primary/10'
-                        : 'bg-muted'
-                    }`}>
-                      <TabIcon className={`h-5 w-5 ${
+                    <CardContent className="p-6 text-center space-y-3">
+                      <div className={`p-3 rounded-lg w-fit mx-auto ${
                         isActive 
-                          ? 'text-primary' 
-                          : isPassed
-                          ? 'text-primary/70'
-                          : 'text-muted-foreground'
-                      }`} />
-                    </div>
-                    <span className={`text-sm font-semibold ${
-                      isActive 
-                        ? 'text-primary' 
-                        : isPassed
-                        ? 'text-primary/70'
-                        : 'text-muted-foreground'
-                    }`}>
-                      {tab.label}
-                    </span>
-                  </div>
-
-                  {/* Connector Line */}
-                  {idx < tabs.length - 1 && (
-                    <div className="absolute top-1/2 -right-1.5 w-3 h-0.5 -translate-y-1/2">
-                      <div className={`h-full rounded-full transition-colors ${
-                        isPassed ? 'bg-primary' : 'bg-border'
-                      }`} />
-                    </div>
-                  )}
+                          ? 'bg-primary/20' 
+                          : 'bg-muted'
+                      }`}>
+                        <AssetIcon className={`h-6 w-6 ${
+                          isActive 
+                            ? 'text-primary' 
+                            : 'text-muted-foreground'
+                        }`} />
+                      </div>
+                      <div>
+                        <h3 className={`font-semibold ${
+                          isActive 
+                            ? 'text-primary' 
+                            : 'text-foreground'
+                        }`}>
+                          {assetType.label}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {assetType.subtitle}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </motion.button>
               )
             })}
@@ -280,42 +343,22 @@ export default function CreatePage() {
           className="flex gap-4 justify-end pt-4 border-t border-border/30"
         >
           <Button
-            onClick={handlePrevious}
-            disabled={stepNumber === 1}
-            variant="outline"
+            onClick={handlePublish}
+            disabled={!isValid || publishing}
             className="gap-2"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Previous
+            {publishing ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Publishing...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="h-4 w-4" />
+                Publish
+              </>
+            )}
           </Button>
-
-          {stepNumber < tabs.length ? (
-            <Button 
-              onClick={handleNext}
-              className="gap-2"
-            >
-              Next
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button
-              onClick={handlePublish}
-              disabled={!isValid || publishing}
-              className="gap-2"
-            >
-              {publishing ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Publishing...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="h-4 w-4" />
-                  Publish
-                </>
-              )}
-            </Button>
-          )}
         </motion.div>
 
         {/* Status Messages */}

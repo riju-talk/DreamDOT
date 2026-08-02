@@ -62,3 +62,4 @@ db.blockchain_ledgers.createIndex({ timestamp: 1 });
 
 print('✅ MongoDB collections initialized successfully for DreamDot');
 print('   Collections created: users, conversations, messages, memberships, attachments, posts, items, transactions, servers, blockchain_ledgers');
+print('   Ready for seed data (run seed.js separately or include in docker-compose entrypoint)');

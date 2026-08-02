@@ -12,11 +12,15 @@ datasource db {
 }
 
 // ==================== SOCIAL SCHEMA ====================
+// Note: This schema stores POST METADATA (indexable/relational data)
+// Actual post content (body, media) is stored in MongoDB collection 'posts'
+// Linked via: posts_metadata.sql_id = mongodb.posts._id
 
-model posts_metadata {
+model posts {
   id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id          String             @db.Uuid
-  description      String?
+  sql_id           String             @unique // Links to MongoDB post._id
+  content          String?            // Post content/body
   visibility       Boolean            @default(true)
   created_at       DateTime           @default(now()) @db.Timestamp(6)
   updated_at       DateTime           @default(now()) @db.Timestamp(6)
@@ -37,7 +41,7 @@ model posts_analytics {
   likes_count    Int?           @default(0)
   comments_count Int?           @default(0)
   updated_at     DateTime       @default(now()) @db.Timestamp(6)
-  posts_metadata posts_metadata @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  posts           posts          @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("social")
 }
@@ -51,7 +55,7 @@ model comments {
   created_at        DateTime?      @default(now()) @db.Timestamp(6)
   comments          comments?      @relation("commentsTocomments", fields: [parent_comment_id], references: [comment_id], onDelete: Cascade, onUpdate: NoAction)
   other_comments    comments[]     @relation("commentsTocomments")
-  posts_metadata    posts_metadata @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  posts             posts          @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("social")
 }
@@ -61,7 +65,7 @@ model likes {
   post_id        String         @db.Uuid
   liked_at       DateTime?      @default(now()) @db.Timestamp(6)
   serial_no      BigInt         @id @default(autoincrement())
-  posts_metadata posts_metadata @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  posts          posts          @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("social")
 }
@@ -71,7 +75,7 @@ model saves {
   user_id        String         @db.Uuid
   post_id        String         @db.Uuid
   saved_at       DateTime?      @default(now()) @db.Timestamp(6)
-  posts_metadata posts_metadata @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  posts          posts          @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([user_id, post_id])
   @@index([user_id])
@@ -85,7 +89,7 @@ model shares {
   post_id        String         @db.Uuid
   shared_at      DateTime?      @default(now()) @db.Timestamp(6)
   share_message  String?        @db.VarChar(500)
-  posts_metadata posts_metadata @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  posts          posts          @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([user_id])
   @@index([post_id])
@@ -120,7 +124,7 @@ model reported_content {
   status           String?         @default("pending") @db.VarChar(20)
   created_at       DateTime        @default(now()) @db.Timestamp(6)
   post_id          String?         @db.Uuid
-  posts_metadata   posts_metadata? @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  posts            posts?          @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("social")
 }
@@ -152,7 +156,7 @@ model users {
   user_type         String?            @default("user")
   initial_balance   Float              @default(50000) @db.Real
   notifications     notifications[]
-  posts_metadata    posts_metadata[]
+  posts             posts[]
   user_analytics    user_analytics?
   user_audit_logs   user_audit_logs[]
   user_blocklist    user_blocklist?
