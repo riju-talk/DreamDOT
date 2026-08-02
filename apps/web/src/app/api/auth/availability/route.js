@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from "next/server"
-import { prismaUser } from "@/lib/prisma_user"
-import { validateEmail, validateUsername } from "@/lib/auth-validation"
+import { NextRequest, NextResponse } from 'next/server'
+import { prismaUser } from '@/lib/prisma_user'
+import { validateEmail, validateUsername } from '@/lib/auth-validation'
 
-export async function GET(request: NextRequest) {
-  const field = request.nextUrl.searchParams.get("field")
-  const rawValue = request.nextUrl.searchParams.get("value") ?? ""
+export async function GET(request) {
+  const field = request.nextUrl.searchParams.get('field')
+  const rawValue = request.nextUrl.searchParams.get('value') ?? ''
 
-  if (field !== "email" && field !== "username") {
+  if (field !== 'email' && field !== 'username') {
     return NextResponse.json(
       { error: "Invalid field. Use 'email' or 'username'." },
       { status: 400 }
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  if (field === "email") {
+  if (field === 'email') {
     const validation = validateEmail(value)
     if (!validation.isValid) {
       return NextResponse.json(

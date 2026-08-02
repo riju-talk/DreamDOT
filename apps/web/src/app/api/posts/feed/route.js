@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { PrismaClient } from '@/generated/social/client'
+import { PrismaClient, PrismaClientInitializationError } from '@/generated/social/client'
 
 const prisma = new PrismaClient()
 
@@ -35,59 +35,69 @@ export async function GET(request) {
 
     // For 'following' filter, only show posts from users being followed
     if (filter === 'following' && session?.user?.email) {
-      const user = await prisma.users.findUnique({
-        where: { email: session.user.email }
-      })
-
-      if (user) {
-        // Get list of users being followed
-        const following = await prisma.following.findMany({
-          where: { follower_id: user.id },
-          select: { followee_id: true },
+      try {
+        const user = await prisma.users.findUnique({
+          where: { email: session.user.email }
         })
 
-        const followeeIds = following.map(f => f.followee_id)
+        if (user) {
+          // Get list of users being followed
+          const following = await prisma.following.findMany({
+            where: { follower_id: user.id },
+            select: { followee_id: true },
+          })
 
-        // Include own posts + followed users' posts
-        query = {
-          AND: [
-            { visibility: true },
-            {
-              OR: [
-                { user_id: user.id },
-                { user_id: { in: followeeIds } },
-              ]
-            }
-          ]
+          const followeeIds = following.map(f => f.followee_id)
+
+          // Include own posts + followed users' posts
+          query = {
+            AND: [
+              { visibility: true },
+              {
+                OR: [
+                  { user_id: user.id },
+                  { user_id: { in: followeeIds } },
+                ]
+              }
+            ]
+          }
         }
+      } catch (error) {
+        console.error('Error fetching user following data:', error)
+        // Continue with default query if following data fetch fails
       }
     }
 
     // Apply search filter
     if (search.trim()) {
-      const searchRegex = search.trim()
+      const searchTerm = search.trim().toLowerCase()
       query = {
         AND: [
           query,
           {
-            OR: [
-              {
-                posts_analytics: {
-                  posts_metadata: {
-                    description: {
-                      search: searchRegex,
-                    }
-                  }
-                }
-              }
-            ]
+            description: {
+              contains: searchTerm,
+              mode: 'insensitive'
+            }
           }
         ]
       }
     }
 
-    // Get total count
-    const total = await prisma.posts_metadata.count({ where: query })
+    // Get total count with error handling
+    let total = 0
+    try {
+      total = await prisma.posts_metadata.count({ where: query })
+    } catch (error) {
+      console.error('Error counting posts:', error)
+      if (error instanceof PrismaClientInitializationError) {
+        return NextResponse.json(
+          { error: 'Database connection failed. Please try again later.' },
+          { status: 503 }
+        )
+      }
+      throw error
+    }
 
     // Determine sort order
     let orderBy = { created_at: 'desc' }
@@ -99,19 +109,31 @@ export async function GET(request) {
       ]
     }
 
-    // Query posts with pagination
-    const posts = await prisma.posts_metadata.findMany({
-      where: query,
-      include: {
-        users: {
-          select: { id: true, email: true }
+    // Query posts with pagination and error handling
+    let posts = []
+    try {
+      posts = await prisma.posts_metadata.findMany({
+        where: query,
+        include: {
+          users: {
+            select: { id: true, email: true }
+          },
+          posts_analytics: true,
         },
-        posts_analytics: true,
-      },
-      orderBy,
-      skip: (page - 1) * limit,
-      take: limit,
-    })
+        orderBy,
+        skip: (page - 1) * limit,
+        take: limit,
+      })
+    } catch (error) {
+      console.error('Error fetching posts:', error)
+      if (error instanceof PrismaClientInitializationError) {
+        return NextResponse.json(
+          { error: 'Database connection failed. Please try again later.' },
+          { status: 503 }
+        )
+      }
+      throw error
+    }
 
     // Format response
     const formattedPosts = posts.map(post => ({
@@ -128,8 +150,6 @@ export async function GET(request) {
       }
     }))
 
-    console.log(`✅ Fetched ${formattedPosts.length} feed posts (filter: ${filter})`)
-
     return NextResponse.json(
       {
         posts: formattedPosts,
@@ -137,12 +157,20 @@ export async function GET(request) {
         total,
         page,
         limit,
-        filter,
       },
       { status: 200 }
     )
   } catch (error) {
     console.error('Error fetching feed:', error)
+    
+    // Check if it's a database initialization error
+    if (error instanceof PrismaClientInitializationError) {
+      return NextResponse.json(
+        { error: 'Database connection failed. Please try again later.' },
+        { status: 503 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Failed to fetch feed' },
       { status: 500 }

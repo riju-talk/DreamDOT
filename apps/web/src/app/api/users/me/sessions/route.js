@@ -1,38 +1,55 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { prismaUser } from '@/lib/prisma_user'
 
-/**
- * GET /api/users/me/sessions
- * Fetch active sessions for current user
- */
-export async function GET(req) {
+export async function GET(request) {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
     }
 
-    // Mock sessions data - in production, would query database
+    const user = await prismaUser.users.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
+    })
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      )
+    }
+
+    // Mock sessions - in a real app, you'd track actual sessions in database
+    const userAgent = request.headers.get('user-agent') || 'Unknown'
+    const ipAddress = request.headers.get('x-forwarded-for') || 'Unknown'
+
     const sessions = [
       {
-        id: 'session_1',
-        device: 'Chrome on Windows',
-        ip: '192.168.1.1',
-        lastActive: new Date().toISOString(),
-        current: true,
-      },
-      {
-        id: 'session_2',
-        device: 'Safari on macOS',
-        ip: '192.168.1.2',
-        lastActive: new Date(Date.now() - 3600000).toISOString(),
-        current: false,
+        id: 'current',
+        deviceName: 'Current Device',
+        ipAddress,
+        userAgent,
+        lastActive: new Date(),
+        isCurrent: true,
       },
     ]
 
-    return NextResponse.json({ sessions })
+    return NextResponse.json(
+      { sessions },
+      { status: 200 }
+    )
   } catch (error) {
-    console.error('[API] Error fetching sessions:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error fetching sessions:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }

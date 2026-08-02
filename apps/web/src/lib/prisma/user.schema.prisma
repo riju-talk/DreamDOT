@@ -1,21 +1,42 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../../generated/user"
+  provider      = "prisma-client-js"
+  output        = "../generated/user"
   binaryTargets = ["native", "debian-openssl-3.0.x", "windows"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRESS_DB_USER")
+}
+
+model users {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                 String                  @unique
+  phone                 String?                 @unique
+  password_hash         String
+  created_at            DateTime                @default(now()) @db.Timestamp(6)
+  updated_at            DateTime                @default(now()) @db.Timestamp(6)
+  is_verified           Boolean?                @default(false)
+  is_active             Boolean?                @default(true)
+  pass_salts            String?
+  user_type             String?                 @default("user")
+  initial_balance       Float                   @default(50000) @db.Real
+  user_about            user_about?
+  user_analytics        user_analytics?
+  user_audit_logs       user_audit_logs[]
+  user_blocklist        user_blocklist?
+  user_certificates     user_certificates?
+  user_profile          user_profile?
+  user_security         user_security?
+  user_sessions         user_sessions[]
 }
 
 model user_about {
-  about_id   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id    String   @unique @db.Uuid
-  about      String?
-  goals      String?
-  skills     String[] @default([])
-  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  about_id String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id  String   @unique @db.Uuid
+  about    String?
+  goals    String?
+  skills   String[] @default([])
+  users    users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model user_analytics {
@@ -89,26 +110,4 @@ model user_sessions {
   is_revoked Boolean? @default(false)
   secret     String?
   users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-}
-
-model users {
-  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email                 String                  @unique
-  phone                 String?                 @unique
-  password_hash         String
-  created_at            DateTime                @default(now()) @db.Timestamp(6)
-  updated_at            DateTime                @default(now()) @db.Timestamp(6)
-  is_verified           Boolean?                @default(false)
-  is_active             Boolean?                @default(true)
-  pass_salts            String?
-  user_type             String?                 @default("user")
-  intitial_balance      Float                   @default(50000) @db.Real
-  user_about            user_about?
-  user_analytics        user_analytics?
-  user_audit_logs       user_audit_logs[]
-  user_blocklist        user_blocklist?
-  user_certificates     user_certificates?
-  user_profile          user_profile?
-  user_security         user_security?
-  user_sessions         user_sessions[]
 }

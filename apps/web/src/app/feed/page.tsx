@@ -39,7 +39,6 @@ interface Comment {
   timestamp: string
 }
 
-// Loading skeleton component
 function PostSkeleton() {
   return (
     <Card className="border border-border bg-card overflow-hidden">
@@ -73,24 +72,20 @@ export default function FeedPage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [retrying, setRetrying] = useState(false)
-  
-  // Comment modal state
   const [commentModalOpen, setCommentModalOpen] = useState(false)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
   const [commentText, setCommentText] = useState("")
   const [submittingComment, setSubmittingComment] = useState(false)
   const [loadingComments, setLoadingComments] = useState(false)
-  
+
   const { ref, inView } = useInView()
   const searchTimeoutRef = useRef<NodeJS.Timeout>()
 
-  // Get post IDs for like fetching
   const postIds = posts.map(p => p.id)
   const { likes, toggleLike } = useLikes(postIds)
   const { engagement, toggleSave, toggleShare } = useEngagement(postIds)
 
-  // Fetch posts from API
   const fetchPosts = useCallback(
     async (pageNum: number, reset: boolean = false) => {
       try {
@@ -102,10 +97,20 @@ export default function FeedPage() {
           search,
         })
 
-        const response = await fetch(`/api/posts/feed?${query}`)
-        if (!response.ok) throw new Error("Failed to fetch posts")
+        const response = await fetch(`/api/posts/feed?${query}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        })
 
-        const data: FeedResponse = await response.json()
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: Failed to fetch posts`)
+        }
+
+        const data = await response.json()
+
+        if (!data.posts || !Array.isArray(data.posts)) {
+          throw new Error("Invalid response format from server")
+        }
 
         if (reset) {
           setPosts(data.posts)
@@ -113,10 +118,11 @@ export default function FeedPage() {
         } else {
           setPosts((prev) => [...prev, ...data.posts])
         }
-        setHasMore(data.hasMore)
+        setHasMore(data.hasMore ?? false)
       } catch (error) {
         console.error("Error fetching posts:", error)
-        setError("Failed to load posts. Please try again.")
+        const message = error instanceof Error ? error.message : "Failed to load posts. Please try again."
+        setError(message)
       } finally {
         setLoading(false)
         setLoadingMore(false)
@@ -126,13 +132,11 @@ export default function FeedPage() {
     [filter, search]
   )
 
-  // Initial load
   useEffect(() => {
     setLoading(true)
     fetchPosts(1, true)
   }, [filter, search, fetchPosts])
 
-  // Infinite scroll
   useEffect(() => {
     if (inView && hasMore && !loadingMore && !loading) {
       setLoadingMore(true)
@@ -141,7 +145,6 @@ export default function FeedPage() {
     }
   }, [inView, hasMore, loadingMore, loading, page, fetchPosts])
 
-  // Handle search with debounce
   const handleSearch = (value: string) => {
     setSearch(value)
     if (searchTimeoutRef.current) {
@@ -152,33 +155,37 @@ export default function FeedPage() {
     }, 500)
   }
 
-  // Retry fetching
   const handleRetry = () => {
     setRetrying(true)
     setLoading(true)
     fetchPosts(1, true)
   }
 
-  // Open comment modal
   const openCommentModal = async (post: Post) => {
     setSelectedPost(post)
     setCommentModalOpen(true)
     setLoadingComments(true)
-    
+
     try {
-      const response = await fetch(`/api/posts/${post.id}/comment?page=1&limit=50`)
+      const response = await fetch(`/api/posts/${post.id}/comment?page=1&limit=50`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      })
+      
       if (response.ok) {
         const data = await response.json()
-        setComments(data.comments || [])
+        setComments(Array.isArray(data.comments) ? data.comments : [])
+      } else {
+        setComments([])
       }
     } catch (error) {
       console.error("Error loading comments:", error)
+      setComments([])
     } finally {
       setLoadingComments(false)
     }
   }
 
-  // Submit comment
   const handleSubmitComment = async () => {
     if (!selectedPost || !commentText.trim()) return
 
@@ -190,16 +197,26 @@ export default function FeedPage() {
         body: JSON.stringify({ text: commentText }),
       })
 
-      if (response.ok) {
-        const data = await response.json()
+      if (!response.ok) {
+        throw new Error(`Failed to submit comment: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      if (data.comment) {
         setComments([...comments, data.comment])
         setCommentText("")
       }
     } catch (error) {
       console.error("Error submitting comment:", error)
+      const errorMessage = error instanceof Error ? error.message : "Failed to post comment"
+      setError(errorMessage)
     } finally {
       setSubmittingComment(false)
     }
+  }
+
+  const handleToggleLike = (postId: string) => {
+    toggleLike(postId)
   }
 
   const containerVariants = {
@@ -218,11 +235,8 @@ export default function FeedPage() {
   return (
     <AuthenticatedLayout>
       <div className="min-h-screen bg-background">
-        {/* Feed Content */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Filter Tabs and Search */}
           <div className="space-y-4 mb-8 sticky top-0 z-40 bg-background pt-4 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
-            {/* Filter Tabs */}
             <div className="flex gap-2 border-b border-border overflow-x-auto">
               {(["following", "for-you", "trending"] as const).map((f) => (
                 <button
@@ -239,7 +253,6 @@ export default function FeedPage() {
               ))}
             </div>
 
-            {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
@@ -252,7 +265,6 @@ export default function FeedPage() {
             </div>
           </div>
 
-          {/* Error State */}
           {error && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -275,7 +287,6 @@ export default function FeedPage() {
             </motion.div>
           )}
 
-          {/* Loading State */}
           {loading && posts.length === 0 ? (
             <div className="space-y-6">
               {[...Array(3)].map((_, i) => (
@@ -296,7 +307,7 @@ export default function FeedPage() {
               ) : (
                 posts.map((post) => (
                   <motion.div key={post.id} variants={itemVariants}>
-                    <Card className="border border-border bg-card hover:border-primary transition-all overflow-hidden group dream-card">
+                    <Card className="border border-border bg-card hover:border-primary transition-all overflow-hidden group">
                       <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -332,14 +343,14 @@ export default function FeedPage() {
 
                       <CardContent className="space-y-4">
                         {post.title && (
-                          <div>
-                            <h2 className="text-lg sm:text-2xl font-bold mb-2 text-foreground group-hover:text-primary transition-colors cursor-pointer line-clamp-2">
-                              {post.title}
-                            </h2>
-                          </div>
+                          <h2 className="text-lg sm:text-2xl font-bold mb-2 text-foreground group-hover:text-primary transition-colors cursor-pointer line-clamp-2">
+                            {post.title}
+                          </h2>
                         )}
 
-                        <p className="text-foreground leading-relaxed line-clamp-3 sm:line-clamp-none">{post.content}</p>
+                        <p className="text-foreground leading-relaxed line-clamp-3 sm:line-clamp-none">
+                          {post.content}
+                        </p>
 
                         {post.media && post.media.length > 0 && (
                           <div className="relative w-full h-48 sm:h-64 rounded-lg overflow-hidden bg-muted">
@@ -353,13 +364,11 @@ export default function FeedPage() {
                           </div>
                         )}
 
-                        {/* Engagement Stats */}
                         <div className="flex items-center justify-between pt-4 text-xs sm:text-sm text-muted-foreground border-t border-border">
                           <span>{likes[post.id]?.count || 0} likes</span>
                           <span>{comments.length || 0} comments</span>
                         </div>
 
-                        {/* Actions */}
                         <div className="flex gap-1 sm:gap-2 pt-4 border-t border-border">
                           <Button
                             variant="ghost"
@@ -369,9 +378,7 @@ export default function FeedPage() {
                           >
                             <Heart
                               className={`h-4 w-4 mr-1 sm:mr-2 transition-colors ${
-                                likes[post.id]?.liked
-                                  ? "fill-primary text-primary"
-                                  : ""
+                                likes[post.id]?.liked ? "fill-primary text-primary" : ""
                               }`}
                             />
                             <span className="hidden sm:inline">Like</span>
@@ -393,9 +400,7 @@ export default function FeedPage() {
                           >
                             <Share2
                               className={`h-4 w-4 mr-1 sm:mr-2 transition-colors ${
-                                engagement[post.id]?.shares.shared
-                                  ? "fill-primary text-primary"
-                                  : ""
+                                engagement[post.id]?.shares.shared ? "fill-primary text-primary" : ""
                               }`}
                             />
                             <span className="hidden sm:inline">Share</span>
@@ -408,9 +413,7 @@ export default function FeedPage() {
                           >
                             <Bookmark
                               className={`h-4 w-4 mr-1 sm:mr-2 transition-colors ${
-                                engagement[post.id]?.saves.saved
-                                  ? "fill-primary text-primary"
-                                  : ""
+                                engagement[post.id]?.saves.saved ? "fill-primary text-primary" : ""
                               }`}
                             />
                             <span className="hidden sm:inline">Save</span>
@@ -422,7 +425,6 @@ export default function FeedPage() {
                 ))
               )}
 
-              {/* Infinite Scroll Trigger */}
               {hasMore && (
                 <div ref={ref} className="text-center py-8">
                   {loadingMore && (
@@ -434,7 +436,6 @@ export default function FeedPage() {
           )}
         </div>
 
-        {/* Comment Modal */}
         <Dialog open={commentModalOpen} onOpenChange={setCommentModalOpen}>
           <DialogContent className="bg-card border border-border max-w-md sm:max-w-lg">
             <DialogHeader>
@@ -466,7 +467,6 @@ export default function FeedPage() {
               )}
             </div>
 
-            {/* Comment Input */}
             <div className="border-t border-border pt-4 space-y-3">
               <textarea
                 placeholder="Add a comment..."
@@ -478,284 +478,7 @@ export default function FeedPage() {
               <Button
                 onClick={handleSubmitComment}
                 disabled={!commentText.trim() || submittingComment}
-                className="w-full dream-button"
-              >
-                {submittingComment ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Posting...
-                  </>
-                ) : (
-                  "Post Comment"
-                )}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </AuthenticatedLayout>
-  )
-        {/* Feed Content */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Filter Tabs and Search */}
-          <div className="space-y-4 mb-8 sticky top-0 z-40 bg-[#121412] dark:bg-[#0a0f1f] pt-4 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
-            {/* Filter Tabs */}
-            <div className="flex gap-2 border-b border-[#2a2826] overflow-x-auto">
-              {(["following", "for-you", "trending"] as const).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`px-4 py-3 font-semibold text-sm capitalize transition-colors border-b-2 whitespace-nowrap ${
-                    filter === f
-                      ? "border-[#99FF33] text-[#99FF33]"
-                      : "border-transparent text-[#6B8E6E] hover:text-[#99FF33]"
-                  }`}
-                >
-                  {f === "for-you" ? "For You" : f === "following" ? "Following" : "Trending"}
-                </button>
-              ))}
-            </div>
-
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#6B8E6E]" />
-              <input
-                type="text"
-                placeholder="Search posts..."
-                value={search}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-[#1a1918] border border-[#2a2826] text-[#FFFFFF] placeholder-[#6B8E6E] rounded-lg focus:border-[#99FF33] focus:outline-none transition-colors"
-              />
-            </div>
-          </div>
-
-          {/* Error State */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-8 p-4 bg-red-900/20 border border-red-700/50 rounded-lg flex items-center gap-3"
-            >
-              <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-[#FFFFFF]">{error}</p>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleRetry}
-                disabled={retrying}
-                className="text-[#99FF33] border-[#99FF33] hover:bg-[#99FF33]/10"
-              >
-                {retrying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Retry"}
-              </Button>
-            </motion.div>
-          )}
-
-          {/* Loading State */}
-          {loading && posts.length === 0 ? (
-            <div className="space-y-6">
-              {[...Array(3)].map((_, i) => (
-                <PostSkeleton key={i} />
-              ))}
-            </div>
-          ) : (
-            <motion.div
-              className="space-y-6"
-              initial="hidden"
-              animate="visible"
-              variants={containerVariants}
-            >
-              {posts.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-[#6B8E6E]">No posts found. Try a different filter or search term.</p>
-                </div>
-              ) : (
-                posts.map((post) => (
-                  <motion.div key={post.id} variants={itemVariants}>
-                    <Card className="border border-[#2a2826] bg-[#1a1918] hover:border-[#99FF33] transition-all overflow-hidden group">
-                      <CardHeader className="pb-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="relative w-10 h-10 rounded-full bg-[#6B8E6E] overflow-hidden flex-shrink-0">
-                              {post.author?.avatar && (
-                                <Image
-                                  src={post.author.avatar}
-                                  alt={post.author?.name || "User"}
-                                  fill
-                                  className="object-cover"
-                                  unoptimized
-                                />
-                              )}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-semibold text-sm text-[#FFFFFF]">
-                                {post.author?.name || "Anonymous"}
-                              </p>
-                              <p className="text-xs text-[#6B8E6E]">
-                                {new Date(post.createdAt).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-[#6B8E6E] hover:text-[#99FF33] hover:bg-[#2a2826]"
-                          >
-                            Follow
-                          </Button>
-                        </div>
-                      </CardHeader>
-
-                      <CardContent className="space-y-4">
-                        {post.title && (
-                          <div>
-                            <h2 className="text-lg sm:text-2xl font-bold mb-2 text-[#FFFFFF] group-hover:text-[#99FF33] transition-colors cursor-pointer line-clamp-2">
-                              {post.title}
-                            </h2>
-                          </div>
-                        )}
-
-                        <p className="text-[#FFFFFF] leading-relaxed line-clamp-3 sm:line-clamp-none">{post.content}</p>
-
-                        {post.media && post.media.length > 0 && (
-                          <div className="relative w-full h-48 sm:h-64 rounded-lg overflow-hidden bg-[#2a2826]">
-                            <Image
-                              src={post.media[0].url}
-                              alt={post.media[0].alt || "Post image"}
-                              fill
-                              className="object-cover group-hover:scale-105 transition-transform duration-300"
-                              unoptimized
-                            />
-                          </div>
-                        )}
-
-                        {/* Engagement Stats */}
-                        <div className="flex items-center justify-between pt-4 text-xs sm:text-sm text-[#6B8E6E] border-t border-[#2a2826]">
-                          <span>{likes[post.id]?.count || 0} likes</span>
-                          <span>{comments.length || 0} comments</span>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-1 sm:gap-2 pt-4 border-t border-[#2a2826]">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="flex-1 text-[#6B8E6E] hover:text-[#99FF33] hover:bg-[#2a2826] text-xs sm:text-sm"
-                            onClick={() => handleToggleLike(post.id)}
-                          >
-                            <Heart
-                              className={`h-4 w-4 mr-1 sm:mr-2 transition-colors ${
-                                likes[post.id]?.liked
-                                  ? "fill-[#99FF33] text-[#99FF33]"
-                                  : ""
-                              }`}
-                            />
-                            <span className="hidden sm:inline">Like</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="flex-1 text-[#6B8E6E] hover:text-[#99FF33] hover:bg-[#2a2826] text-xs sm:text-sm"
-                            onClick={() => openCommentModal(post)}
-                          >
-                            <MessageCircle className="h-4 w-4 mr-1 sm:mr-2" />
-                            <span className="hidden sm:inline">Comment</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="flex-1 text-[#6B8E6E] hover:text-[#99FF33] hover:bg-[#2a2826] text-xs sm:text-sm"
-                            onClick={() => toggleShare(post.id)}
-                          >
-                            <Share2
-                              className={`h-4 w-4 mr-1 sm:mr-2 transition-colors ${
-                                engagement[post.id]?.shares.shared
-                                  ? "fill-[#99FF33] text-[#99FF33]"
-                                  : ""
-                              }`}
-                            />
-                            <span className="hidden sm:inline">Share</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="flex-1 text-[#6B8E6E] hover:text-[#99FF33] hover:bg-[#2a2826] text-xs sm:text-sm"
-                            onClick={() => toggleSave(post.id)}
-                          >
-                            <Bookmark
-                              className={`h-4 w-4 mr-1 sm:mr-2 transition-colors ${
-                                engagement[post.id]?.saves.saved
-                                  ? "fill-[#99FF33] text-[#99FF33]"
-                                  : ""
-                              }`}
-                            />
-                            <span className="hidden sm:inline">Save</span>
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))
-              )}
-
-              {/* Infinite Scroll Trigger */}
-              {hasMore && (
-                <div ref={ref} className="text-center py-8">
-                  {loadingMore && (
-                    <Loader2 className="h-6 w-6 animate-spin text-[#99FF33] mx-auto" />
-                  )}
-                </div>
-              )}
-            </motion.div>
-          )}
-        </div>
-
-        {/* Comment Modal */}
-        <Dialog open={commentModalOpen} onOpenChange={setCommentModalOpen}>
-          <DialogContent className="bg-[#1a1918] border border-[#2a2826] max-w-md sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle className="text-[#FFFFFF]">Comments</DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {loadingComments ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-[#99FF33]" />
-                </div>
-              ) : comments.length === 0 ? (
-                <p className="text-center text-[#6B8E6E] py-8">No comments yet. Be the first!</p>
-              ) : (
-                comments.map((comment) => (
-                  <div key={comment.id} className="space-y-2">
-                    <div className="flex items-start gap-2">
-                      <div className="flex-1">
-                        <p className="font-semibold text-sm text-[#FFFFFF]">{comment.userName}</p>
-                        <p className="text-xs text-[#6B8E6E]">
-                          {new Date(comment.timestamp).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="text-sm text-[#FFFFFF] leading-relaxed">{comment.text}</p>
-                    <div className="border-t border-[#2a2826]" />
-                  </div>
-                ))
-              )}
-            </div>
-
-            {/* Comment Input */}
-            <div className="border-t border-[#2a2826] pt-4 space-y-3">
-              <textarea
-                placeholder="Add a comment..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                className="w-full bg-[#0a0f1f] border border-[#2a2826] text-[#FFFFFF] placeholder-[#6B8E6E] rounded-lg p-3 focus:border-[#99FF33] focus:outline-none transition-colors text-sm resize-none"
-                rows={3}
-              />
-              <Button
-                onClick={handleSubmitComment}
-                disabled={!commentText.trim() || submittingComment}
-                className="w-full bg-[#99FF33] text-[#121412] hover:bg-[#99FF33]/90 font-semibold"
+                className="w-full"
               >
                 {submittingComment ? (
                   <>

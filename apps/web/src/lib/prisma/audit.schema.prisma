@@ -1,0 +1,51 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/audit"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "windows"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model audit_logs {
+  audit_id     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String?  @db.Uuid
+  action_type  String
+  resource     String?
+  resource_id  String?  @db.Uuid
+  details      Json?    @default("{}")
+  performed_by String?  @db.Uuid
+  event_time   DateTime @default(now()) @db.Timestamp(6)
+}
+
+model api_logs {
+  log_id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String?  @db.Uuid
+  endpoint      String
+  method        String   @db.VarChar(10)
+  status_code   Int
+  response_time Int?
+  error_message String?
+  created_at    DateTime @default(now()) @db.Timestamp(6)
+}
+
+model access_logs {
+  log_id    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id   String   @db.Uuid
+  resource  String
+  action    String   @db.VarChar(50)
+  status    String   @db.VarChar(20)
+  ip_address String?
+  created_at DateTime @default(now()) @db.Timestamp(6)
+}
+
+model error_logs {
+  log_id      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  service     String
+  error_type  String
+  message     String
+  stack_trace String?
+  user_id     String?  @db.Uuid
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+}

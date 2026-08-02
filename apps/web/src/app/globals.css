@@ -108,6 +108,59 @@
   /* Dark mode already set as default */
 }
 
+@media (prefers-color-scheme: light) {
+  :root:not(.dark) {
+    /* Light Mode Color Scheme */
+    --background: #FFFFFF;
+    --foreground: #0F0E0D;
+
+    --card: #F5F3F1;
+    --card-foreground: #0F0E0D;
+
+    --popover: #FFFFFF;
+    --popover-foreground: #0F0E0D;
+
+    --primary: #7ABF33;
+    --primary-foreground: #FFFFFF;
+
+    --secondary: #5A7D5D;
+    --secondary-foreground: #FFFFFF;
+
+    --muted: #E8E6E3;
+    --muted-foreground: #8B9B8E;
+
+    --accent: #7ABF33;
+    --accent-foreground: #FFFFFF;
+
+    --destructive: #DC2626;
+    --destructive-foreground: #FFFFFF;
+
+    --border: #E8E6E3;
+    --input: #F5F3F1;
+    --ring: #7ABF33;
+
+    --chart-1: #7ABF33;
+    --chart-2: #5A7D5D;
+    --chart-3: #E8E6E3;
+    --chart-4: #F5F3F1;
+    --chart-5: #0F0E0D;
+
+    --sidebar: #F5F3F1;
+    --sidebar-foreground: #0F0E0D;
+    --sidebar-primary: #7ABF33;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #E8E6E3;
+    --sidebar-accent-foreground: #7ABF33;
+    --sidebar-border: #E8E6E3;
+    --sidebar-ring: #7ABF33;
+
+    --shadow-glow: 0 0 30px -8px rgba(122, 191, 51, 0.2);
+    --shadow-float: 0 8px 32px -12px rgba(0, 0, 0, 0.08);
+    --shadow-float-lg: 0 20px 60px -20px rgba(0, 0, 0, 0.1);
+    --shadow-glow-lg: 0 0 60px -10px rgba(122, 191, 51, 0.1);
+  }
+}
+
 @layer utilities {
   .animation-delay-2000 {
     animation-delay: 2s;

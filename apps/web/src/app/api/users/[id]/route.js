@@ -1,14 +1,11 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { prismaUser } from '@/lib/prisma_user';
+import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { prismaUser } from '@/lib/prisma_user'
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ userId: string }> }
-) {
+export async function GET(_request, { params }) {
   try {
-    const { userId } = await params;
+    const { id: userId } = await params
 
     const user = await prismaUser.users.findUnique({
       where: { id: userId },
@@ -28,33 +25,33 @@ export async function GET(
         },
         created_at: true,
       },
-    });
+    })
 
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
-      );
+      )
     }
 
     // Get follower/following counts
     const followerCount = await prismaUser.following.count({
       where: { followee_id: userId },
-    });
+    })
 
     const followingCount = await prismaUser.following.count({
       where: { follower_id: userId },
-    });
+    })
 
     // Check if current user is following this user
-    const session = await getServerSession(authOptions);
-    let isFollowing = false;
+    const session = await getServerSession(authOptions)
+    let isFollowing = false
 
     if (session?.user?.email) {
       const currentUser = await prismaUser.users.findUnique({
         where: { email: session.user.email },
         select: { id: true },
-      });
+      })
 
       if (currentUser && currentUser.id !== userId) {
         const follow = await prismaUser.following.findFirst({
@@ -62,8 +59,8 @@ export async function GET(
             follower_id: currentUser.id,
             followee_id: userId,
           },
-        });
-        isFollowing = !!follow;
+        })
+        isFollowing = !!follow
       }
     }
 
@@ -80,12 +77,12 @@ export async function GET(
         isFollowing,
       },
       { status: 200 }
-    );
+    )
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    console.error('Error fetching user profile:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
-    );
+    )
   }
 }

@@ -114,20 +114,20 @@ const footerGroups = [
 
 export function LandingPage() {
   return (
-    <main className="min-h-screen overflow-hidden bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
+    <main className="min-h-screen overflow-hidden bg-background text-foreground selection:bg-emerald-600 dark:selection:bg-emerald-500 selection:text-white">
       <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute -left-40 -top-40 h-[40rem] w-[40rem] rounded-full bg-primary/10 blur-[160px]" />
-        <div className="absolute -right-32 top-1/3 h-[35rem] w-[35rem] rounded-full bg-primary/5 blur-[160px]" />
+        <div className="absolute -left-40 -top-40 h-[40rem] w-[40rem] rounded-full bg-emerald-600/10 dark:bg-emerald-500/10 blur-[160px]" />
+        <div className="absolute -right-32 top-1/3 h-[35rem] w-[35rem] rounded-full bg-emerald-600/5 dark:bg-emerald-500/5 blur-[160px]" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent,color-mix(in_srgb,var(--background)_92%_transparent)_68%,var(--background))]" />
       </div>
 
       <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:px-6">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between rounded-[2rem] border border-border bg-card/80 px-4 shadow-[var(--shadow-float)] backdrop-blur-2xl sm:px-6">
           <Link href="/" className="flex items-center gap-3" aria-label="DreamDOT home">
-            <span className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-glow">
+            <span className="flex size-8 items-center justify-center rounded-full bg-emerald-600 dark:bg-emerald-500 text-white shadow-glow">
               <Sparkles className="size-4" />
             </span>
-            <span className="font-serif text-xl font-black italic text-primary">DreamDOT</span>
+            <span className="font-serif text-xl font-black italic text-emerald-700 dark:text-emerald-400">DreamDOT</span>
           </Link>
 
           <div className="hidden items-center gap-7 md:flex">
@@ -152,7 +152,7 @@ export function LandingPage() {
             </Button>
             <Button
               asChild
-              className="h-10 rounded-full bg-primary px-5 text-xs font-black uppercase tracking-[0.12em] text-primary-foreground shadow-glow hover:bg-primary/90"
+              className="h-10 rounded-full bg-emerald-600 dark:bg-emerald-500 px-5 text-xs font-black uppercase tracking-[0.12em] text-white shadow-glow hover:bg-emerald-700 dark:hover:bg-emerald-600"
             >
               <Link href="/auth/register">Start</Link>
             </Button>
@@ -168,16 +168,16 @@ export function LandingPage() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="max-w-3xl"
           >
-            <div className="mb-8 inline-flex items-center gap-3 border border-primary/25 bg-primary/10 px-4 py-2">
-              <span className="h-px w-10 bg-primary" />
-              <span className="text-xs font-black uppercase tracking-[0.28em] text-primary">
+            <div className="mb-8 inline-flex items-center gap-3 border border-emerald-600/25 dark:border-emerald-400/25 bg-emerald-600/10 dark:bg-emerald-500/10 px-4 py-2">
+              <span className="h-px w-10 bg-emerald-600 dark:bg-emerald-400" />
+              <span className="text-xs font-black uppercase tracking-[0.28em] text-emerald-600 dark:text-emerald-400">
                 Creator-first atelier
               </span>
             </div>
 
             <h1 className="max-w-4xl font-serif text-[clamp(4rem,12vw,10rem)] font-black italic leading-[0.78] tracking-normal text-foreground">
               Unbind
-              <span className="block font-sans not-italic text-[clamp(3.4rem,10vw,8.8rem)] leading-[0.85] text-primary">
+              <span className="block font-sans not-italic text-[clamp(3.4rem,10vw,8.8rem)] leading-[0.85] text-emerald-600 dark:text-emerald-400">
                 the work.
               </span>
             </h1>
@@ -190,7 +190,7 @@ export function LandingPage() {
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Button
                 asChild
-                className="h-13 rounded-none bg-primary px-7 text-sm font-black uppercase tracking-[0.12em] text-primary-foreground shadow-glow hover:bg-primary/90"
+                className="h-13 rounded-none bg-emerald-600 dark:bg-emerald-500 px-7 text-sm font-black uppercase tracking-[0.12em] text-white shadow-glow hover:bg-emerald-700 dark:hover:bg-emerald-600"
               >
                 <Link href="/auth/register">
                   Join The Atelier
@@ -214,7 +214,7 @@ export function LandingPage() {
                     key={mode.label}
                     className="inline-flex items-center gap-2 border border-border bg-foreground/5 px-3 py-2 text-xs font-bold text-muted-foreground"
                   >
-                    <Icon className="size-3.5 text-primary" />
+                    <Icon className="size-3.5 text-emerald-600 dark:text-emerald-400" />
                     {mode.label}
                   </span>
                 )
@@ -532,13 +532,13 @@ export function LandingPage() {
           <div className="mt-12 flex flex-col gap-5 border-t border-border pt-6 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
             <p>© 2026 DreamDOT. Built for the weightless creative.</p>
             <div className="flex flex-wrap gap-5 font-bold uppercase tracking-[0.16em]">
-              <Link href="#trust" className="hover:text-primary">
+              <Link href="/privacy" className="hover:text-emerald-600 dark:hover:text-emerald-400">
                 Privacy
               </Link>
-              <Link href="#earn" className="hover:text-primary">
+              <Link href="/terms" className="hover:text-emerald-600 dark:hover:text-emerald-400">
                 Terms
               </Link>
-              <Link href="/settings" className="hover:text-primary">
+              <Link href="/settings" className="hover:text-emerald-600 dark:hover:text-emerald-400">
                 Account
               </Link>
             </div>

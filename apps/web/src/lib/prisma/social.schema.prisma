@@ -1,23 +1,43 @@
 generator client {
   provider        = "prisma-client-js"
-  output          = "../../generated/social"
+  output          = "../generated/social"
   previewFeatures = ["multiSchema"]
-  binaryTargets = ["native", "debian-openssl-3.0.x", "windows"]
+  binaryTargets   = ["native", "debian-openssl-3.0.x", "windows"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRESS_DB_SOCIAL")
   schemas  = ["social", "user_d"]
 }
 
-model blocking {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  blocker_id String   @db.Uuid
-  blocked_id String   @db.Uuid
-  created_at DateTime @default(now()) @db.Timestamp(6)
+// ==================== SOCIAL SCHEMA ====================
 
-  @@unique([blocker_id, blocked_id])
+model posts_metadata {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id          String             @db.Uuid
+  description      String?
+  visibility       Boolean            @default(true)
+  created_at       DateTime           @default(now()) @db.Timestamp(6)
+  updated_at       DateTime           @default(now()) @db.Timestamp(6)
+  comments         comments[]
+  likes            likes[]
+  saves            saves[]
+  shares           shares[]
+  posts_analytics  posts_analytics?
+  users            users              @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reported_content reported_content[]
+
+  @@schema("social")
+}
+
+model posts_analytics {
+  post_id        String         @id @db.Uuid
+  views_count    Int?           @default(0)
+  likes_count    Int?           @default(0)
+  comments_count Int?           @default(0)
+  updated_at     DateTime       @default(now()) @db.Timestamp(6)
+  posts_metadata posts_metadata @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
   @@schema("social")
 }
 
@@ -35,16 +55,6 @@ model comments {
   @@schema("social")
 }
 
-model following {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  follower_id String    @db.Uuid
-  followee_id String    @db.Uuid
-  followed_at DateTime? @default(now()) @db.Timestamp(6)
-
-  @@unique([follower_id, followee_id])
-  @@schema("social")
-}
-
 model likes {
   user_id        String         @db.Uuid
   post_id        String         @db.Uuid
@@ -55,42 +65,49 @@ model likes {
   @@schema("social")
 }
 
-model notifications {
-  notification_id      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id              String   @db.Uuid
-  notification_type    String?  @db.VarChar(50)
-  notification_content String?
-  is_read              Boolean? @default(false)
-  created_at           DateTime @default(now()) @db.Timestamp(6)
-  users                users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@schema("social")
-}
-
-model posts_analytics {
-  post_id        String         @id @db.Uuid
-  views_count    Int?           @default(0)
-  likes_count    Int?           @default(0)
-  comments_count Int?           @default(0)
-  updated_at     DateTime       @default(now()) @db.Timestamp(6)
+model saves {
+  save_id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String         @db.Uuid
+  post_id        String         @db.Uuid
+  saved_at       DateTime?      @default(now()) @db.Timestamp(6)
   posts_metadata posts_metadata @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
+  @@unique([user_id, post_id])
+  @@index([user_id])
+  @@index([post_id])
   @@schema("social")
 }
 
-model posts_metadata {
-  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id          String             @db.Uuid
-  description      String?
-  visibility       Boolean            @default(true)
-  created_at       DateTime           @default(now()) @db.Timestamp(6)
-  updated_at       DateTime           @default(now()) @db.Timestamp(6)
-  comments         comments[]
-  likes            likes[]
-  posts_analytics  posts_analytics?
-  users            users              @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  reported_content reported_content[]
+model shares {
+  share_id       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String         @db.Uuid
+  post_id        String         @db.Uuid
+  shared_at      DateTime?      @default(now()) @db.Timestamp(6)
+  share_message  String?        @db.VarChar(500)
+  posts_metadata posts_metadata @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
+  @@index([user_id])
+  @@index([post_id])
+  @@schema("social")
+}
+
+model following {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  follower_id String    @db.Uuid
+  followee_id String    @db.Uuid
+  followed_at DateTime? @default(now()) @db.Timestamp(6)
+
+  @@unique([follower_id, followee_id])
+  @@schema("social")
+}
+
+model blocking {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  blocker_id String   @db.Uuid
+  blocked_id String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamp(6)
+
+  @@unique([blocker_id, blocked_id])
   @@schema("social")
 }
 
@@ -107,6 +124,46 @@ model reported_content {
   @@schema("social")
 }
 
+model notifications {
+  notification_id      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id              String   @db.Uuid
+  notification_type    String?  @db.VarChar(50)
+  notification_content String?
+  is_read              Boolean? @default(false)
+  created_at           DateTime @default(now()) @db.Timestamp(6)
+  users                users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("social")
+}
+
+// ==================== USER_D SCHEMA (Cross-reference) ====================
+
+model users {
+  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email             String             @unique
+  phone             String?            @unique
+  password_hash     String
+  created_at        DateTime           @default(now()) @db.Timestamp(6)
+  updated_at        DateTime           @default(now()) @db.Timestamp(6)
+  is_verified       Boolean?           @default(false)
+  is_active         Boolean?           @default(true)
+  pass_salts        String?
+  user_type         String?            @default("user")
+  initial_balance   Float              @default(50000) @db.Real
+  notifications     notifications[]
+  posts_metadata    posts_metadata[]
+  user_analytics    user_analytics?
+  user_audit_logs   user_audit_logs[]
+  user_blocklist    user_blocklist?
+  user_certificates user_certificates?
+  user_profile      user_profile?
+  user_security     user_security?
+  user_sessions     user_sessions[]
+  user_about        user_about?
+
+  @@schema("user_d")
+}
+
 model user_analytics {
   user_id         String    @id @db.Uuid
   posts_count     Int?      @default(0)
@@ -121,12 +178,12 @@ model user_analytics {
 }
 
 model user_about {
-  about_id   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id    String   @unique @db.Uuid
-  about      String?
-  goals      String?
-  skills     String[] @default([])
-  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  about_id String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id  String   @unique @db.Uuid
+  about    String?
+  goals    String?
+  skills   String[] @default([])
+  users    users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("user_d")
 }
@@ -201,32 +258,6 @@ model user_sessions {
   is_revoked Boolean? @default(false)
   secret     String?
   users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@schema("user_d")
-}
-
-model users {
-  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email                 String                  @unique
-  phone                 String?                 @unique
-  password_hash         String
-  created_at            DateTime                @default(now()) @db.Timestamp(6)
-  updated_at            DateTime                @default(now()) @db.Timestamp(6)
-  is_verified           Boolean?                @default(false)
-  is_active             Boolean?                @default(true)
-  pass_salts            String?
-  user_type             String?                 @default("user")
-  intitial_balance      Float                   @default(50000) @db.Real
-  notifications         notifications[]
-  posts_metadata        posts_metadata[]
-  user_analytics        user_analytics?
-  user_audit_logs       user_audit_logs[]
-  user_blocklist        user_blocklist?
-  user_certificates     user_certificates?
-  user_profile          user_profile?
-  user_security         user_security?
-  user_sessions         user_sessions[]
-  user_about            user_about?
 
   @@schema("user_d")
 }

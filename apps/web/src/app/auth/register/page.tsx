@@ -15,7 +15,7 @@ import { OAuthButtons } from "../../../components/auth/OAuthButtons"
 import { ModeToggle } from "@/components/mode-toggle"
 
 const fieldClass =
-  "h-12 rounded-xl border-[#dfe6d8] bg-white/85 px-4 text-[#101611] placeholder:text-[#778471] focus-visible:ring-[#60d435] dark:border-[#f5f2e8]/12 dark:bg-[#060907]/75 dark:text-[#f5f2e8] dark:placeholder:text-[#7f907b] dark:focus-visible:ring-[#8cff4d]"
+  "h-12 rounded-xl border-emerald-200 dark:border-emerald-900/30 bg-white/85 px-4 text-slate-900 placeholder:text-slate-500 focus-visible:ring-emerald-500 dark:bg-slate-950/75 dark:text-slate-50 dark:placeholder:text-slate-400 dark:focus-visible:ring-emerald-600"
 
 const registerImage =
   "https://res.cloudinary.com/diaoy8eua/image/upload/v1750944374/pexels-lukasfst-19635556_ywjhpd.jpg"
@@ -153,7 +153,7 @@ export default function RegisterPage() {
 
   if (status === "loading") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f5f7f0] text-[#4dbb21] dark:bg-[#090d0a] dark:text-[#8cff4d]">
+      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-slate-950 text-emerald-600 dark:text-emerald-400">
         <Loader2 className="size-6 animate-spin" />
       </div>
     )
@@ -161,50 +161,54 @@ export default function RegisterPage() {
 
   return (
     <TooltipProvider>
-      <main className="min-h-screen overflow-hidden bg-[#f5f7f0] text-[#101611] dark:bg-[#090d0a] dark:text-[#f5f2e8]">
+      <main className="min-h-screen overflow-hidden bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50">
         <div className="pointer-events-none fixed inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(96,212,53,0.22),transparent_34%),linear-gradient(90deg,rgba(16,22,17,0.055)_1px,transparent_1px),linear-gradient(180deg,rgba(16,22,17,0.04)_1px,transparent_1px)] bg-[length:auto,72px_72px,72px_72px] dark:bg-[radial-gradient(circle_at_top_left,rgba(140,255,77,0.13),transparent_34%),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.025)_1px,transparent_1px)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(245,247,240,0.08),#f5f7f0_76%)] dark:bg-[linear-gradient(180deg,rgba(9,13,10,0.08),#090d0a_76%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,118,86,0.12),transparent_34%),linear-gradient(90deg,rgba(15,23,16,0.03)_1px,transparent_1px),linear-gradient(180deg,rgba(15,23,16,0.025)_1px,transparent_1px)] bg-[length:auto,72px_72px,72px_72px] dark:bg-[radial-gradient(circle_at_top_left,rgba(34,180,125,0.08),transparent_34%),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.015)_1px,transparent_1px)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),#ffffff_76%)] dark:bg-[linear-gradient(180deg,rgba(15,23,16,0.04),#0f1710_76%)]" />
         </div>
 
-        <div className="relative z-10 mx-auto grid min-h-screen w-full max-w-7xl gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:py-8">
-          <section className="hidden min-h-[720px] overflow-hidden rounded-[2rem] border border-[#60d435]/25 bg-white/75 p-6 shadow-[0_34px_120px_rgba(16,22,17,0.14)] backdrop-blur-xl dark:border-[#8cff4d]/18 dark:bg-[#101612]/86 dark:shadow-[0_40px_140px_rgba(0,0,0,0.42)] lg:block">
-            <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-[1.5rem] border border-[#101611]/8 bg-[#f8faf3] p-7 dark:border-[#f5f2e8]/8 dark:bg-[#060907]">
+        <div className="relative z-10 mx-auto grid min-h-screen w-full max-w-7xl gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-stretch lg:py-8">
+          <section className="hidden min-h-screen overflow-hidden rounded-[2rem] border border-emerald-200 dark:border-emerald-900/30 bg-white/75 dark:bg-slate-900/86 p-6 shadow-[0_34px_120px_rgba(15,23,16,0.14)] dark:shadow-[0_40px_140px_rgba(0,0,0,0.42)] backdrop-blur-xl lg:block">
+            <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[1.5rem] border border-slate-200/40 dark:border-slate-700/40 bg-slate-50 dark:bg-slate-900">
               <Image
                 src={registerImage}
                 alt=""
                 fill
                 priority
                 sizes="46vw"
-                className="object-cover opacity-78 dark:opacity-68"
+                className="object-cover"
               />
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(248,250,243,0.92),rgba(248,250,243,0.3)_48%,rgba(248,250,243,0.9))] dark:bg-[linear-gradient(135deg,rgba(6,9,7,0.86),rgba(6,9,7,0.28)_48%,rgba(6,9,7,0.9))]" />
-              <div className="relative flex items-center gap-3">
-                <span className="flex size-10 items-center justify-center rounded-full bg-[#60d435] text-[#071006] dark:bg-[#8cff4d]">
-                  <Sparkles className="size-5" />
-                </span>
-                <span className="font-serif text-2xl font-black italic text-[#4dbb21] dark:text-[#8cff4d]">DreamDOT</span>
+              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(248,250,243,0.92),rgba(248,250,243,0.3)_48%,rgba(248,250,243,0.9))] dark:bg-[linear-gradient(135deg,rgba(15,23,16,0.86),rgba(15,23,16,0.28)_48%,rgba(15,23,16,0.9)]" />
+              <div className="relative flex items-center justify-between gap-3 z-10">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-10 items-center justify-center rounded-full bg-emerald-600 dark:bg-emerald-500 text-white">
+                    <Sparkles className="size-5" />
+                  </span>
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-400">Creator access</p>
+                    <p className="font-serif text-lg font-black italic text-slate-900 dark:text-slate-100">Open your atelier.</p>
+                  </div>
+                </div>
               </div>
 
-              <div className="relative">
-                <p className="text-xs font-black uppercase tracking-[0.28em] text-[#4dbb21] dark:text-[#8cff4d]">Creator access</p>
-                <h1 className="mt-5 max-w-xl font-serif text-7xl font-black italic leading-[0.88]">
-                  Open your atelier.
+              <div className="relative z-10">
+                <h1 className="max-w-xl font-serif text-5xl font-black italic leading-[0.88] text-slate-900 dark:text-slate-100">
+                  Build your creative room
                 </h1>
-                <p className="mt-6 max-w-md text-sm leading-7 text-[#52604d] dark:text-[#c8d2c3]">
+                <p className="mt-4 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
                   Create one identity for publishing, discovery, community, and credits.
                 </p>
               </div>
 
-              <div className="relative grid gap-3">
+              <div className="relative z-10 grid gap-3">
                 {perks.map((perk) => {
                   const Icon = perk.icon
                   return (
-                    <div key={perk.label} className="flex items-center gap-3 border border-[#101611]/10 bg-white/72 p-3 backdrop-blur-xl dark:border-[#f5f2e8]/10 dark:bg-[#0a0f0c]/78">
-                      <span className="flex size-9 items-center justify-center rounded-full bg-[#60d435]/12 text-[#4dbb21] dark:bg-[#8cff4d]/10 dark:text-[#8cff4d]">
+                    <div key={perk.label} className="flex items-center gap-3 border border-slate-200/40 dark:border-slate-700/40 bg-white/72 dark:bg-slate-800/78 p-3 backdrop-blur-xl">
+                      <span className="flex size-9 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
                         <Icon className="size-4" />
                       </span>
-                      <span className="text-sm font-semibold text-[#263124] dark:text-[#dbe4d5]">{perk.label}</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{perk.label}</span>
                     </div>
                   )
                 })}
@@ -213,31 +217,31 @@ export default function RegisterPage() {
           </section>
 
           <section className="mx-auto flex w-full max-w-xl flex-col">
-            <div className="mb-6 flex items-center justify-between">
-              <Link href="/" className="inline-flex items-center gap-3" aria-label="DreamDOT home">
-                <span className="flex size-9 items-center justify-center rounded-full bg-[#60d435] text-[#071006] dark:bg-[#8cff4d]">
-                  <Sparkles className="size-4" />
-                </span>
-                <span className="font-serif text-2xl font-black italic text-[#4dbb21] dark:text-[#8cff4d]">DreamDOT</span>
-              </Link>
-              <ModeToggle />
-            </div>
+            <div className="rounded-[2rem] border border-slate-200/40 dark:border-slate-700/40 bg-white/82 dark:bg-slate-900/88 p-5 shadow-[0_28px_100px_rgba(15,23,16,0.12)] dark:shadow-[0_28px_110px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:p-7">
+              <div className="mb-6 flex items-center justify-between gap-4">
+                <Link href="/" className="inline-flex items-center gap-2" aria-label="DreamDOT home">
+                  <span className="flex size-8 items-center justify-center rounded-full bg-emerald-600 dark:bg-emerald-500 text-white">
+                    <Sparkles className="size-4" />
+                  </span>
+                  <span className="font-serif text-lg font-black italic text-emerald-700 dark:text-emerald-400 hidden sm:inline">DreamDOT</span>
+                </Link>
+                <ModeToggle />
+              </div>
 
-            <div className="rounded-[2rem] border border-[#101611]/10 bg-white/82 p-5 shadow-[0_28px_100px_rgba(16,22,17,0.12)] backdrop-blur-2xl dark:border-[#f5f2e8]/10 dark:bg-[#111713]/88 dark:shadow-[0_28px_110px_rgba(0,0,0,0.38)] sm:p-7">
-              <div className="mb-7">
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#4dbb21] dark:text-[#8cff4d]">Join the atelier</p>
+              <div className="mb-8">
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-400">Join the dream</p>
                 <h2 className="mt-3 font-serif text-4xl font-black italic leading-none sm:text-5xl">
                   Create your account
                 </h2>
-                <p className="mt-4 text-sm leading-6 text-[#52604d] dark:text-[#aebdaa]">
+                <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">
                   Start publishing, selling, and building a direct creative room around your work.
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-[#263124] dark:text-[#dce7d4]">
+                    <Label htmlFor="name" className="text-slate-900 dark:text-slate-100">
                       Full Name
                     </Label>
                     <Input
@@ -254,7 +258,7 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="username" className="text-[#263124] dark:text-[#dce7d4]">
+                    <Label htmlFor="username" className="text-slate-900 dark:text-slate-100">
                       Username
                     </Label>
                     <Input
@@ -272,7 +276,7 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-[#263124] dark:text-[#dce7d4]">
+                  <Label htmlFor="email" className="text-slate-900 dark:text-slate-100">
                     Email
                   </Label>
                   <Input
@@ -291,7 +295,7 @@ export default function RegisterPage() {
                 <Tooltip open={!pwdValid && formData.password.length > 0}>
                   <TooltipTrigger asChild>
                     <div className="space-y-2">
-                      <Label htmlFor="password" className="text-[#263124] dark:text-[#dce7d4]">
+                      <Label htmlFor="password" className="text-slate-900 dark:text-slate-100">
                         Password
                       </Label>
                       <div className="relative">
@@ -307,7 +311,7 @@ export default function RegisterPage() {
                         />
                         <button
                           type="button"
-                          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-[#64735f] transition-colors hover:text-[#4dbb21] dark:text-[#9faf9a] dark:hover:text-[#8cff4d]"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-500 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
                           onClick={() => setShowPassword(!showPassword)}
                           disabled={isLoading}
                         >
@@ -331,7 +335,7 @@ export default function RegisterPage() {
                 <Tooltip open={!matchValid && formData.confirmPwd.length > 0}>
                   <TooltipTrigger asChild>
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPwd" className="text-[#263124] dark:text-[#dce7d4]">
+                      <Label htmlFor="confirmPwd" className="text-slate-900 dark:text-slate-100">
                         Confirm Password
                       </Label>
                       <div className="relative">
@@ -345,7 +349,7 @@ export default function RegisterPage() {
                           className={`${fieldClass} pr-11 ${errors.confirmPwd ? "border-red-400" : ""}`}
                           required
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4dbb21] dark:text-[#8cff4d]">
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-400">
                           {matchValid ? <Check className="size-4" /> : <Eye className="size-4 opacity-45" />}
                         </span>
                       </div>
@@ -359,7 +363,7 @@ export default function RegisterPage() {
 
                 <Button
                   type="submit"
-                  className="h-12 w-full rounded-full bg-[#60d435] text-sm font-black uppercase tracking-[0.12em] text-[#071006] shadow-[0_0_32px_rgba(96,212,53,0.22)] hover:bg-[#7cec4e] dark:bg-[#8cff4d] dark:shadow-[0_0_32px_rgba(140,255,77,0.25)] dark:hover:bg-[#b1ff85]"
+                  className="h-12 w-full rounded-full bg-emerald-600 dark:bg-emerald-500 text-sm font-black uppercase tracking-[0.12em] text-white shadow-[0_0_32px_rgba(34,118,86,0.22)] hover:bg-emerald-700 dark:hover:bg-emerald-600"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -376,7 +380,7 @@ export default function RegisterPage() {
                 </Button>
               </form>
 
-              <div className="mt-6">
+              <div className="mt-8">
                 <OAuthButtons
                   isLoading={isLoading}
                   googleEnabled={googleEnabled}
@@ -386,14 +390,14 @@ export default function RegisterPage() {
                 />
               </div>
 
-              <div className="mt-7 grid gap-3 border-t border-[#101611]/10 pt-5 text-center text-sm text-[#52604d] dark:border-[#f5f2e8]/10 dark:text-[#aebdaa] sm:grid-cols-2">
+              <div className="mt-7 grid gap-3 border-t border-slate-200/40 dark:border-slate-700/40 pt-5 text-center text-sm text-slate-600 dark:text-slate-400 sm:grid-cols-2">
                 <p>
                   Already have an account?{" "}
-                  <Link href="/auth/signin" className="font-bold text-[#4dbb21] hover:text-[#2f8615] dark:text-[#8cff4d] dark:hover:text-[#b1ff85]">
+                  <Link href="/auth/signin" className="font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">
                     Sign in
                   </Link>
                 </p>
-                <Link href="/feed" className="font-bold text-[#a36e00] hover:text-[#765000] dark:text-[#f0c15d] dark:hover:text-[#ffd88a]">
+                <Link href="/feed" className="font-bold text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300">
                   Preview the feed
                 </Link>
               </div>

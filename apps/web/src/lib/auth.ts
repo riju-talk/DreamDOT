@@ -44,6 +44,7 @@ export const authOptions: NextAuthOptions = {
           clientId: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
           allowDangerousEmailAccountLinking: true,
+          callbackUrl: `${process.env.NEXTAUTH_URL}/api/auth/callback/google`,
         })]
       : []),
     ...(process.env.NEXT_PUBLIC_GITHUB_OAUTH_ENABLED === "true" && process.env.GITHUB_ID && process.env.GITHUB_SECRET
@@ -51,6 +52,7 @@ export const authOptions: NextAuthOptions = {
           clientId: process.env.GITHUB_ID,
           clientSecret: process.env.GITHUB_SECRET,
           allowDangerousEmailAccountLinking: true,
+          callbackUrl: `${process.env.NEXTAUTH_URL}/api/auth/callback/github`,
         })]
       : []),
     ...(process.env.NEXT_PUBLIC_DISCORD_OAUTH_ENABLED === "true" && process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET
@@ -58,6 +60,7 @@ export const authOptions: NextAuthOptions = {
           clientId: process.env.DISCORD_CLIENT_ID,
           clientSecret: process.env.DISCORD_CLIENT_SECRET,
           allowDangerousEmailAccountLinking: true,
+          callbackUrl: `${process.env.NEXTAUTH_URL}/api/auth/callback/discord`,
         })]
       : []),
   ],
@@ -145,8 +148,10 @@ export const authOptions: NextAuthOptions = {
     newUser: "/auth/register",
   },
   secret: process.env.NEXTAUTH_SECRET,
-  // GitHub OAuth Callback: http://localhost:5000/api/auth/callback/github
-  // Make sure this callback URL is registered in your GitHub OAuth app settings
+  // OAuth Callback URLs (register these in your provider dashboards):
+  // GitHub: http://localhost:5000/api/auth/callback/github
+  // Google: http://localhost:5000/api/auth/callback/google
+  // Discord: http://localhost:5000/api/auth/callback/discord
 }
 
 export const auth = () => getServerSession(authOptions)

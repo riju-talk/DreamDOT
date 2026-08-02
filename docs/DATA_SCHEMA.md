@@ -551,6 +551,44 @@ const TransactionSchema = new Schema({
 
 ---
 
+### 1.3 MongoDB Schemas Reference (`docs/mongoose-schemas.json`)
+
+**Quick Lookup**: All MongoDB collection schemas are documented in `docs/mongoose-schemas.json` in a condensed format. Use this table as a reference for field types and enum values.
+
+| Collection | Primary Use | Key Fields | Status |
+|---|---|---|---|
+| **User** | User profile (mirrors Prisma) | `_id` (String), `email`, `name`, `avatar`, `credits` | ✅ |
+| **Conversation** | Chat groups/DMs | `type` (direct\|group), `participants[]`, `admins[]`, `lastMessage`, `unreadBy[]`, `isArchived` | ✅ |
+| **Message** | Individual chat messages | `conversationId`, `senderId`, `content`, `ciphertext`*, `type`, `attachments[]`, `readBy[]`, `replyTo` | ✅ |
+| **Membership** | Conversation participant roles | `conversationId`, `userId`, `role` (member\|admin), `joinedAt` | ✅ |
+| **Attachment** | File attachments in messages | `filename`, `mimeType`, `size`, `url`, `uploadedBy`, `message` (ref) | ✅ |
+| **Post** | Social feed posts (content body) | `userId`, `sqlId` (Prisma link), `content`, `media[]`, `visibility`, `likes[]`, `comments[]` | ✅ |
+| **Item** | Marketplace items (content + DRM) | `userId`, `sqlId` (Prisma link), `title`, `category`, `visibility`, `media[]`, `tags[]`, `drmConfig` | ✅ |
+| **Transaction** | Payment transactions (mirrors Prisma) | `userId`, `sessionId`, `stripePaymentIntentId`, `amount`, `type`, `status`, `metadata` | ✅ |
+
+**Special Fields**:
+- `*ciphertext`: Optional E2E encryption payload for messages
+- `sqlId`: Foreign key linking to PostgreSQL (Prisma) record `id`
+- `type` enums: Strictly enforced at API level
+
+**Complete Schema Definition**: 
+```json
+{
+  "User": { "_id": "string", "email": "string", "name": "string", "avatar": "string", "credits": "number", "createdAt": "date", "updatedAt": "date" },
+  "Conversation": { "type": "direct|group", "participants": ["string"], "admins": ["string"], "name": "string", "description": "string", "avatar": "string", "lastMessage": "objectId", "lastMessageAt": "date", "unreadBy": ["string"], "createdBy": "string", "isArchived": "boolean", "createdAt": "date", "updatedAt": "date" },
+  "Message": { "conversationId": "string", "senderId": "string", "content": "string", "ciphertext": "string", "nonce": "string", "keyId": "string", "type": "text|image|file|audio|video|system", "attachments": [{ "url": "string", "type": "string", "name": "string", "size": "number" }], "readBy": ["string"], "editedAt": "date", "isDeleted": "boolean", "replyTo": "string", "timestamp": "date", "createdAt": "date", "updatedAt": "date" },
+  "Membership": { "conversationId": "string", "userId": "string", "role": "member|admin", "joinedAt": "date", "createdAt": "date", "updatedAt": "date" },
+  "Attachment": { "filename": "string", "originalName": "string", "mimeType": "string", "size": "number", "url": "string", "uploadedBy": "string", "message": "objectId", "createdAt": "date", "updatedAt": "date" },
+  "Post": { "userId": "string", "sqlId": "string", "content": "string", "media": [{ "type": "string", "url": "string", "alt": "string" }], "visibility": "boolean", "likes": ["string"], "comments": [{ "userId": "string", "text": "string", "timestamp": "date" }], "createdAt": "date" },
+  "Item": { "userId": "string", "title": "string", "description": "string", "category": "writing|illustration|audio|video|research|other", "visibility": "private|unlisted|public", "media": [{ "url": "string", "mimeType": "string", "size": "number", "width": "number", "height": "number" }], "tags": ["string"], "metadata": "mixed", "createdAt": "date", "updatedAt": "date" },
+  "Transaction": { "userId": "string", "sessionId": "string", "stripePaymentIntentId": "string", "amount": "number", "type": "replenish|redemption|purchase", "status": "pending|completed|failed|expired", "metadata": "mixed", "createdAt": "date", "updatedAt": "date" }
+}
+```
+
+> **Location**: `docs/mongoose-schemas.json` (Canonical JSON reference for all MongoDB collections)
+
+---
+
 ## 2. TypeScript Interfaces
 
 ### 2.1 Shared Mongo Types (`@repo/database-mongo`)

@@ -4,7 +4,7 @@ import { connectToDatabase } from '@/lib/mongoose/connection'
 import { User } from '@repo/database-mongo'
 
 /**
- * GET /api/users/[userId]/follow
+ * GET /api/users/[id]/follow
  * Check if current user follows this user
  */
 export async function GET(req, { params }) {
@@ -14,7 +14,7 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { userId } = params
+    const { id: userId } = params
     if (!userId) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 })
     }
@@ -36,7 +36,7 @@ export async function GET(req, { params }) {
 }
 
 /**
- * POST /api/users/[userId]/follow
+ * POST /api/users/[id]/follow
  * Follow user
  */
 export async function POST(req, { params }) {
@@ -46,7 +46,7 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { userId } = params
+    const { id: userId } = params
     if (!userId) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 })
     }
@@ -93,7 +93,7 @@ export async function POST(req, { params }) {
 }
 
 /**
- * DELETE /api/users/[userId]/follow
+ * DELETE /api/users/[id]/follow
  * Unfollow user
  */
 export async function DELETE(req, { params }) {
@@ -103,7 +103,7 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { userId } = params
+    const { id: userId } = params
     if (!userId) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 })
     }

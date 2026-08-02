@@ -1,82 +1,109 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { connectToDatabase } from '@/lib/mongoose/connection'
-import { User } from '@repo/database-mongo'
+import { authOptions } from '@/lib/auth'
+import { prismaUser } from '@/lib/prisma_user'
 
-/**
- * GET /api/users/me/privacy
- * Fetch privacy settings for current user
- */
-export async function GET(req) {
+export async function GET() {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
     }
 
-    await connectToDatabase()
-    const user = await User.findById(session.user.id).lean()
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
-    return NextResponse.json({
-      privacy: user.privacy || {
-        profileVisibility: 'public',
-        showEmail: false,
-        allowMessages: true,
-        allowNotifications: true,
-        showOnlineStatus: true,
-        showActivityStatus: true,
+    const user = await prismaUser.users.findUnique({
+      where: { email: session.user.email },
+      select: {
+        user_profile: {
+          select: {
+            privacy_settings: true,
+          },
+        },
       },
-      blockedUsers: user.blockedUsers || [],
     })
+
+    if (!user?.user_profile) {
+      return NextResponse.json(
+        { error: 'User profile not found' },
+        { status: 404 }
+      )
+    }
+
+    const privacySettings = user.user_profile.privacy_settings || {
+      profileVisibility: 'public',
+      showEmail: false,
+      allowMessages: true,
+      allowNotifications: true,
+    }
+
+    return NextResponse.json(
+      { privacySettings },
+      { status: 200 }
+    )
   } catch (error) {
-    console.error('[API] Error fetching privacy settings:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error fetching privacy settings:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }
 
-/**
- * PATCH /api/users/me/privacy
- * Update privacy settings
- */
-export async function PATCH(req) {
+export async function PATCH(request) {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
     }
 
-    const body = await req.json()
-    const { privacy } = body
+    const body = await request.json()
+    const { privacySettings } = body
 
-    if (!privacy || typeof privacy !== 'object') {
-      return NextResponse.json({ error: 'Invalid privacy settings' }, { status: 400 })
+    if (!privacySettings) {
+      return NextResponse.json(
+        { error: 'Privacy settings are required' },
+        { status: 400 }
+      )
     }
 
-    await connectToDatabase()
-    const user = await User.findById(session.user.id)
+    const user = await prismaUser.users.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
+    })
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      )
     }
 
-    // Update privacy settings
-    user.privacy = {
-      ...user.privacy,
-      ...privacy,
-    }
-
-    await user.save()
-
-    return NextResponse.json({
-      message: 'Privacy settings updated',
-      privacy: user.privacy,
+    const updatedProfile = await prismaUser.user_profile.update({
+      where: { user_id: user.id },
+      data: {
+        privacy_settings: privacySettings,
+      },
+      select: {
+        privacy_settings: true,
+      },
     })
+
+    return NextResponse.json(
+      { privacySettings: updatedProfile.privacy_settings },
+      { status: 200 }
+    )
   } catch (error) {
-    console.error('[API] Error updating privacy settings:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error updating privacy settings:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }
