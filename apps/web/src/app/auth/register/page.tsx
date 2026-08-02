@@ -15,7 +15,7 @@ import { OAuthButtons } from "../../../components/auth/OAuthButtons"
 import { ModeToggle } from "@/components/mode-toggle"
 
 const fieldClass =
-  "h-12 rounded-xl border-emerald-200 dark:border-emerald-900/30 bg-white/85 px-4 text-slate-900 placeholder:text-slate-500 focus-visible:ring-emerald-500 dark:bg-slate-950/75 dark:text-slate-50 dark:placeholder:text-slate-400 dark:focus-visible:ring-emerald-600"
+  "h-12 rounded-xl border-lime-300 dark:border-lime-900/40 bg-white/85 px-4 text-slate-900 placeholder:text-slate-500 focus-visible:ring-lime-400 dark:bg-slate-950/75 dark:text-slate-50 dark:placeholder:text-slate-400 dark:focus-visible:ring-lime-500"
 
 const registerImage =
   "https://res.cloudinary.com/diaoy8eua/image/upload/v1750944374/pexels-lukasfst-19635556_ywjhpd.jpg"
@@ -181,11 +181,11 @@ export default function RegisterPage() {
               <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(248,250,243,0.92),rgba(248,250,243,0.3)_48%,rgba(248,250,243,0.9))] dark:bg-[linear-gradient(135deg,rgba(15,23,16,0.86),rgba(15,23,16,0.28)_48%,rgba(15,23,16,0.9)]" />
               <div className="relative flex items-center justify-between gap-3 z-10">
                 <div className="flex items-center gap-3">
-                  <span className="flex size-10 items-center justify-center rounded-full bg-emerald-600 dark:bg-emerald-500 text-white">
+                  <span className="flex size-10 items-center justify-center rounded-full bg-lime-500 dark:bg-lime-400 text-slate-900">
                     <Sparkles className="size-5" />
                   </span>
                   <div>
-                    <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-400">Creator access</p>
+                    <p className="text-xs font-black uppercase tracking-[0.28em] text-lime-600 dark:text-lime-400">Creator access</p>
                     <p className="font-serif text-lg font-black italic text-slate-900 dark:text-slate-100">Open your atelier.</p>
                   </div>
                 </div>
@@ -205,7 +205,7 @@ export default function RegisterPage() {
                   const Icon = perk.icon
                   return (
                     <div key={perk.label} className="flex items-center gap-3 border border-slate-200/40 dark:border-slate-700/40 bg-white/72 dark:bg-slate-800/78 p-3 backdrop-blur-xl">
-                      <span className="flex size-9 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
+                      <span className="flex size-9 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-900/30 text-lime-600 dark:text-lime-400">
                         <Icon className="size-4" />
                       </span>
                       <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{perk.label}</span>
@@ -229,7 +229,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="mb-8">
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-400">Join the dream</p>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-lime-600 dark:text-lime-400">Join the dream</p>
                 <h2 className="mt-3 font-serif text-4xl font-black italic leading-none sm:text-5xl">
                   Create your account
                 </h2>
@@ -349,7 +349,7 @@ export default function RegisterPage() {
                           className={`${fieldClass} pr-11 ${errors.confirmPwd ? "border-red-400" : ""}`}
                           required
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-400">
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-lime-500 dark:text-lime-400">
                           {matchValid ? <Check className="size-4" /> : <Eye className="size-4 opacity-45" />}
                         </span>
                       </div>
@@ -393,7 +393,7 @@ export default function RegisterPage() {
               <div className="mt-7 grid gap-3 border-t border-slate-200/40 dark:border-slate-700/40 pt-5 text-center text-sm text-slate-600 dark:text-slate-400 sm:grid-cols-2">
                 <p>
                   Already have an account?{" "}
-                  <Link href="/auth/signin" className="font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">
+                  <Link href="/auth/signin" className="font-bold text-lime-600 hover:text-lime-700 dark:text-lime-400 dark:hover:text-lime-300">
                     Sign in
                   </Link>
                 </p>

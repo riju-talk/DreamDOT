@@ -12,11 +12,11 @@ function ChatArea() {
   const { activeConversation } = useChat()
 
   return (
-    <div className="flex min-h-0 flex-1 overflow-hidden">
-      <div className={`${activeConversation ? "hidden md:flex" : "flex"} md:flex w-full md:w-auto`}>
+    <div className="flex flex-1 min-h-0 overflow-hidden w-full">
+      <div className={`${activeConversation ? "hidden md:flex" : "flex"} md:flex md:w-80 border-r border-border overflow-hidden flex-shrink-0`}>
         <ChatSidebar />
       </div>
-      <div className={`${activeConversation ? "flex" : "hidden md:flex"} md:flex flex-1 min-w-0`}>
+      <div className={`${activeConversation ? "flex" : "hidden md:flex"} md:flex flex-1 min-w-0 overflow-hidden`}>
         <ChatWindow />
       </div>
     </div>
@@ -26,16 +26,20 @@ function ChatArea() {
 export default function MessagesPage() {
   return (
     <SidebarProvider defaultOpen>
-      <div className="flex min-h-screen w-full overflow-x-clip">
-        <AppSidebar />
-        <SidebarInset className="min-w-0 flex-1 flex flex-col overflow-hidden">
+      <AppSidebar />
+      <SidebarInset className="flex flex-col overflow-hidden min-h-0">
+        <div className="flex-shrink-0 z-30">
           <TopNav />
-          <ChatProvider>
+        </div>
+        <ChatProvider>
+          <div className="flex-1 min-h-0 overflow-hidden">
             <ChatArea />
-          </ChatProvider>
+          </div>
+        </ChatProvider>
+        <div className="flex-shrink-0 z-50">
           <MobileNav />
-        </SidebarInset>
-      </div>
+        </div>
+      </SidebarInset>
     </SidebarProvider>
   )
 }

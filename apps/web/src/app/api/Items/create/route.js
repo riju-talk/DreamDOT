@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { Item } from '@/models/Item'
-import { User } from '@/models/User'
+import { prismaItems } from '@/lib/prisma/items'
 
 export async function POST(request) {
   try {
@@ -30,44 +29,36 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Bundle requires at least 2 items' }, { status: 400 })
     }
 
-    // Get user
-    const user = await User.findOne({ email: session.user.email })
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
-    // Create item
-    const item = new Item({
-      userId: user._id,
-      title,
-      script,
-      category,
-      thumbnailUrl,
-      description,
-      pricingModel,
-      price: priceCredits,
-      visibility: 'public',
-      featured: false,
-      isFeatured: false,
-      drm: {
-        enabled: true,
-        watermark: true,
-        tracking: true,
-      },
-      monetizationType: pricingModel === 'bundle' ? 'one-time' : pricingModel,
-      metadata: {
-        bundleItemIds: pricingModel === 'bundle' ? bundleItemIds : [],
+    // Create item using Prisma
+    const item = await prismaItems.item.create({
+      data: {
+        title,
+        script,
+        category,
+        thumbnailUrl,
+        description,
+        pricingModel,
+        price: priceCredits,
+        visibility: 'public',
+        featured: false,
+        drm: {
+          enabled: true,
+          watermark: true,
+          tracking: true,
+        },
+        monetizationType: pricingModel === 'bundle' ? 'one-time' : pricingModel,
+        metadata: {
+          bundleItemIds: pricingModel === 'bundle' ? bundleItemIds : [],
+        },
       },
     })
 
-    await item.save()
-
-    console.log(`Item created: ${item._id} by user ${user._id}`)
+    console.log(`Item created: ${item.id}`)
 
     return NextResponse.json(
       {
         success: true,
-        itemId: item._id,
+        itemId: item.id,
         createdAt: item.createdAt,
         message: 'Item published successfully',
       },

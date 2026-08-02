@@ -50,6 +50,7 @@
 
 :root {
   --radius: 16px;
+  color-scheme: dark;
   
   /* DreamDOT Design System - Dark Mode (Default) */
   --background: #121412;
@@ -105,60 +106,61 @@
 }
 
 .dark {
-  /* Dark mode already set as default */
+  color-scheme: dark;
+  /* Dark mode is already applied from :root, so no need to repeat */
 }
 
-@media (prefers-color-scheme: light) {
-  :root:not(.dark) {
-    /* Light Mode Color Scheme */
-    --background: #FFFFFF;
-    --foreground: #0F0E0D;
+.light {
+  color-scheme: light;
+  /* Light Mode Color Scheme - Darker, More Faded Green */
+  --background: #FFFFFF;
+  --foreground: #0F0E0D;
 
-    --card: #F5F3F1;
-    --card-foreground: #0F0E0D;
+  --card: #F5F3F1;
+  --card-foreground: #0F0E0D;
 
-    --popover: #FFFFFF;
-    --popover-foreground: #0F0E0D;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F0E0D;
 
-    --primary: #7ABF33;
-    --primary-foreground: #FFFFFF;
+  --primary: #5F8F2F;
+  /* Darker, faded sage green for light mode */
+  --primary-foreground: #FFFFFF;
 
-    --secondary: #5A7D5D;
-    --secondary-foreground: #FFFFFF;
+  --secondary: #4A6B4E;
+  --secondary-foreground: #FFFFFF;
 
-    --muted: #E8E6E3;
-    --muted-foreground: #8B9B8E;
+  --muted: #E8E6E3;
+  --muted-foreground: #8B9B8E;
 
-    --accent: #7ABF33;
-    --accent-foreground: #FFFFFF;
+  --accent: #5F8F2F;
+  --accent-foreground: #FFFFFF;
 
-    --destructive: #DC2626;
-    --destructive-foreground: #FFFFFF;
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
 
-    --border: #E8E6E3;
-    --input: #F5F3F1;
-    --ring: #7ABF33;
+  --border: #E8E6E3;
+  --input: #F5F3F1;
+  --ring: #5F8F2F;
 
-    --chart-1: #7ABF33;
-    --chart-2: #5A7D5D;
-    --chart-3: #E8E6E3;
-    --chart-4: #F5F3F1;
-    --chart-5: #0F0E0D;
+  --chart-1: #5F8F2F;
+  --chart-2: #4A6B4E;
+  --chart-3: #E8E6E3;
+  --chart-4: #F5F3F1;
+  --chart-5: #0F0E0D;
 
-    --sidebar: #F5F3F1;
-    --sidebar-foreground: #0F0E0D;
-    --sidebar-primary: #7ABF33;
-    --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #E8E6E3;
-    --sidebar-accent-foreground: #7ABF33;
-    --sidebar-border: #E8E6E3;
-    --sidebar-ring: #7ABF33;
+  --sidebar: #F5F3F1;
+  --sidebar-foreground: #0F0E0D;
+  --sidebar-primary: #5F8F2F;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E8E6E3;
+  --sidebar-accent-foreground: #5F8F2F;
+  --sidebar-border: #E8E6E3;
+  --sidebar-ring: #5F8F2F;
 
-    --shadow-glow: 0 0 30px -8px rgba(122, 191, 51, 0.2);
-    --shadow-float: 0 8px 32px -12px rgba(0, 0, 0, 0.08);
-    --shadow-float-lg: 0 20px 60px -20px rgba(0, 0, 0, 0.1);
-    --shadow-glow-lg: 0 0 60px -10px rgba(122, 191, 51, 0.1);
-  }
+  --shadow-glow: 0 0 30px -8px rgba(95, 143, 47, 0.15);
+  --shadow-float: 0 8px 32px -12px rgba(0, 0, 0, 0.08);
+  --shadow-float-lg: 0 20px 60px -20px rgba(0, 0, 0, 0.1);
+  --shadow-glow-lg: 0 0 60px -10px rgba(95, 143, 47, 0.08);
 }
 
 @layer utilities {
@@ -168,6 +170,32 @@
 
   .animation-delay-4000 {
     animation-delay: 4s;
+  }
+
+  /* Landing Page & Auth Pages - Force Neon Green */
+  .dark main {
+    --landing-green: #99FF33;
+  }
+
+  .dark .bg-gradient-to-r.from-emerald-500,
+  .dark .from-emerald-400,
+  .dark .to-teal-400 {
+    @apply from-lime-400 to-lime-500;
+  }
+
+  .dark .text-emerald-600,
+  .dark .text-emerald-500,
+  .dark .text-emerald-400 {
+    @apply text-lime-400;
+  }
+
+  .dark .bg-emerald-600,
+  .dark .bg-emerald-500 {
+    @apply bg-lime-400;
+  }
+
+  .dark .shadow-emerald-500 {
+    @apply shadow-lime-500;
   }
 }
 

@@ -72,15 +72,15 @@ export function ChatSidebar() {
   return (
     <div className="w-full sm:w-72 lg:w-80 xl:w-96 flex-shrink-0 border-r border-border bg-background flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
+      <div className="p-3 border-b border-border flex-shrink-0">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-primary" />
             Messages
           </h2>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-7 w-7">
                 <Plus className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -99,25 +99,25 @@ export function ChatSidebar() {
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
           <Input
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 rounded-full"
+            className="pl-8 pr-3 py-2 text-xs rounded-full h-8"
           />
         </div>
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="all" className="flex-1 overflow-hidden flex flex-col">
-        <TabsList className="grid w-full grid-cols-3 mx-4 mt-4">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="dms">DMs</TabsTrigger>
-          <TabsTrigger value="groups">Groups</TabsTrigger>
+      <Tabs defaultValue="all" className="flex-1 overflow-hidden flex flex-col min-h-0">
+        <TabsList className="grid w-full grid-cols-3 mx-0 px-2 mt-2 flex-shrink-0 bg-transparent">
+          <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+          <TabsTrigger value="dms" className="text-xs">DMs</TabsTrigger>
+          <TabsTrigger value="groups" className="text-xs">Groups</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="flex-1 overflow-hidden">
+        <TabsContent value="all" className="flex-1 overflow-hidden min-h-0">
           <ConversationList
             conversations={filteredConversations}
             activeConversation={activeConversation}
@@ -125,7 +125,7 @@ export function ChatSidebar() {
           />
         </TabsContent>
 
-        <TabsContent value="dms" className="flex-1 overflow-hidden">
+        <TabsContent value="dms" className="flex-1 overflow-hidden min-h-0">
           <ConversationList
             conversations={filteredConversations.filter((c) => c.type === "dm")}
             activeConversation={activeConversation}
@@ -133,7 +133,7 @@ export function ChatSidebar() {
           />
         </TabsContent>
 
-        <TabsContent value="groups" className="flex-1 overflow-hidden">
+        <TabsContent value="groups" className="flex-1 overflow-hidden min-h-0">
           <ConversationList
             conversations={filteredConversations.filter((c) => c.type === "group")}
             activeConversation={activeConversation}

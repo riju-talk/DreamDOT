@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prismaUser } from '@/lib/prisma_user'
+import { prismaUser } from '@/lib/prisma/user'
 import { validateEmail, validateUsername } from '@/lib/auth-validation'
 
 export async function GET(request) {

@@ -3,7 +3,6 @@ import { SocialPost } from "./social-post"
 import { Button } from "@/components/ui/button"
 import { RefreshCw } from "lucide-react"
 import Link from "next/link"
-import { getFakePosts } from "@/lib/fake-data"
 
 interface PostData {
   id: string
@@ -40,8 +39,7 @@ export async function SocialFeed() {
     postsData = null
   }
 
-  // Use fake data if database fetch fails
-  const posts = postsData?.posts || convertFakePostsToPostData(getFakePosts().slice(0, 5))
+  const posts = postsData?.posts || []
     
     return (
       <div className="space-y-6 max-w-2xl mx-auto">
@@ -119,22 +117,3 @@ export async function SocialFeed() {
     )
 }
 
-// Helper function to convert fake posts to PostData format
-function convertFakePostsToPostData(fakePosts: any[]): PostData[] {
-  return fakePosts.map((post) => ({
-    id: post.id,
-    user: {
-      display_name: post.author?.name || "Anonymous",
-      username: post.author?.name?.toLowerCase().replace(/\s+/g, "_") || "user",
-      avatar_url: post.author?.avatar || "/placeholder.svg",
-      verified: false,
-    },
-    created_at: post.createdAt.toISOString(),
-    content: post.content || "",
-    media: post.image ? [{ type: "image", url: post.image, alt: post.title }] : [],
-    analytics: {
-      likes_count: post.likes || 0,
-      comments_count: post.comments || 0,
-    }
-  }))
-}

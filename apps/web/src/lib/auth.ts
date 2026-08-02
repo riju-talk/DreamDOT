@@ -1,6 +1,6 @@
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
-import { prismaUser } from "./prisma_user"
+import { prismaUser } from "./prisma/user"
 import { getServerSession } from "next-auth"
 import type { NextAuthOptions } from "next-auth"
 import jwt from "jsonwebtoken"

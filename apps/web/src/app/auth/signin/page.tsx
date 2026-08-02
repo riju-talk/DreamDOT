@@ -19,7 +19,7 @@ interface FormData {
 }
 
 const fieldClass =
-  "h-12 rounded-xl border-emerald-200 dark:border-emerald-900/30 bg-white/85 px-4 text-slate-900 placeholder:text-slate-500 focus-visible:ring-emerald-500 dark:bg-slate-950/75 dark:text-slate-50 dark:placeholder:text-slate-400 dark:focus-visible:ring-emerald-600"
+  "h-12 rounded-xl border-lime-300 dark:border-lime-900/40 bg-white/85 px-4 text-slate-900 placeholder:text-slate-500 focus-visible:ring-lime-400 dark:bg-slate-950/75 dark:text-slate-50 dark:placeholder:text-slate-400 dark:focus-visible:ring-lime-500"
 
 const signinImage =
   "https://res.cloudinary.com/diaoy8eua/image/upload/v1750937757/pexels-artem-yellow-422929671-15157857_qqkdym.jpg"
@@ -126,17 +126,17 @@ export default function SignInPage() {
         <section className="mx-auto flex w-full max-w-xl flex-col">
           <div className="mb-6 flex items-center justify-between">
             <Link href="/" className="inline-flex items-center gap-3" aria-label="DreamDOT home">
-              <span className="flex size-9 items-center justify-center rounded-full bg-emerald-600 dark:bg-emerald-500 text-white">
+              <span className="flex size-9 items-center justify-center rounded-full bg-lime-500 dark:bg-lime-400 text-slate-900">
                 <Sparkles className="size-4" />
               </span>
-              <span className="font-serif text-2xl font-black italic text-emerald-700 dark:text-emerald-400">DreamDOT</span>
+              <span className="font-serif text-2xl font-black italic text-lime-600 dark:text-lime-400">DreamDOT</span>
             </Link>
             <ModeToggle />
           </div>
 
           <div className="rounded-[2rem] border border-slate-200/40 dark:border-slate-700/40 bg-white/82 dark:bg-slate-900/88 p-5 shadow-[0_28px_100px_rgba(15,23,16,0.12)] dark:shadow-[0_28px_110px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:p-7">
             <div className="mb-8">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-400">Return to the room</p>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-lime-600 dark:text-lime-400">Return to the room</p>
               <h1 className="mt-3 font-serif text-5xl font-black italic leading-none sm:text-6xl">
                 Welcome back.
               </h1>
@@ -168,7 +168,7 @@ export default function SignInPage() {
                   <Label htmlFor="password" className="text-slate-900 dark:text-slate-100">
                     Password
                   </Label>
-                  <Link href="/auth/register" className="text-xs font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">
+                  <Link href="/auth/register" className="text-xs font-bold text-lime-600 hover:text-lime-700 dark:text-lime-400 dark:hover:text-lime-300">
                     Need access?
                   </Link>
                 </div>
@@ -198,7 +198,7 @@ export default function SignInPage() {
 
               <Button
                 type="submit"
-                className="h-12 w-full rounded-full bg-emerald-600 dark:bg-emerald-500 text-sm font-black uppercase tracking-[0.12em] text-white shadow-[0_0_32px_rgba(34,118,86,0.22)] hover:bg-emerald-700 dark:hover:bg-emerald-600"
+                className="h-12 w-full rounded-full bg-lime-500 dark:bg-lime-400 text-slate-900 dark:text-slate-900 text-sm font-black uppercase tracking-[0.12em] shadow-[0_0_32px_rgba(132,204,22,0.3)] hover:bg-lime-600 dark:hover:bg-lime-500"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -228,7 +228,7 @@ export default function SignInPage() {
             <div className="mt-7 grid gap-3 border-t border-slate-200/40 dark:border-slate-700/40 pt-5 text-center text-sm text-slate-600 dark:text-slate-400 sm:grid-cols-2">
               <p>
                 New to DreamDOT?{" "}
-                <Link href="/auth/register" className="font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">
+                <Link href="/auth/register" className="font-bold text-lime-600 hover:text-lime-700 dark:text-lime-400 dark:hover:text-lime-300">
                   Create account
                 </Link>
               </p>
@@ -253,11 +253,11 @@ export default function SignInPage() {
 
             <div className="relative flex items-center justify-between text-xs font-black uppercase tracking-[0.24em] text-slate-900 dark:text-slate-100">
               <span>Feed Preview</span>
-              <span className="text-emerald-700 dark:text-emerald-400">Public</span>
+              <span className="text-emerald-700 dark:text-lime-400">Public</span>
             </div>
 
             <div className="relative">
-              <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-400">No account required</p>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-lime-600 dark:text-lime-400">No account required</p>
               <h2 className="mt-5 max-w-xl font-serif text-7xl font-black italic leading-[0.88]">
                 Look around first.
               </h2>
@@ -271,7 +271,7 @@ export default function SignInPage() {
                 const Icon = note.icon
                 return (
                   <div key={note.label} className="flex items-center gap-3 border border-slate-200/40 dark:border-slate-700/40 bg-white/72 dark:bg-slate-800/78 p-3 backdrop-blur-xl">
-                    <span className="flex size-9 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
+                    <span className="flex size-9 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-900/30 text-lime-600 dark:text-lime-400">
                       <Icon className="size-4" />
                     </span>
                     <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{note.label}</span>

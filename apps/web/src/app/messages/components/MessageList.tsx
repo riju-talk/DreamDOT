@@ -471,8 +471,8 @@ export function MessageList({
   console.log('[MessageList] Rendering', messages.length, 'messages with', typingUserNames.length, 'typing indicators')
 
   return (
-    <div ref={containerRef} className="flex-1 overflow-y-auto bg-[#121412] scrollbar-thin scrollbar-thumb-[#2a2826] scrollbar-track-transparent hover:scrollbar-thumb-[#3a3a36]" onScroll={handleScroll}>
-      <div className="px-4 py-4 space-y-2">
+    <div ref={containerRef} className="flex-1 w-full overflow-y-auto bg-[#121412] scrollbar-thin scrollbar-thumb-[#2a2826] scrollbar-track-transparent hover:scrollbar-thumb-[#3a3a36]" onScroll={handleScroll}>
+      <div className="px-4 py-4 space-y-2 min-h-full flex flex-col justify-end">
         {/* Load more trigger */}
         <div ref={loadMoreRef} className="h-2" />
 

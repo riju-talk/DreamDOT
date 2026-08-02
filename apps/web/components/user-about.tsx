@@ -2,20 +2,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Users, Target } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { getUserAbout } from "@/lib/user-profile/user-about"
-import { updateUserAbout } from "@/lib/user-profile/user-about-edits"
-import { revalidatePath } from "next/cache"
+import { handleUpdateUserAbout } from "@/lib/user-profile/user-about-actions"
 
 export async function UserAbout() {
   const about = await getUserAbout()
 
-  async function handleSubmit(formData: FormData) {
-    "use server"
-    await updateUserAbout(formData)
-    revalidatePath("/profile")
-  }
-
   return (
-    <form action={handleSubmit}>
+    <form action={handleUpdateUserAbout}>
       <Card className="dream-card w-full max-w-2xl mx-auto">
         <CardContent className="pt-6 space-y-6">
 

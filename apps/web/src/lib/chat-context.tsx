@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useSession } from "next-auth/react"
-import { useSocket } from "./socket"
+import { useSocket } from "./useSocketHook"
 import type { ChatConversation, ChatMessage, GroupChat, DirectMessage } from "./chat"
 
 interface ChatContextType {

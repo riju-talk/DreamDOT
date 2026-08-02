@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { prismaSocial } from "@/lib/db"
+import { prismaSocial, prismaUser } from "@/lib/prisma"
 import { connectToDatabase } from "@/lib/mongoose/connection"
-import { Post } from "@repo/database-mongo" // Using shared Post model
+import { Post } from "@repo/database-mongo"
 import mongoose from "mongoose"
 
 // Helper function to validate user authentication
@@ -177,7 +177,7 @@ export async function POST(request) {
     const { content, mediaUrl, visibility, mediaType } = validation.cleanData
 
     // 4. Find user by email to get the user ID
-    const dbUser = await prismaSocial.users.findUnique({
+    const dbUser = await prismaUser.users.findUnique({
       where: { email: user.email },
       select: { id: true }
     })
@@ -310,7 +310,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get("page") || "1")
     const limit = Math.min(parseInt(searchParams.get("limit") || "10"), 50) // Max 50 posts per page
-    const dbUser = await prismaSocial.users.findUnique({
+    const dbUser = await prismaUser.users.findUnique({
       where: { email: user.email },
       select: { id: true }
     })

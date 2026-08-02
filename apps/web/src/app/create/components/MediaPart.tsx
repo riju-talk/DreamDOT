@@ -2,9 +2,10 @@
 
 import { useCreatorStudioStore } from '@/lib/store/useCreatorStudioStore'
 import { Button } from '@/components/ui/button'
-import { Upload, X, GripVertical } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Upload, X, GripVertical, Music, FileType, Image as ImageIcon, Film, FilePdf } from 'lucide-react'
 import { useState } from 'react'
-import Image from 'next/image'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export function MediaPart() {
   const { draft, updateDraft } = useCreatorStudioStore()
@@ -35,6 +36,14 @@ export function MediaPart() {
       const files = Array.from(e.target.files)
       processFiles(files)
     }
+  }
+
+  const getFileIcon = (file: File) => {
+    if (file.type.startsWith('image/')) return <ImageIcon className="h-4 w-4" />
+    if (file.type.startsWith('video/')) return <Film className="h-4 w-4" />
+    if (file.type.startsWith('audio/')) return <Music className="h-4 w-4" />
+    if (file.type.includes('pdf')) return <FilePdf className="h-4 w-4" />
+    return <FileType className="h-4 w-4" />
   }
 
   const processFiles = (files: File[]) => {
@@ -82,52 +91,167 @@ export function MediaPart() {
   return (
     <div className="space-y-6">
       {/* Drop Zone */}
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
-          isDragging ? 'border-[#99FF33] bg-[#99FF33]/5' : 'border-[#2a2826] bg-[#1a1918]'
-        }`}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
       >
-        <Upload className="h-12 w-12 text-[#6B8E6E] mx-auto mb-4" />
-        <p className="text-[#FFFFFF] font-semibold mb-2">Drag files here or click to upload</p>
-        <p className="text-xs text-[#6B8E6E] mb-4">Supports images, video, audio, PDF (max 50MB each)</p>
-        <label>
-          <input type="file" multiple onChange={handleFileInput} className="hidden" />
-          <Button className="bg-[#99FF33] text-[#121412] hover:bg-[#85e022]">Choose Files</Button>
-        </label>
-      </div>
-
-      {/* Loading State */}
-      {uploading && <p className="text-center text-[#6B8E6E]">Uploading...</p>}
-
-      {/* Media Grid */}
-      {draft.mediaFiles.length > 0 && (
-        <div>
-          <h3 className="text-[#FFFFFF] font-semibold mb-3">Media Files ({draft.mediaFiles.length})</h3>
-          <div className="space-y-2">
-            {draft.mediaFiles.map((file, index) => (
-              <div key={index} className="flex items-center gap-3 p-3 bg-[#1a1918] border border-[#2a2826] rounded">
-                <button
-                  onClick={() => (index > 0 ? handleMoveFile(index, index - 1) : null)}
-                  className="text-[#6B8E6E] hover:text-[#99FF33]"
-                >
-                  <GripVertical className="h-4 w-4" />
-                </button>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[#FFFFFF] truncate text-sm">{file.name}</p>
-                  <p className="text-xs text-[#6B8E6E]">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                </div>
-                {index === 0 && <span className="text-xs bg-[#99FF33]/20 text-[#99FF33] px-2 py-1 rounded">Thumbnail</span>}
-                <button onClick={() => handleRemoveFile(index)} className="text-red-500 hover:text-red-400">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`border-2 border-dashed rounded-xl p-12 text-center transition-all cursor-pointer ${
+            isDragging 
+              ? 'border-primary bg-primary/10' 
+              : 'border-border bg-muted/30 hover:border-primary/30'
+          }`}
+        >
+          <div className="space-y-4">
+            <motion.div
+              animate={{ y: isDragging ? -5 : 0 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
+              <Upload className={`h-16 w-16 mx-auto transition-colors ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
+            </motion.div>
+            <div>
+              <p className="text-foreground font-bold text-lg mb-2">Drop files or click to upload</p>
+              <p className="text-sm text-muted-foreground">Images, video, audio, PDF • Max 50MB each</p>
+            </div>
+            <label>
+              <input type="file" multiple onChange={handleFileInput} className="hidden" />
+              <Button className="gap-2">
+                <Upload className="h-4 w-4" />
+                Choose Files
+              </Button>
+            </label>
           </div>
         </div>
-      )}
+      </motion.div>
+
+      {/* Loading State */}
+      <AnimatePresence>
+        {uploading && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="p-4 bg-primary/10 border border-primary/30 rounded-lg text-center text-primary font-medium"
+          >
+            Uploading files...
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Media Grid */}
+      <AnimatePresence>
+        {draft.mediaFiles.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="bg-card border-border/50">
+              <CardHeader className="pb-4 border-b border-border/30">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Upload className="h-5 w-5 text-primary" />
+                  Media Files ({draft.mediaFiles.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="space-y-2">
+                  <AnimatePresence mode="popLayout">
+                    {draft.mediaFiles.map((file, index) => (
+                      <motion.div
+                        key={`${file.name}-${index}`}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30 hover:border-border/50 transition-all group"
+                      >
+                        {/* Move Button */}
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => index > 0 && handleMoveFile(index, index - 1)}
+                            disabled={index === 0}
+                            className={`p-1 rounded transition-colors ${
+                              index > 0 
+                                ? 'text-muted-foreground hover:text-primary hover:bg-primary/10' 
+                                : 'text-muted-foreground/30 cursor-not-allowed'
+                            }`}
+                            title="Move up"
+                          >
+                            <GripVertical className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => index < draft.mediaFiles.length - 1 && handleMoveFile(index, index + 1)}
+                            disabled={index === draft.mediaFiles.length - 1}
+                            className={`p-1 rounded transition-colors ${
+                              index < draft.mediaFiles.length - 1
+                                ? 'text-muted-foreground hover:text-primary hover:bg-primary/10' 
+                                : 'text-muted-foreground/30 cursor-not-allowed'
+                            }`}
+                            title="Move down"
+                          >
+                            <GripVertical className="h-4 w-4 rotate-180" />
+                          </button>
+                        </div>
+
+                        {/* File Icon */}
+                        <div className="p-2 rounded-lg bg-primary/10">
+                          <div className="text-primary">
+                            {getFileIcon(file)}
+                          </div>
+                        </div>
+
+                        {/* File Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-foreground truncate text-sm font-semibold">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+
+                        {/* Thumbnail Badge */}
+                        {index === 0 && (
+                          <div className="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-semibold whitespace-nowrap">
+                            ★ Thumbnail
+                          </div>
+                        )}
+
+                        {/* Delete Button */}
+                        <motion.button
+                          onClick={() => handleRemoveFile(index)}
+                          className="p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors opacity-0 group-hover:opacity-100"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <X className="h-4 w-4" />
+                        </motion.button>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Upload Tips */}
+      <Card className="bg-muted/20 border-border/30">
+        <CardContent className="pt-6">
+          <div className="space-y-2 text-sm">
+            <p className="font-semibold text-foreground flex items-center gap-2">
+              <span className="text-primary">💡</span> Upload Tips
+            </p>
+            <ul className="space-y-1 text-muted-foreground text-xs">
+              <li>• First file will be used as the thumbnail</li>
+              <li>• Reorder files by clicking the move buttons</li>
+              <li>• Supported formats: JPG, PNG, GIF, MP4, WebM, MP3, WAV, PDF</li>
+              <li>• Maximum file size: 50MB each</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

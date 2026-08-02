@@ -37,7 +37,6 @@ export function useSocket() {
     error: null,
   })
 
-  // Get auth token from NextAuth session
   const token = (session as any)?.chatToken
 
   useEffect(() => {
@@ -51,7 +50,6 @@ export function useSocket() {
       return
     }
 
-    // Initialize socket with token
     try {
       initializeSocket(token)
     } catch (error) {
@@ -64,12 +62,10 @@ export function useSocket() {
       return
     }
 
-    // Subscribe to connection state changes
     const unsubscribe = onConnectionStateChange((state) => {
       setConnectionState(state)
     })
 
-    // Set initial state
     setConnectionState(getConnectionState())
 
     return () => {
@@ -84,6 +80,14 @@ export function useSocket() {
     isConnected: connectionState.isConnected,
     isConnecting: connectionState.isConnecting,
     error: connectionState.error,
+    sendMessage: (message: any, callback?: (response: any) => void) => {
+      emitSendMessage(message.conversationId, message.content, message.attachments, callback)
+    },
+    joinRoom: (roomId: string) => emitJoinRoom(roomId),
+    leaveRoom: (roomId: string) => emitLeaveRoom(roomId),
+    setTyping: (conversationId: string, isTyping: boolean) => {
+      emitTypingIndicator(conversationId, isTyping)
+    },
   }
 }
 

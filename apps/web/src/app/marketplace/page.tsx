@@ -1,14 +1,26 @@
 "use client"
 
 import { AuthenticatedLayout } from "../../../components/authenticated-layout"
-import { ItemCard } from "./components/ItemCard"
-import { FilterSidebar } from "./components/FilterSidebar"
-import { ItemDetailModal } from "./components/ItemDetailModal"
-import { getFakeItems, getFakeFeaturedItems, FakeItem } from "@/lib/fake-data"
 import { useState, useMemo } from "react"
 import { useSearchParams } from "next/navigation"
-import { Search } from "lucide-react"
+import { Search, TrendingUp, Shield, DollarSign } from "lucide-react"
 import { motion } from "framer-motion"
+import { cn } from "@/lib/utils"
+
+interface FakeItem {
+  id: string
+  title: string
+  description: string
+  price: number
+  rating: number
+  reviews: number
+  image: string
+  category: string
+  creator: {
+    name: string
+    avatar: string
+  }
+}
 
 interface FilterState {
   category: string
@@ -18,58 +30,62 @@ interface FilterState {
   search: string
 }
 
+const categories = [
+  { id: "all", label: "All Assets", icon: "🎨" },
+  { id: "art", label: "Art", icon: "🖼️" },
+  { id: "writing", label: "Writing", icon: "✍️" },
+  { id: "audio", label: "Audio", icon: "🎵" },
+  { id: "video", label: "Video", icon: "🎬" },
+  { id: "courses", label: "Courses", icon: "📚" },
+]
+
+const stats = [
+  { label: "Total Volume", value: "1.2M DOT", color: "text-primary" },
+  { label: "Active Creators", value: "14.8k", color: "text-primary" },
+]
+
+const ecosystemStats = [
+  {
+    title: "Artist Royalty Payouts",
+    value: "$2.4M",
+    change: "-12%",
+    description: "Calculated from Q3 2025 sales performance across all categories",
+    icon: DollarSign,
+  },
+  {
+    title: "Daily Transaction Speed",
+    value: "0.4s",
+    description: "Proprietary blockchain ledger ensures zero-latency asset transfers",
+    badge: "Instant",
+    icon: TrendingUp,
+  },
+  {
+    title: "Asset Authenticity",
+    value: "100%",
+    description: "Every asset is signed with a unique cryptographic identity fingerprint",
+    badge: "Verified",
+    icon: Shield,
+  },
+]
+
 export default function MarketplacePage() {
   const searchParams = useSearchParams()
-  const allItems = getFakeItems()
-  const featuredItems = getFakeFeaturedItems()
+  const allItems: FakeItem[] = []
 
-  const [filters, setFilters] = useState<FilterState>({
-    category: searchParams.get("category") || "all",
-    priceMin: searchParams.get("priceMin") ? parseFloat(searchParams.get("priceMin")!) : null,
-    priceMax: searchParams.get("priceMax") ? parseFloat(searchParams.get("priceMax")!) : null,
-    rating: searchParams.get("rating") ? parseFloat(searchParams.get("rating")!) : null,
-    search: searchParams.get("search") || "",
-  })
+  const [selectedCategory, setSelectedCategory] = useState(
+    searchParams.get("category") || "all"
+  )
+  const [search, setSearch] = useState(searchParams.get("search") || "")
 
-  const [liked, setLiked] = useState<Set<string>>(new Set())
-  const [selectedItem, setSelectedItem] = useState<FakeItem | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-
-  const toggleLike = (itemId: string) => {
-    const newLiked = new Set(liked)
-    if (newLiked.has(itemId)) {
-      newLiked.delete(itemId)
-    } else {
-      newLiked.add(itemId)
-    }
-    setLiked(newLiked)
-  }
-
-  // Filter and search items
   const filteredItems = useMemo(() => {
     let result = allItems
 
-    // Category filter
-    if (filters.category !== "all") {
-      result = result.filter((item) => item.category === filters.category)
+    if (selectedCategory !== "all") {
+      result = result.filter((item) => item.category === selectedCategory)
     }
 
-    // Price range filter
-    if (filters.priceMin !== null) {
-      result = result.filter((item) => item.price >= filters.priceMin!)
-    }
-    if (filters.priceMax !== null) {
-      result = result.filter((item) => item.price <= filters.priceMax!)
-    }
-
-    // Rating filter
-    if (filters.rating !== null) {
-      result = result.filter((item) => item.rating >= filters.rating!)
-    }
-
-    // Search filter
-    if (filters.search.trim()) {
-      const searchLower = filters.search.toLowerCase()
+    if (search.trim()) {
+      const searchLower = search.toLowerCase()
       result = result.filter(
         (item) =>
           item.title.toLowerCase().includes(searchLower) ||
@@ -79,175 +95,175 @@ export default function MarketplacePage() {
     }
 
     return result
-  }, [allItems, filters])
-
-  // Get related items (same category)
-  const getRelatedItems = (item: FakeItem): FakeItem[] => {
-    return allItems
-      .filter((i) => i.category === item.category && i.id !== item.id)
-      .slice(0, 6)
-  }
-
-  const handleItemClick = (item: FakeItem) => {
-    setSelectedItem(item)
-    setIsModalOpen(true)
-  }
-
-  const handleRelatedItemClick = (item: FakeItem) => {
-    setSelectedItem(item)
-  }
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.05 },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-  }
+  }, [selectedCategory, search])
 
   return (
     <AuthenticatedLayout>
-      <div className="min-h-screen bg-background">
-        {/* Header Section */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-          <div>
-            <h1 className="font-serif text-3xl md:text-4xl font-bold mb-2">Marketplace</h1>
-            <p className="text-muted-foreground">Discover amazing digital products from talented creators</p>
+      <div className="w-full h-full flex flex-col gap-8">
+        {/* Hero Section */}
+        <div className="space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div>
+              <h1 className="font-serif text-5xl md:text-6xl font-bold mb-3">Marketplace</h1>
+              <p className="text-lg text-muted-foreground max-w-xl">
+                Premium assets for the modern digital artisan.
+              </p>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="flex gap-4">
+              {stats.map((stat, i) => (
+                <div
+                  key={i}
+                  className="flex flex-col gap-1 px-4 py-2 rounded-lg bg-background/50 border border-border/50"
+                >
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-mono">
+                    {stat.label}
+                  </p>
+                  <p className={cn("text-lg font-bold", stat.color)}>{stat.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Category Tabs */}
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={cn(
+                  "px-4 py-2 rounded-full whitespace-nowrap font-medium transition-all duration-200 flex items-center gap-2",
+                  selectedCategory === cat.id
+                    ? "bg-primary text-primary-foreground shadow-lg"
+                    : "bg-card border border-border/50 text-foreground hover:border-primary/50"
+                )}
+              >
+                <span>{cat.icon}</span>
+                {cat.label}
+              </button>
+            ))}
           </div>
 
           {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search items, creators..."
-              value={filters.search}
-              onChange={(e) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  search: e.target.value,
-                }))
-              }
-              className="w-full pl-12 pr-4 py-3 rounded-lg bg-card border border-border/50 focus:border-primary/50 outline-none transition-colors placeholder:text-muted-foreground"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 rounded-xl bg-card border border-border/50 focus:border-primary/50 outline-none transition-colors placeholder:text-muted-foreground"
             />
           </div>
         </div>
 
-        {/* Featured Section */}
-        {featuredItems.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
-          >
-            <div className="space-y-6">
-              <div>
-                <h2 className="font-serif text-2xl font-bold mb-2">✨ Featured Items</h2>
-                <p className="text-muted-foreground">Handpicked selections from our top creators</p>
-              </div>
-
-              <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
-                initial="hidden"
-                animate="visible"
-                variants={containerVariants}
-              >
-                {featuredItems.slice(0, 4).map((item) => (
-                  <motion.div key={item.id} variants={itemVariants}>
-                    <ItemCard
-                      item={item}
-                      onCardClick={handleItemClick}
-                      onLikeToggle={toggleLike}
-                      isLiked={liked.has(item.id)}
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Main Content Area */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Sidebar - Hidden on mobile */}
-            <div className="hidden lg:block">
-              <div className="sticky top-20">
-                <FilterSidebar
-                  currentFilters={filters}
-                  onFilterChange={setFilters}
-                />
-              </div>
-            </div>
-
-            {/* Main Grid */}
-            <div className="lg:col-span-3 space-y-6">
+        {/* Items Grid - Fill remaining space */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {filteredItems.length > 0 ? (
+            <div className="space-y-4">
               <div>
                 <h2 className="font-serif text-2xl font-bold mb-1">All Items</h2>
                 <p className="text-muted-foreground">Showing {filteredItems.length} items</p>
               </div>
 
-              {filteredItems.length > 0 ? (
-                <motion.div
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-                  initial="hidden"
-                  animate="visible"
-                  variants={containerVariants}
-                >
-                  {filteredItems.map((item) => (
-                    <motion.div key={item.id} variants={itemVariants}>
-                      <ItemCard
-                        item={item}
-                        onCardClick={handleItemClick}
-                        onLikeToggle={toggleLike}
-                        isLiked={liked.has(item.id)}
-                      />
-                    </motion.div>
-                  ))}
-                </motion.div>
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground mb-2">No items found matching your filters</p>
-                  <button
-                    onClick={() =>
-                      setFilters({
-                        category: "all",
-                        priceMin: null,
-                        priceMax: null,
-                        rating: null,
-                        search: "",
-                      })
-                    }
-                    className="text-primary hover:underline"
+              <motion.div
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: {
+                    opacity: 1,
+                    transition: { staggerChildren: 0.05 },
+                  },
+                }}
+              >
+                {filteredItems.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    variants={{
+                      hidden: { opacity: 0, y: 10 },
+                      visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+                    }}
+                    className="group cursor-pointer"
                   >
-                    Clear filters
-                  </button>
-                </div>
-              )}
+                    <div className="aspect-square rounded-xl overflow-hidden mb-3 bg-card border border-border/50 group-hover:border-primary/50 transition-all">
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl">
+                        🎨
+                      </div>
+                    </div>
+                    <h3 className="font-semibold text-sm truncate">{item.title}</h3>
+                    <p className="text-xs text-muted-foreground truncate mb-2">by {item.creator.name}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-primary">${item.price.toFixed(2)}</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs">⭐ {item.rating.toFixed(1)}</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
             </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full gap-4">
+              <p className="text-lg text-muted-foreground">No items found</p>
+              <button
+                onClick={() => {
+                  setSelectedCategory("all")
+                  setSearch("")
+                }}
+                className="px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Ecosystem Stats Section */}
+        <div className="space-y-6 border-t border-border/50 pt-8">
+          <div>
+            <h2 className="font-serif text-3xl font-bold">Ecosystem Performance</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {ecosystemStats.map((stat, i) => {
+              const Icon = stat.icon
+              return (
+                <div
+                  key={i}
+                  className="rounded-xl bg-card border border-border/50 p-6 hover:border-primary/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">{stat.title}</p>
+                      <p className="text-3xl font-bold flex items-baseline gap-2">
+                        {stat.value}
+                        {stat.change && (
+                          <span className="text-sm text-primary">{stat.change}</span>
+                        )}
+                      </p>
+                    </div>
+                    {stat.badge && (
+                      <span className="px-2 py-1 rounded-lg bg-primary/10 text-primary text-xs font-semibold">
+                        {stat.badge}
+                      </span>
+                    )}
+                    <Icon className="h-6 w-6 text-primary opacity-50" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">{stat.description}</p>
+                </div>
+              )
+            })}
           </div>
         </div>
-      </div>
 
-      {/* Item Detail Modal */}
-      <ItemDetailModal
-        item={selectedItem}
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false)
-          setSelectedItem(null)
-        }}
-        relatedItems={selectedItem ? getRelatedItems(selectedItem) : []}
-        onRelatedItemClick={handleRelatedItemClick}
-        onLikeToggle={toggleLike}
-        isLiked={selectedItem ? liked.has(selectedItem.id) : false}
-      />
+        {/* Footer */}
+        <div className="text-center text-xs text-muted-foreground border-t border-border/50 pt-6">
+          <p>© 2025 DREAMDOT DIGITAL ATELIER. ALL RIGHTS RESERVED.</p>
+        </div>
+      </div>
     </AuthenticatedLayout>
   )
 }

@@ -9,7 +9,17 @@ import { Card, CardContent } from '@/components/ui/card'
 import { AuthenticatedLayout } from '@/components/authenticated-layout'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { 
+  Loader2, 
+  CheckCircle2, 
+  AlertCircle,
+  PenTool,
+  Image as ImageIcon,
+  Package,
+  ArrowRight,
+  ArrowLeft
+} from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export default function CreatePage() {
   const router = useRouter()
@@ -19,12 +29,13 @@ export default function CreatePage() {
   const [publishSuccess, setPublishSuccess] = useState(false)
 
   const tabs = [
-    { id: 'writer', label: 'Writer', icon: '📝' },
-    { id: 'media', label: 'Media', icon: '🖼️' },
-    { id: 'bundle', label: 'Bundle', icon: '📦' },
+    { id: 'writer', label: 'Writer', icon: PenTool, desc: 'Create your content' },
+    { id: 'media', label: 'Media', icon: ImageIcon, desc: 'Upload assets' },
+    { id: 'bundle', label: 'Bundle', icon: Package, desc: 'Group items' },
   ]
 
   const stepNumber = tabs.findIndex((t) => t.id === step) + 1
+  const currentTab = tabs.find((t) => t.id === step)
 
   const handleNext = () => {
     if (validateDraft()) {
@@ -62,147 +73,271 @@ export default function CreatePage() {
 
   return (
     <AuthenticatedLayout>
-      <div className="min-h-screen bg-[#121412]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-[#FFFFFF] mb-2">Creator Studio</h1>
-            <p className="text-[#6B8E6E]">Step {stepNumber} of {tabs.length}: {tabs.find((t) => t.id === step)?.label}</p>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex gap-2 mb-8 border-b border-[#2a2826]">
-            {tabs.map((tab, idx) => (
-              <button
-                key={tab.id}
-                onClick={() => setStep(tab.id as any)}
-                className={`px-4 py-3 font-semibold text-sm transition-colors border-b-2 ${
-                  step === tab.id ? 'border-[#99FF33] text-[#99FF33]' : 'border-transparent text-[#6B8E6E] hover:text-[#FFFFFF]'
-                }`}
-              >
-                <span>{tab.icon} {tab.label}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Editor Panel */}
-            <div className="lg:col-span-2">
-              {step === 'writer' && <WriterPart />}
-              {step === 'media' && <MediaPart />}
-              {step === 'bundle' && <BundlePart />}
+      <div className="w-full h-full flex flex-col gap-8 min-h-screen">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+              {currentTab && <currentTab.icon className="h-6 w-6 text-primary" />}
             </div>
-
-            {/* Preview Panel */}
             <div>
-              <Card className="bg-[#1a1918] border-[#2a2826] sticky top-20">
-                <CardContent className="pt-6">
-                  <h3 className="text-[#FFFFFF] font-semibold mb-4">Preview</h3>
-
-                  {/* Draft Info */}
-                  <div className="space-y-3 text-sm">
-                    <div>
-                      <p className="text-[#6B8E6E] text-xs">Title</p>
-                      <p className="text-[#FFFFFF] font-semibold">{draft.title || '(Not set)'}</p>
-                    </div>
-
-                    <div>
-                      <p className="text-[#6B8E6E] text-xs">Category</p>
-                      <p className="text-[#FFFFFF]">{draft.category || '(Not set)'}</p>
-                    </div>
-
-                    <div>
-                      <p className="text-[#6B8E6E] text-xs">Pricing Model</p>
-                      <p className="text-[#FFFFFF]">{draft.pricingModel}</p>
-                    </div>
-
-                    {draft.pricingModel === 'paid' && (
-                      <div>
-                        <p className="text-[#6B8E6E] text-xs">Price</p>
-                        <p className="text-[#99FF33] font-semibold">${(draft.priceCredits * 0.01).toFixed(2)}</p>
-                      </div>
-                    )}
-
-                    <div>
-                      <p className="text-[#6B8E6E] text-xs">Media Files</p>
-                      <p className="text-[#FFFFFF]">{draft.mediaFiles.length} file(s)</p>
-                    </div>
-
-                    {draft.pricingModel === 'bundle' && (
-                      <div>
-                        <p className="text-[#6B8E6E] text-xs">Bundle Items</p>
-                        <p className="text-[#FFFFFF]">{draft.bundleItemIds.length} item(s)</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Validation Status */}
-                  <div className="mt-6 p-3 rounded border border-[#2a2826]">
-                    <div className="flex items-center gap-2 mb-2">
-                      {isValid ? (
-                        <>
-                          <CheckCircle2 className="h-4 w-4 text-[#99FF33]" />
-                          <span className="text-[#99FF33] text-sm font-semibold">Ready to publish</span>
-                        </>
-                      ) : (
-                        <>
-                          <AlertCircle className="h-4 w-4 text-red-500" />
-                          <span className="text-red-500 text-sm font-semibold">Incomplete</span>
-                        </>
-                      )}
-                    </div>
-                    <ul className="space-y-1 text-xs text-[#6B8E6E]">
-                      <li>✓ Title: {draft.title ? '✓' : '✗'}</li>
-                      <li>✓ Script: {draft.script.length >= 10 ? '✓' : '✗'}</li>
-                      <li>✓ Category: {draft.category ? '✓' : '✗'}</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
+              <h1 className="text-4xl font-bold text-foreground">Creator Studio</h1>
+              <p className="text-muted-foreground">Step {stepNumber} of {tabs.length} • {currentTab?.desc}</p>
             </div>
           </div>
+        </motion.div>
 
-          {/* Actions */}
-          <div className="flex gap-4 mt-8 justify-end">
-            <Button
-              onClick={handlePrevious}
-              disabled={stepNumber === 1}
-              variant="outline"
-              className="border-[#2a2826] text-[#FFFFFF] hover:bg-[#2a2826]"
-            >
-              Previous
-            </Button>
+        {/* Progress Bar */}
+        <div className="relative">
+          <div className="flex gap-3">
+            {tabs.map((tab, idx) => {
+              const TabIcon = tab.icon
+              const isActive = step === tab.id
+              const isPassed = idx < stepNumber - 1
+              
+              return (
+                <motion.button
+                  key={tab.id}
+                  onClick={() => setStep(tab.id as any)}
+                  className="relative flex-1 group"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <div 
+                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                      isActive 
+                        ? 'border-primary bg-primary/10' 
+                        : isPassed
+                        ? 'border-primary/50 bg-primary/5'
+                        : 'border-border bg-card hover:border-primary/30'
+                    }`}
+                  >
+                    <div className={`p-2 rounded-lg ${
+                      isActive 
+                        ? 'bg-primary/20' 
+                        : isPassed
+                        ? 'bg-primary/10'
+                        : 'bg-muted'
+                    }`}>
+                      <TabIcon className={`h-5 w-5 ${
+                        isActive 
+                          ? 'text-primary' 
+                          : isPassed
+                          ? 'text-primary/70'
+                          : 'text-muted-foreground'
+                      }`} />
+                    </div>
+                    <span className={`text-sm font-semibold ${
+                      isActive 
+                        ? 'text-primary' 
+                        : isPassed
+                        ? 'text-primary/70'
+                        : 'text-muted-foreground'
+                    }`}>
+                      {tab.label}
+                    </span>
+                  </div>
 
-            {stepNumber < tabs.length ? (
-              <Button onClick={handleNext} className="bg-[#99FF33] text-[#121412] hover:bg-[#85e022]">
-                Next
-              </Button>
-            ) : (
-              <Button
-                onClick={handlePublish}
-                disabled={!isValid || publishing}
-                className="bg-[#99FF33] text-[#121412] hover:bg-[#85e022] disabled:opacity-50"
-              >
-                {publishing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Publishing...
-                  </>
-                ) : (
-                  'Publish'
-                )}
-              </Button>
-            )}
+                  {/* Connector Line */}
+                  {idx < tabs.length - 1 && (
+                    <div className="absolute top-1/2 -right-1.5 w-3 h-0.5 -translate-y-1/2">
+                      <div className={`h-full rounded-full transition-colors ${
+                        isPassed ? 'bg-primary' : 'bg-border'
+                      }`} />
+                    </div>
+                  )}
+                </motion.button>
+              )
+            })}
           </div>
+        </div>
 
-          {/* Publish Status */}
-          {publishError && <div className="mt-4 p-4 bg-red-900/20 border border-red-700/50 rounded text-red-400 text-sm">{publishError}</div>}
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1">
+          {/* Editor Panel */}
+          <motion.div 
+            key={step}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="lg:col-span-2"
+          >
+            {step === 'writer' && <WriterPart />}
+            {step === 'media' && <MediaPart />}
+            {step === 'bundle' && <BundlePart />}
+          </motion.div>
+
+          {/* Preview Panel - Sticky */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            <Card className="sticky top-24 bg-card border-border/50 shadow-lg">
+              <CardContent className="pt-6">
+                <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                  Preview & Status
+                </h3>
+
+                {/* Draft Info Grid */}
+                <div className="space-y-4 mb-6">
+                  <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Title</p>
+                    <p className="text-foreground font-semibold mt-1">{draft.title || '—'}</p>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Category</p>
+                    <p className="text-foreground font-semibold mt-1">{draft.category || '—'}</p>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Pricing</p>
+                    <p className="text-foreground font-semibold mt-1 capitalize">{draft.pricingModel}</p>
+                  </div>
+
+                  {draft.pricingModel === 'paid' && (
+                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                      <p className="text-xs font-semibold text-primary uppercase tracking-wide">Price</p>
+                      <p className="text-primary font-bold text-lg mt-1">${(draft.priceCredits * 0.01).toFixed(2)}</p>
+                    </div>
+                  )}
+
+                  <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Media Files</p>
+                    <p className="text-foreground font-semibold mt-1">{draft.mediaFiles.length}</p>
+                  </div>
+
+                  {draft.pricingModel === 'bundle' && (
+                    <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Bundle Items</p>
+                      <p className="text-foreground font-semibold mt-1">{draft.bundleItemIds.length}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Validation Status */}
+                <div className={`p-4 rounded-lg border-2 ${
+                  isValid 
+                    ? 'bg-primary/5 border-primary/30' 
+                    : 'bg-destructive/5 border-destructive/30'
+                }`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    {isValid ? (
+                      <>
+                        <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+                        <span className="text-primary font-bold">Ready to publish</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+                        <span className="text-destructive font-bold">Incomplete</span>
+                      </>
+                    )}
+                  </div>
+                  
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <span className={`text-lg ${draft.title ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {draft.title ? '✓' : '○'}
+                      </span>
+                      <span className={draft.title ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                        Title
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className={`text-lg ${draft.script.length >= 10 ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {draft.script.length >= 10 ? '✓' : '○'}
+                      </span>
+                      <span className={draft.script.length >= 10 ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                        Content
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className={`text-lg ${draft.category ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {draft.category ? '✓' : '○'}
+                      </span>
+                      <span className={draft.category ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                        Category
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Actions Footer */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="flex gap-4 justify-end pt-4 border-t border-border/30"
+        >
+          <Button
+            onClick={handlePrevious}
+            disabled={stepNumber === 1}
+            variant="outline"
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Previous
+          </Button>
+
+          {stepNumber < tabs.length ? (
+            <Button 
+              onClick={handleNext}
+              className="gap-2"
+            >
+              Next
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handlePublish}
+              disabled={!isValid || publishing}
+              className="gap-2"
+            >
+              {publishing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Publishing...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4" />
+                  Publish
+                </>
+              )}
+            </Button>
+          )}
+        </motion.div>
+
+        {/* Status Messages */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: publishError || publishSuccess ? 1 : 0, y: publishError || publishSuccess ? 0 : 10 }}
+          transition={{ duration: 0.3 }}
+        >
+          {publishError && (
+            <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+              <span className="text-destructive text-sm font-medium">{publishError}</span>
+            </div>
+          )}
 
           {publishSuccess && (
-            <div className="mt-4 p-4 bg-green-900/20 border border-green-700/50 rounded text-green-400 text-sm">✓ Published successfully! Redirecting...</div>
+            <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+              <span className="text-primary text-sm font-medium">✓ Published successfully! Redirecting...</span>
+            </div>
           )}
-        </div>
+        </motion.div>
       </div>
     </AuthenticatedLayout>
   )

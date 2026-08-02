@@ -1,9 +1,23 @@
 "use client"
 
-import { FakeItem } from "@/lib/fake-data"
 import Image from "next/image"
 import { Heart, Star, X, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react"
 import { useState, useEffect } from "react"
+
+interface FakeItem {
+  id: string
+  title: string
+  description: string
+  price: number
+  rating: number
+  reviews: number
+  image: string
+  category: string
+  creator: {
+    name: string
+    avatar: string
+  }
+}
 
 interface ItemDetailModalProps {
   item: FakeItem | null
