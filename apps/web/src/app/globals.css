@@ -49,120 +49,63 @@
 }
 
 :root {
-  --radius: 24px;
-  /* Organic, rounded feel */
+  --radius: 16px;
+  
+  /* DreamDOT Design System - Dark Mode (Default) */
+  --background: #121412;
+  --foreground: #FFFFFF;
 
-  /* Light Mode - Organic Wealth */
-  --background: #FAFAF9;
-  /* Alabaster / Warm Paper */
-  --foreground: #0A0F0D;
-  /* Deep Forest Charcoal */
+  --card: #1A1918;
+  --card-foreground: #FFFFFF;
 
-  --card: #FFFFFF;
-  --card-foreground: #0A0F0D;
+  --popover: #121412;
+  --popover-foreground: #FFFFFF;
 
-  --popover: #FFFFFF;
-  --popover-foreground: #0A0F0D;
+  --primary: #99FF33;
+  /* Faded Lime - Primary Action */
+  --primary-foreground: #121412;
 
-  --primary: #3E4A35;
-  /* Deep Olive Green - Wealth Coded */
-  --primary-foreground: #FAFAF9;
+  --secondary: #6B8E6E;
+  /* Sage Green */
+  --secondary-foreground: #FFFFFF;
 
-  --secondary: #E2E8E0;
-  /* Light Moss */
-  --secondary-foreground: #1A211D;
+  --muted: #2a2826;
+  --muted-foreground: #6B8E6E;
 
-  --muted: #F0F2EF;
-  --muted-foreground: #5C665D;
+  --accent: #99FF33;
+  --accent-foreground: #121412;
 
-  --accent: #8CDD81;
-  /* Electric Sage */
-  --accent-foreground: #0A0F0D;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
 
-  --destructive: #991B1B;
-  --destructive-foreground: #FAFAF9;
+  --border: #2a2826;
+  --input: #1A1918;
+  --ring: #99FF33;
 
-  --border: #E5E7EB;
-  --input: #E5E7EB;
-  --ring: #8CDD81;
-  /* Electric Sage glow */
+  --chart-1: #99FF33;
+  --chart-2: #6B8E6E;
+  --chart-3: #2a2826;
+  --chart-4: #0f0e0d;
+  --chart-5: #FFFFFF;
 
-  --chart-1: #3E4A35;
-  --chart-2: #8CDD81;
-  --chart-3: #D4AF37;
-  --chart-4: #2C352D;
-  --chart-5: #E2E8E0;
+  --sidebar: #0f0e0d;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #99FF33;
+  --sidebar-primary-foreground: #121412;
+  --sidebar-accent: #1A1918;
+  --sidebar-accent-foreground: #99FF33;
+  --sidebar-border: #2a2826;
+  --sidebar-ring: #99FF33;
 
-  --sidebar: #FAFAF9;
-  --sidebar-foreground: #0A0F0D;
-  --sidebar-primary: #3E4A35;
-  --sidebar-primary-foreground: #FAFAF9;
-  --sidebar-accent: #F0F2EF;
-  --sidebar-accent-foreground: #3E4A35;
-  --sidebar-border: #E5E7EB;
-  --sidebar-ring: #8CDD81;
-
-  /* Premium Anti-Gravity Shadows */
-  --shadow-glow: 0 0 30px -8px rgba(140, 221, 129, 0.35);
-  --shadow-float: 0 8px 32px -12px rgba(10, 15, 13, 0.12);
-  --shadow-float-lg: 0 20px 60px -20px rgba(10, 15, 13, 0.15);
-  --shadow-glow-lg: 0 0 60px -10px rgba(140, 221, 129, 0.2);
+  /* Shadows & Glows */
+  --shadow-glow: 0 0 30px -8px rgba(153, 255, 51, 0.3);
+  --shadow-float: 0 8px 32px -12px rgba(0, 0, 0, 0.4);
+  --shadow-float-lg: 0 20px 60px -20px rgba(0, 0, 0, 0.5);
+  --shadow-glow-lg: 0 0 60px -10px rgba(153, 255, 51, 0.15);
 }
 
 .dark {
-  /* Dark Mode - Bioluminescent Forest */
-  --background: #0A0F0D;
-  /* Deep Forest Charcoal */
-  --foreground: #FAFAF9;
-
-  --card: rgba(20, 30, 24, 0.4);
-  /* Glassmorphic Base */
-  --card-foreground: #FAFAF9;
-
-  --popover: #0A0F0D;
-  --popover-foreground: #FAFAF9;
-
-  --primary: #8CDD81;
-  /* Electric Sage for dark mode accents */
-  --primary-foreground: #0A0F0D;
-
-  --secondary: #1A2621;
-  --secondary-foreground: #FAFAF9;
-
-  --muted: #1A2621;
-  --muted-foreground: #8B9E94;
-
-  --accent: #1A2621;
-  --accent-foreground: #8CDD81;
-
-  --destructive: #7F1D1D;
-  --destructive-foreground: #FAFAF9;
-
-  --border: rgba(140, 221, 129, 0.1);
-  /* Subtle green tint */
-  --input: rgba(140, 221, 129, 0.1);
-  --ring: #8CDD81;
-
-  --chart-1: #8CDD81;
-  --chart-2: #3E4A35;
-  --chart-3: #D4AF37;
-  --chart-4: #FAFAF9;
-  --chart-5: #1A2621;
-
-  --sidebar: #0A0F0D;
-  --sidebar-foreground: #FAFAF9;
-  --sidebar-primary: #8CDD81;
-  --sidebar-primary-foreground: #0A0F0D;
-  --sidebar-accent: #1A2621;
-  --sidebar-accent-foreground: #8CDD81;
-  --sidebar-border: rgba(140, 221, 129, 0.1);
-  --sidebar-ring: #8CDD81;
-
-  /* Premium Anti-Gravity Shadows & Glows */
-  --shadow-glow: 0 0 40px -8px rgba(140, 221, 129, 0.2);
-  --shadow-float: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
-  --shadow-float-lg: 0 30px 80px -24px rgba(0, 0, 0, 0.6);
-  --shadow-glow-lg: 0 0 80px -16px rgba(140, 221, 129, 0.15);
+  /* Dark mode already set as default */
 }
 
 @layer utilities {
@@ -254,30 +197,43 @@
   }
 
   .dream-card {
-    @apply bg-card border-border/50 shadow-[var(--shadow-float)] backdrop-blur-3xl transition-all duration-500;
+    @apply bg-card border border-border shadow-[var(--shadow-float)] backdrop-blur-3xl transition-all duration-300;
   }
 
   .dream-card:hover {
-    @apply shadow-[var(--shadow-glow)] border-primary/20;
+    @apply shadow-[var(--shadow-glow)] border-primary/50 scale-[1.01];
   }
 
   .dream-button {
-    @apply bg-primary text-primary-foreground hover:opacity-90 transition-all duration-300 shadow-[var(--shadow-glow)] font-medium;
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all duration-200 font-semibold rounded-full;
   }
 
   .dream-badge {
-    @apply bg-primary/20 text-primary border-primary/30 font-medium;
+    @apply bg-primary/20 text-primary border border-primary/30 font-medium rounded-full;
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-primary/60;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-primary;
   }
 
   .glass-panel {
-    @apply bg-background/60 backdrop-blur-2xl border border-border/50 shadow-[var(--shadow-float)];
+    @apply bg-background/40 backdrop-blur-2xl border border-border/50 shadow-[var(--shadow-float)];
   }
 
   .ambient-glow {
-    @apply pointer-events-none absolute rounded-full blur-[160px] opacity-20;
+    @apply pointer-events-none absolute rounded-full blur-[160px] opacity-20 bg-primary;
+  }
+
+  /* Animation utilities */
+  .animate-in-fade {
+    @apply animate-in fade-in duration-500;
+  }
+
+  .animate-in-scale {
+    @apply animate-in zoom-in-95 duration-300;
+  }
+
+  .animate-in-slide {
+    @apply animate-in slide-in-from-bottom-2 duration-300;
   }
 }

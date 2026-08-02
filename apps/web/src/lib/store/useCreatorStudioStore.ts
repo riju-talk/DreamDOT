@@ -1,138 +1,150 @@
-import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
-interface CreatorStudioDraft {
+export interface Draft {
   title: string
   thumbnailUrl: string
   script: string
   category: string
-  pricingModel: "free" | "paid" | "subscription" | "bundle"
+  pricingModel: 'free' | 'paid' | 'subscription' | 'bundle'
   priceCredits: number
-  mediaUrls: string[]
+  mediaFiles: File[]
   bundleItemIds: string[]
-  description: string
+  description?: string
 }
 
-interface CreatorStudioState {
-  step: "writer" | "media" | "bundle"
-  draft: CreatorStudioDraft
-  isPublishing: boolean
-  error: string | null
+export interface CreatorStudioState {
+  step: 'writer' | 'media' | 'bundle'
+  draft: Draft
+  errors: Record<string, string>
+  isValid: boolean
 
-  // Actions
-  setStep: (step: "writer" | "media" | "bundle") => void
-  updateDraft: (data: Partial<CreatorStudioDraft>) => void
-  resetDraft: () => void
-  setIsPublishing: (value: boolean) => void
-  setError: (error: string | null) => void
-
-  // Validation
+  setStep: (step: 'writer' | 'media' | 'bundle') => void
+  updateDraft: (partial: Partial<Draft>) => void
   validateDraft: () => boolean
-  getValidationErrors: () => Record<string, string>
+  resetDraft: () => void
+  publishDraft: () => Promise<{ success: boolean; itemId?: string; error?: string }>
 }
 
-const defaultDraft: CreatorStudioDraft = {
-  title: "",
-  thumbnailUrl: "",
-  script: "",
-  category: "",
-  pricingModel: "free",
-  priceCredits: 0,
-  mediaUrls: [],
-  bundleItemIds: [],
-  description: "",
+const validateDraftFunc = (draft: Draft): { isValid: boolean; errors: Record<string, string> } => {
+  const errors: Record<string, string> = {}
+
+  if (!draft.title || draft.title.trim().length === 0) {
+    errors.title = 'Title is required'
+  } else if (draft.title.length > 140) {
+    errors.title = 'Title must be 140 characters or less'
+  }
+
+  if (!draft.script || draft.script.trim().length === 0) {
+    errors.script = 'Script is required'
+  } else if (draft.script.length < 10) {
+    errors.script = 'Script must be at least 10 characters'
+  }
+
+  if (!draft.category) {
+    errors.category = 'Category is required'
+  }
+
+  if (!draft.thumbnailUrl) {
+    errors.thumbnailUrl = 'Thumbnail is required'
+  }
+
+  if (draft.pricingModel === 'bundle' && draft.bundleItemIds.length < 2) {
+    errors.bundleItems = 'Select at least 2 items for a bundle'
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  }
 }
 
 export const useCreatorStudioStore = create<CreatorStudioState>()(
   persist(
     (set, get) => ({
-      step: "writer",
-      draft: defaultDraft,
-      isPublishing: false,
-      error: null,
+      step: 'writer',
+      draft: {
+        title: '',
+        thumbnailUrl: '',
+        script: '',
+        category: '',
+        pricingModel: 'free',
+        priceCredits: 0,
+        mediaFiles: [],
+        bundleItemIds: [],
+        description: '',
+      },
+      errors: {},
+      isValid: false,
 
       setStep: (step) => set({ step }),
 
-      updateDraft: (data) =>
-        set((state) => ({
-          draft: { ...state.draft, ...data },
-        })),
-
-      resetDraft: () =>
-        set({
-          draft: defaultDraft,
-          step: "writer",
-          error: null,
-        }),
-
-      setIsPublishing: (value) => set({ isPublishing: value }),
-
-      setError: (error) => set({ error }),
-
-      validateDraft: () => {
-        const state = get()
-        const errors = state.getValidationErrors()
-        return Object.keys(errors).length === 0
+      updateDraft: (partial) => {
+        set((state) => {
+          const newDraft = { ...state.draft, ...partial }
+          const validation = validateDraftFunc(newDraft)
+          return {
+            draft: newDraft,
+            errors: validation.errors,
+            isValid: validation.isValid,
+          }
+        })
       },
 
-      getValidationErrors: () => {
-        const { draft } = get()
-        const errors: Record<string, string> = {}
+      validateDraft: () => {
+        const validation = validateDraftFunc(get().draft)
+        set({ errors: validation.errors, isValid: validation.isValid })
+        return validation.isValid
+      },
 
-        // Mandatory fields
-        if (!draft.title || draft.title.trim().length === 0) {
-          errors.title = "Title is required"
-        } else if (draft.title.length > 140) {
-          errors.title = "Title must be 140 characters or less"
+      resetDraft: () => {
+        set({
+          step: 'writer',
+          draft: {
+            title: '',
+            thumbnailUrl: '',
+            script: '',
+            category: '',
+            pricingModel: 'free',
+            priceCredits: 0,
+            mediaFiles: [],
+            bundleItemIds: [],
+            description: '',
+          },
+          errors: {},
+          isValid: false,
+        })
+      },
+
+      publishDraft: async () => {
+        try {
+          const draft = get().draft
+          const response = await fetch('/api/items/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: draft.title,
+              thumbnailUrl: draft.thumbnailUrl,
+              script: draft.script,
+              category: draft.category,
+              pricingModel: draft.pricingModel,
+              priceCredits: draft.priceCredits,
+              description: draft.description,
+              bundleItemIds: draft.bundleItemIds,
+            }),
+          })
+          const data = await response.json()
+          if (!response.ok) throw new Error(data.error || 'Failed to publish')
+          return { success: true, itemId: data.itemId }
+        } catch (error: any) {
+          console.error('Publish error:', error)
+          return { success: false, error: error.message }
         }
-
-        if (!draft.thumbnailUrl || draft.thumbnailUrl.trim().length === 0) {
-          errors.thumbnailUrl = "Thumbnail is required"
-        }
-
-        if (!draft.script || draft.script.trim().length < 10) {
-          errors.script = "Script/Description is required (min 10 characters)"
-        }
-
-        if (!draft.category || draft.category.trim().length === 0) {
-          errors.category = "Category is required"
-        }
-
-        // Conditional validations
-        if (draft.pricingModel === "paid" && draft.priceCredits <= 0) {
-          errors.priceCredits = "Price must be greater than 0 for paid items"
-        }
-
-        if (draft.pricingModel === "bundle") {
-          if (draft.bundleItemIds.length < 2) {
-            errors.bundleItems = "Bundle must contain at least 2 items"
-          }
-          if (draft.priceCredits <= 0) {
-            errors.bundlePrice = "Bundle price must be greater than 0"
-          }
-        }
-
-        return errors
       },
     }),
     {
-      name: "creator-studio-draft",
-      storage: typeof window !== "undefined"
-        ? {
-            getItem: (name) => {
-              const item = sessionStorage.getItem(name)
-              return item ? JSON.parse(item) : null
-            },
-            setItem: (name, value) => {
-              sessionStorage.setItem(name, JSON.stringify(value))
-            },
-            removeItem: (name) => {
-              sessionStorage.removeItem(name)
-            },
-          }
-        : undefined,
+      name: 'creator-studio',
+      partialize: (state) => ({ draft: state.draft, step: state.step }),
     }
   )
 )
-
-console.log("[Store] useCreatorStudioStore initialized")

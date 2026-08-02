@@ -36,70 +36,18 @@ import {
 import { useChat } from "@/lib/chat-context"
 import { formatRelativeTime } from "@/lib/utils"
 import { useSession } from "next-auth/react"
+import { MessageInput } from "@/app/messages/components/MessageInput"
 
 export function ChatWindow() {
   const { data: session } = useSession()
   const currentUserId = (session as any)?.user?.id
   const { activeConversation, messages, sendMessage } = useChat()
-  const [messageInput, setMessageInput] = useState("")
   const [isInfoOpen, setIsInfoOpen] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
-
-  const handleSendMessage = async () => {
-    if (messageInput.trim() || isUploading) {
-      await sendMessage(messageInput, activeConversation!.id)
-      setMessageInput("")
-    }
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
-    }
-  }
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setIsUploading(true)
-    try {
-      // Typically you'd upload this to ImageKit via an API endpoint here:
-      const formData = new FormData()
-      formData.append('file', file)
-      
-      const uploadRes = await fetch('/api/cloudinary/upload', {
-        method: 'POST',
-        body: formData
-      })
-      const uploadData = await uploadRes.json()
-
-      if (uploadRes.ok && uploadData.url) {
-        // Send the file as an attachment
-        await sendMessage(messageInput || file.name, activeConversation!.id, [{
-          url: uploadData.url,
-          type: file.type,
-          name: file.name,
-          size: file.size
-        }])
-        setMessageInput("")
-      }
-    } catch (error) {
-      console.error('File upload failed:', error)
-    } finally {
-      setIsUploading(false)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
-      }
-    }
-  }
 
   if (!activeConversation) {
     return (
@@ -260,56 +208,7 @@ export function ChatWindow() {
       </div>
 
       {/* Message Input */}
-      <div className="p-4 border-t border-border bg-background">
-        <div className="flex items-end space-x-2">
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileUpload} 
-            className="hidden" 
-            accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
-          />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9" disabled={isUploading}>
-                <Paperclip className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
-                <ImageIcon className="h-4 w-4 mr-2" />
-                Image / Video
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
-                <File className="h-4 w-4 mr-2" />
-                File
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <div className="flex-1 relative">
-            <Input
-              placeholder="Type a message..."
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="pr-10 rounded-full"
-            />
-            <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7">
-              <Smile className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <Button
-            onClick={handleSendMessage}
-            disabled={(!messageInput.trim() && !isUploading) || isUploading}
-            className="h-9 w-9 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
-            size="icon"
-          >
-            {isUploading ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-foreground"></div> : <Send className="h-4 w-4" />}
-          </Button>
-        </div>
-      </div>
+      <MessageInput conversationId={activeConversation.id} />
 
       {/* Conversation Info Dialog */}
       <Dialog open={isInfoOpen} onOpenChange={setIsInfoOpen}>

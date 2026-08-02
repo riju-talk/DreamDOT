@@ -43,18 +43,21 @@ export const authOptions: NextAuthOptions = {
       ? [GoogleProvider({
           clientId: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          allowDangerousEmailAccountLinking: true,
         })]
       : []),
     ...(process.env.NEXT_PUBLIC_GITHUB_OAUTH_ENABLED === "true" && process.env.GITHUB_ID && process.env.GITHUB_SECRET
       ? [GitHubProvider({
           clientId: process.env.GITHUB_ID,
           clientSecret: process.env.GITHUB_SECRET,
+          allowDangerousEmailAccountLinking: true,
         })]
       : []),
     ...(process.env.NEXT_PUBLIC_DISCORD_OAUTH_ENABLED === "true" && process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET
       ? [DiscordProvider({
           clientId: process.env.DISCORD_CLIENT_ID,
           clientSecret: process.env.DISCORD_CLIENT_SECRET,
+          allowDangerousEmailAccountLinking: true,
         })]
       : []),
   ],
@@ -142,6 +145,8 @@ export const authOptions: NextAuthOptions = {
     newUser: "/auth/register",
   },
   secret: process.env.NEXTAUTH_SECRET,
+  // GitHub OAuth Callback: http://localhost:5000/api/auth/callback/github
+  // Make sure this callback URL is registered in your GitHub OAuth app settings
 }
 
 export const auth = () => getServerSession(authOptions)

@@ -2,114 +2,356 @@
 "use client"
 
 import { io, Socket } from 'socket.io-client'
-import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+
+// ============================================================================
+// Socket.IO Configuration Module
+// ============================================================================
+// Initializes Socket.IO client with connection pooling, reconnection logic,
+// event listeners, and emitters for real-time chat features.
+// ============================================================================
 
 const CHAT_SERVER_URL = process.env.NEXT_PUBLIC_CHAT_SERVER_URL || 'http://localhost:3001'
 
-export function useSocket() {
-  const { data: session } = useSession()
-  const [socket, setSocket] = useState<Socket | null>(null)
-  const [isConnected, setIsConnected] = useState(false)
+// Reconnection configuration with exponential backoff
+const RECONNECTION_CONFIG = {
+  reconnection: true,
+  reconnectionDelay: 1000, // Start with 1 second
+  reconnectionDelayMax: 5000, // Max 5 seconds
+  reconnectionAttempts: 5,
+  randomizationFactor: 0.1,
+}
 
-  // access token may be attached to the NextAuth session object at runtime
-  // its type isn't declared on the library Session type here, so read it
-  // via an any-cast to avoid TypeScript errors while keeping runtime logic.
-  const token = (session as any)?.chatToken
+/**
+ * Socket.IO Instance
+ * Exported singleton instance for use throughout the application
+ */
+let socketInstance: Socket | null = null
 
-  useEffect(() => {
-    if (!token) {
-      if (socket) {
-        socket.disconnect()
-        setSocket(null)
-        setIsConnected(false)
-      }
-      return
-    }
+/**
+ * Connection state tracking
+ */
+interface SocketConnectionState {
+  isConnected: boolean
+  isConnecting: boolean
+  error: Error | null
+}
 
-    // Create socket connection with NextAuth JWT token
-    const newSocket = io(CHAT_SERVER_URL, {
-      auth: {
-        token
-      },
-      autoConnect: true
-    })
+let connectionState: SocketConnectionState = {
+  isConnected: false,
+  isConnecting: false,
+  error: null,
+}
 
-    newSocket.on('connect', () => {
-      setIsConnected(true)
-    })
+/**
+ * Connection state listeners
+ */
+const connectionStateListeners: Set<(state: SocketConnectionState) => void> = new Set()
 
-    newSocket.on('disconnect', () => {
-      setIsConnected(false)
-    })
-
-    newSocket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error)
-      setIsConnected(false)
-    })
-
-    setSocket(newSocket)
-
-    return () => {
-      newSocket.disconnect()
-    }
-  }, [token])
-
-  const sendMessage = (message: any, callback?: (response: any) => void) => {
-    if (socket && isConnected) {
-      socket.emit('message:send', message, callback)
-    }
+/**
+ * Initialize Socket.IO client with authentication token
+ * @param token - JWT authentication token from NextAuth session
+ * @returns Socket instance
+ */
+export function initializeSocket(token: string): Socket {
+  if (socketInstance && socketInstance.connected) {
+    return socketInstance
   }
 
-  const joinRoom = (roomId: string) => {
-    if (socket && isConnected) {
-      socket.emit('room:join', { conversationId: roomId })
-    }
-  }
+  connectionState.isConnecting = true
 
-  const leaveRoom = (roomId: string) => {
-    if (socket && isConnected) {
-      socket.emit('room:leave', { conversationId: roomId })
-    }
-  }
+  socketInstance = io(CHAT_SERVER_URL, {
+    auth: {
+      token,
+    },
+    reconnection: RECONNECTION_CONFIG.reconnection,
+    reconnectionDelay: RECONNECTION_CONFIG.reconnectionDelay,
+    reconnectionDelayMax: RECONNECTION_CONFIG.reconnectionDelayMax,
+    reconnectionAttempts: RECONNECTION_CONFIG.reconnectionAttempts,
+    randomizationFactor: RECONNECTION_CONFIG.randomizationFactor,
+    autoConnect: true,
+    transports: ['websocket', 'polling'],
+  })
 
-  const setTyping = (conversationId: string, isTyping: boolean) => {
-    if (socket && isConnected) {
-      socket.emit('message:typing', { conversationId, isTyping })
-    }
-  }
+  // ============================================================================
+  // Connection Event Listeners
+  // ============================================================================
 
-  return {
-    socket,
-    isConnected,
-    sendMessage,
-    joinRoom,
-    leaveRoom,
-    setTyping
+  socketInstance.on('connect', () => {
+    console.log('[Socket] Connected to chat server')
+    connectionState = {
+      isConnected: true,
+      isConnecting: false,
+      error: null,
+    }
+    notifyConnectionStateListeners()
+  })
+
+  socketInstance.on('disconnect', () => {
+    console.log('[Socket] Disconnected from chat server')
+    connectionState = {
+      isConnected: false,
+      isConnecting: false,
+      error: null,
+    }
+    notifyConnectionStateListeners()
+  })
+
+  socketInstance.on('connect_error', (error: Error) => {
+    console.error('[Socket] Connection error:', error)
+    connectionState = {
+      isConnected: false,
+      isConnecting: false,
+      error,
+    }
+    notifyConnectionStateListeners()
+  })
+
+  socketInstance.on('reconnect_attempt', () => {
+    console.log('[Socket] Attempting to reconnect...')
+    connectionState.isConnecting = true
+    notifyConnectionStateListeners()
+  })
+
+  socketInstance.on('reconnect_error', (error: Error) => {
+    console.error('[Socket] Reconnection error:', error)
+    connectionState.error = error
+    notifyConnectionStateListeners()
+  })
+
+  // ============================================================================
+  // Message Event Listeners
+  // ============================================================================
+
+  socketInstance.on('message:receive', (data: any) => {
+    console.log('[Socket] Message received:', data)
+    // Message received from server - handled by Zustand store
+  })
+
+  socketInstance.on('typing:start', (data: any) => {
+    console.log('[Socket] User typing started:', data)
+    // Typing indicator started - handled by Zustand store
+  })
+
+  socketInstance.on('typing:stop', (data: any) => {
+    console.log('[Socket] User typing stopped:', data)
+    // Typing indicator stopped - handled by Zustand store
+  })
+
+  // ============================================================================
+  // Presence Event Listeners
+  // ============================================================================
+
+  socketInstance.on('presence:join', (data: any) => {
+    console.log('[Socket] User came online:', data)
+    // User joined (came online) - handled by Zustand store
+  })
+
+  socketInstance.on('presence:leave', (data: any) => {
+    console.log('[Socket] User went offline:', data)
+    // User left (went offline) - handled by Zustand store
+  })
+
+  // ============================================================================
+  // Read Receipt Event Listeners
+  // ============================================================================
+
+  socketInstance.on('read-receipt:update', (data: any) => {
+    console.log('[Socket] Read receipt received:', data)
+    // Read receipt - handled by Zustand store
+  })
+
+  // ============================================================================
+  // Error Handling
+  // ============================================================================
+
+  socketInstance.on('error', (error: Error) => {
+    console.error('[Socket] Error:', error)
+    connectionState.error = error
+    notifyConnectionStateListeners()
+  })
+
+  return socketInstance
+}
+
+/**
+ * Get the current Socket.IO instance
+ * @returns Socket instance or null if not initialized
+ */
+export function getSocket(): Socket | null {
+  return socketInstance
+}
+
+/**
+ * Get current connection state
+ * @returns Current connection state
+ */
+export function getConnectionState(): SocketConnectionState {
+  return { ...connectionState }
+}
+
+/**
+ * Subscribe to connection state changes
+ * @param listener - Callback function for connection state changes
+ * @returns Unsubscribe function
+ */
+export function onConnectionStateChange(
+  listener: (state: SocketConnectionState) => void
+): () => void {
+  connectionStateListeners.add(listener)
+  return () => {
+    connectionStateListeners.delete(listener)
   }
 }
 
-export function useChat(conversationId?: string) {
-  const { socket, isConnected, sendMessage, joinRoom, leaveRoom, setTyping } = useSocket()
-
-  useEffect(() => {
-    if (!socket || !isConnected || !conversationId) return
-
-    // Join conversation room using the correct event name
-    socket.emit('room:join', { conversationId })
-
-    return () => {
-      // Leave conversation room using the correct event name
-      socket.emit('room:leave', { conversationId })
+/**
+ * Notify all listeners of connection state change
+ */
+function notifyConnectionStateListeners() {
+  const state = { ...connectionState }
+  connectionStateListeners.forEach((listener) => {
+    try {
+      listener(state)
+    } catch (error) {
+      console.error('Error in connection state listener:', error)
     }
-  }, [socket, isConnected, conversationId])
+  })
+}
 
-  return {
-    socket,
-    isConnected,
-    sendMessage,
-    joinRoom,
-    leaveRoom,
-    setTyping
+/**
+ * Disconnect Socket.IO client
+ */
+export function disconnectSocket(): void {
+  if (socketInstance) {
+    socketInstance.disconnect()
+    socketInstance = null
+    connectionState = {
+      isConnected: false,
+      isConnecting: false,
+      error: null,
+    }
+    notifyConnectionStateListeners()
+  }
+}
+
+// ============================================================================
+// Socket.IO Event Emitters
+// ============================================================================
+
+/**
+ * Send a message through Socket.IO
+ * @param conversationId - ID of the conversation
+ * @param message - Message content
+ * @param attachments - Optional file attachments
+ */
+export function emitSendMessage(
+  conversationId: string,
+  message: string,
+  attachments?: any[]
+): void {
+  if (socketInstance && connectionState.isConnected) {
+    console.log('[Socket] Emitting message:send', { conversationId, message })
+    socketInstance.emit('message:send', {
+      conversationId,
+      message,
+      attachments,
+      timestamp: new Date().toISOString(),
+    })
+  } else {
+    console.warn('[Socket] Cannot emit message:send - socket not connected', {
+      isConnected: connectionState.isConnected,
+    })
+  }
+}
+
+/**
+ * Subscribe to a conversation
+ * @param conversationId - ID of the conversation to subscribe to
+ */
+export function emitSubscribeConversation(conversationId: string): void {
+  if (socketInstance && connectionState.isConnected) {
+    console.log('[Socket] Emitting conversation:subscribe', { conversationId })
+    socketInstance.emit('conversation:subscribe', {
+      conversationId,
+    })
+  } else {
+    console.warn('[Socket] Cannot emit conversation:subscribe - socket not connected')
+  }
+}
+
+/**
+ * Send typing indicator
+ * @param conversationId - ID of the conversation
+ * @param isTyping - Whether user is currently typing
+ */
+export function emitTypingIndicator(conversationId: string, isTyping: boolean): void {
+  if (socketInstance && connectionState.isConnected) {
+    console.log('[Socket] Emitting typing:indicator', { conversationId, isTyping })
+    socketInstance.emit('typing:indicator', {
+      conversationId,
+      isTyping,
+    })
+  } else {
+    console.warn('[Socket] Cannot emit typing:indicator - socket not connected')
+  }
+}
+
+/**
+ * Send read receipt for a message
+ * @param messageId - ID of the message that was read
+ * @param conversationId - ID of the conversation
+ */
+export function emitMarkRead(messageId: string, conversationId: string): void {
+  if (socketInstance && connectionState.isConnected) {
+    console.log('[Socket] Emitting read-receipt:mark', { messageId, conversationId })
+    socketInstance.emit('read-receipt:mark', {
+      messageId,
+      conversationId,
+    })
+  } else {
+    console.warn('[Socket] Cannot emit read-receipt:mark - socket not connected')
+  }
+}
+
+/**
+ * Broadcast online/presence status
+ * @param status - User status (online, away, offline)
+ */
+export function emitSetOnline(status: 'online' | 'away' | 'offline'): void {
+  if (socketInstance && connectionState.isConnected) {
+    console.log('[Socket] Emitting presence:status', { status })
+    socketInstance.emit('presence:status', {
+      status,
+      timestamp: new Date().toISOString(),
+    })
+  } else {
+    console.warn('[Socket] Cannot emit presence:status - socket not connected')
+  }
+}
+
+// ============================================================================
+// Legacy compatibility functions (for backward compatibility)
+// ============================================================================
+
+/**
+ * Join a conversation room (legacy function)
+ * @param conversationId - ID of the conversation
+ */
+export function emitJoinRoom(conversationId: string): void {
+  console.log('[Socket] Emitting room join (legacy)', { conversationId })
+  emitSubscribeConversation(conversationId)
+}
+
+/**
+ * Leave a conversation room (legacy function)
+ * @param conversationId - ID of the conversation
+ */
+export function emitLeaveRoom(conversationId: string): void {
+  if (socketInstance && connectionState.isConnected) {
+    console.log('[Socket] Emitting room leave', { conversationId })
+    socketInstance.emit('conversation:unsubscribe', {
+      conversationId,
+    })
+  } else {
+    console.warn('[Socket] Cannot emit conversation:unsubscribe - socket not connected')
   }
 }

@@ -1,0 +1,15 @@
+{
+  "specName": "phase-4-chat-communities",
+  "displayName": "Phase 4: Chat & Communities",
+  "description": "Real-time messaging system with Socket.IO and text-only communities",
+  "version": "1.0.0",
+  "status": "ready",
+  "created": "2025-01-01T00:00:00Z",
+  "updated": "2025-01-01T00:00:00Z",
+  "tasks": {
+    "total": 11,
+    "completed": 0,
+    "remaining": 11,
+    "ready": 5
+  }
+}
