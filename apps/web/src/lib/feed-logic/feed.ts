@@ -192,7 +192,13 @@ function mapPrismaSocialPostToFeedItem(p: any): FeedItem {
 
 // Prisma Items → FeedItem (Item) - FIXED
 function mapPrismaItemToFeedItem(i: any): FeedItem {
-  const user = pickUserFromPrisma(i.users)
+  const user = i.users ? pickUserFromPrisma(i.users) : {
+    id: i.user_id || 'unknown',
+    name: 'Unknown Creator',
+    handle: 'creator',
+    avatar: '/placeholder.svg',
+    verified: false,
+  }
   
   // Calculate average rating safely
   const ratings = (i.reviews ?? [])
@@ -340,7 +346,10 @@ export async function fetchUnifiedFeed({
 
     // Posts via helper (merged SQL+Mongo) - THIS ALREADY MERGES EVERYTHING!
     const mergedPostsPromise = wantPosts
-      ? fetchPosts({ page, limit: take }).then((res) =>
+      ? fetchPosts({ page, limit: take }).catch(err => {
+          console.error('[fetchUnifiedFeed] Posts fetch error:', err);
+          return { posts: [], pagination: { total: 0, page, limit: take, hasMore: false } };
+        }).then((res) =>
           // filter visible if present
           (res.posts as any[]).filter((p) => (p as any).visibility !== false)
         )
@@ -348,7 +357,10 @@ export async function fetchUnifiedFeed({
 
     // Items from Mongo via helper
     const mongoItemPromise = wantItems
-      ? fetchItems({ page, limit: itemsEachLimit }).then((res) =>
+      ? fetchItems({ page, limit: itemsEachLimit }).catch(err => {
+          console.error('[fetchUnifiedFeed] Items fetch error:', err);
+          return { items: [], pagination: { total: 0, page, limit: itemsEachLimit, hasMore: false } };
+        }).then((res) =>
           // filter visible if present
           (res.items as any[]).filter((i) => (i as any).visibility !== false)
         )
@@ -358,25 +370,14 @@ export async function fetchUnifiedFeed({
     // fetchPosts already merges SQL metadata with Mongo content.
     // Fetching pgSocialPosts separately was causing duplicates.
 
-    // Prisma Items (guarded)
+    // Prisma Items (guarded) - fetch without required user relationship
     const pgItemsPromise = wantItems
       ? prismaItems.items.findMany({
           where: { availability: true },
           orderBy: { created_at: "desc" },
           skip,
           take: itemsEachLimit,
-          include: {
-            users: {
-              select: {
-                id: true,
-                is_verified: true,
-                user_profile: {
-                  select: { username: true, display_name: true, avatar_url: true },
-                },
-              },
-            },
-          },
-        })
+        }).catch(() => Promise.resolve<any[]>([]))
       : Promise.resolve<any[]>([])
 
     const [mergedPosts, mongoItems, pgItems] = await Promise.all([

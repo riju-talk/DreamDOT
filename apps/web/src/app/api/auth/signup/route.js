@@ -1,6 +1,6 @@
 // app/api/auth/signup/route.js
 import { NextResponse } from "next/server";
-import { prismaUser } from "@/lib/db";
+import { prismaUser } from "@/lib/prisma/user";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 

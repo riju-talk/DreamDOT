@@ -200,10 +200,13 @@ function ItemCard({ item }: { item: FeedItem }) {
           {/* Image */}
           <div className="relative w-full h-64 bg-black/30 overflow-hidden">
             <Image
-              src={item.image}
-              alt={item.title}
+              src={item.image || item.media?.[0]?.url || 'https://cloudinary-marketing-res.cloudinary.com/images/w_1000,c_scale/v1699909962/fallback_image_header/fallback_image_header-png?_i=AA'}
+              alt={item.title || 'Item'}
               fill
               className="object-cover group-hover:scale-110 transition-transform duration-300"
+              onError={() => {
+                // Fallback handled by Next.js Image component
+              }}
             />
 
             {/* Type Badge */}
@@ -228,15 +231,15 @@ function ItemCard({ item }: { item: FeedItem }) {
             {/* Creator */}
             <div className="flex items-center gap-2 mb-3">
               <Avatar className="h-7 w-7 border border-border/50">
-                <AvatarImage src={item.creator.avatar} alt={item.creator.name} />
-                <AvatarFallback>{item.creator.name.charAt(0)}</AvatarFallback>
+                <AvatarImage src={item.creator?.avatar || '/placeholder.svg'} alt={item.creator?.name || 'Creator'} />
+                <AvatarFallback>{item.creator?.name?.charAt(0) || 'C'}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1">
                   <p className="text-xs font-semibold text-muted-foreground truncate group-hover:text-primary transition-colors">
-                    {item.creator.name}
+                    {item.creator?.name || 'Creator'}
                   </p>
-                  {item.creator.verified && <Sparkles className="h-3 w-3 text-primary flex-shrink-0" />}
+                  {item.creator?.verified && <Sparkles className="h-3 w-3 text-primary flex-shrink-0" />}
                 </div>
               </div>
             </div>
@@ -330,12 +333,12 @@ export default function FeedPage() {
       const data = await response.json()
 
       if (reset) {
-        setFeedContent(data.posts || [])
+        setFeedContent(data.feed || data.posts || [])
       } else {
-        setFeedContent((prev) => [...prev, ...(data.posts || [])])
+        setFeedContent((prev) => [...prev, ...(data.feed || data.posts || [])])
       }
 
-      setHasMore(data.hasMore ?? false)
+      setHasMore(data.pagination?.hasMore ?? false)
       if (!reset) {
         setPage(pageNum)
       }
@@ -533,13 +536,15 @@ export default function FeedPage() {
             <div className="space-y-6">
               {feedContent.length > 0 ? (
                 <>
-                  {feedContent.map((item) =>
-                    item.type === 'post' ? (
-                      <PostCard key={item.id} post={item as Post} />
-                    ) : (
-                      <ItemCard key={item.id} item={item as FeedItem} />
-                    )
-                  )}
+                  {feedContent.map((item) => (
+                    <div key={item.id}>
+                      {item.type === 'post' ? (
+                        <PostCard post={item as Post} />
+                      ) : (
+                        <ItemCard item={item as FeedItem} />
+                      )}
+                    </div>
+                  ))}
 
                   {/* Load More Trigger */}
                   {hasMore && (

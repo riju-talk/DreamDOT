@@ -3,6 +3,8 @@
 import Image from "next/image"
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
 import {
   ArrowRight,
   BadgeDollarSign,
@@ -11,11 +13,13 @@ import {
   LockKeyhole,
   MessageSquareText,
   Mic2,
+  Moon,
   Palette,
   PenLine,
   Search,
   ShieldCheck,
   Sparkles,
+  Sun,
   Video,
   WalletCards,
 } from "lucide-react"
@@ -113,21 +117,32 @@ const footerGroups = [
 ]
 
 export function LandingPage() {
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark")
+  }
+
   return (
-    <main className="min-h-screen overflow-hidden bg-background text-foreground selection:bg-emerald-600 dark:selection:bg-emerald-500 selection:text-white">
+    <main className="min-h-screen overflow-hidden bg-background text-foreground selection:bg-[#5a8c5a] dark:selection:bg-primary selection:text-white">
       <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute -left-40 -top-40 h-[40rem] w-[40rem] rounded-full bg-emerald-600/10 dark:bg-emerald-500/10 blur-[160px]" />
-        <div className="absolute -right-32 top-1/3 h-[35rem] w-[35rem] rounded-full bg-emerald-600/5 dark:bg-emerald-500/5 blur-[160px]" />
+        <div className="absolute -left-40 -top-40 h-[40rem] w-[40rem] rounded-full bg-[#5a8c5a]/10 dark:bg-primary/10 blur-[160px]" />
+        <div className="absolute -right-32 top-1/3 h-[35rem] w-[35rem] rounded-full bg-[#5a8c5a]/5 dark:bg-primary/5 blur-[160px]" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent,color-mix(in_srgb,var(--background)_92%_transparent)_68%,var(--background))]" />
       </div>
 
       <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:px-6">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between rounded-[2rem] border border-border bg-card/80 px-4 shadow-[var(--shadow-float)] backdrop-blur-2xl sm:px-6">
           <Link href="/" className="flex items-center gap-3" aria-label="DreamDOT home">
-            <span className="flex size-8 items-center justify-center rounded-full bg-emerald-600 dark:bg-emerald-500 text-white shadow-glow">
+            <span className="flex size-8 items-center justify-center rounded-full bg-[#5a8c5a] dark:bg-primary text-white shadow-glow">
               <Sparkles className="size-4" />
             </span>
-            <span className="font-serif text-xl font-black italic text-emerald-700 dark:text-emerald-400">DreamDOT</span>
+            <span className="font-serif text-xl font-black italic text-[#5a8c5a] dark:text-primary">DreamDOT</span>
           </Link>
 
           <div className="hidden items-center gap-7 md:flex">
@@ -135,7 +150,7 @@ export function LandingPage() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-primary"
+                className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-[#5a8c5a] dark:hover:text-primary"
               >
                 {item.label}
               </Link>
@@ -143,16 +158,30 @@ export function LandingPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {mounted && (
+              <Button
+                onClick={toggleTheme}
+                variant="ghost"
+                className="h-10 rounded-full px-3 text-foreground hover:bg-foreground/10 hover:text-foreground"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? (
+                  <Sun className="size-4" />
+                ) : (
+                  <Moon className="size-4" />
+                )}
+              </Button>
+            )}
             <Button
               asChild
               variant="ghost"
-              className="hidden h-10 rounded-full px-4 text-foreground hover:bg-foreground/10 hover:text-foreground sm:inline-flex"
+              className="hidden h-10 rounded-full px-4 text-foreground dark:text-foreground hover:bg-foreground/10 hover:text-foreground dark:hover:text-primary sm:inline-flex"
             >
               <Link href="/auth/signin">Sign In</Link>
             </Button>
             <Button
               asChild
-              className="h-10 rounded-full bg-emerald-600 dark:bg-emerald-500 px-5 text-xs font-black uppercase tracking-[0.12em] text-white shadow-glow hover:bg-emerald-700 dark:hover:bg-emerald-600"
+              className="h-10 rounded-full bg-[#5a8c5a] dark:bg-primary px-5 text-xs font-black uppercase tracking-[0.12em] text-white dark:text-primary-foreground shadow-glow hover:bg-[#4a7c4a] dark:hover:bg-primary/90"
             >
               <Link href="/auth/register">Start</Link>
             </Button>
@@ -168,21 +197,21 @@ export function LandingPage() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="max-w-3xl"
           >
-            <div className="mb-8 inline-flex items-center gap-3 border border-emerald-600/25 dark:border-emerald-400/25 bg-emerald-600/10 dark:bg-emerald-500/10 px-4 py-2">
-              <span className="h-px w-10 bg-emerald-600 dark:bg-emerald-400" />
-              <span className="text-xs font-black uppercase tracking-[0.28em] text-emerald-600 dark:text-emerald-400">
+            <div className="mb-8 inline-flex items-center gap-3 border border-[#5a8c5a]/25 dark:border-primary/25 bg-[#5a8c5a]/10 dark:bg-primary/10 px-4 py-2">
+              <span className="h-px w-10 bg-[#5a8c5a] dark:bg-primary" />
+              <span className="text-xs font-black uppercase tracking-[0.28em] text-[#5a8c5a] dark:text-primary">
                 Creator-first atelier
               </span>
             </div>
 
-            <h1 className="max-w-4xl font-serif text-[clamp(4rem,12vw,10rem)] font-black italic leading-[0.78] tracking-normal text-foreground">
+            <h1 className="max-w-4xl font-serif text-[clamp(4rem,12vw,10rem)] font-black italic leading-[0.78] tracking-normal text-foreground dark:text-foreground">
               Unbind
-              <span className="block font-sans not-italic text-[clamp(3.4rem,10vw,8.8rem)] leading-[0.85] text-emerald-600 dark:text-emerald-400">
+              <span className="block font-sans not-italic text-[clamp(3.4rem,10vw,8.8rem)] leading-[0.85] text-[#5a8c5a] dark:text-primary">
                 the work.
               </span>
             </h1>
 
-            <p className="mt-8 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+            <p className="mt-8 max-w-2xl text-base leading-7 text-muted-foreground dark:text-muted-foreground sm:text-lg">
               DreamDOT gives writers, artists, researchers, musicians, makers, and fans one place to publish,
               discover, talk, sell, and support creative work with credits.
             </p>
@@ -190,7 +219,7 @@ export function LandingPage() {
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Button
                 asChild
-                className="h-13 rounded-none bg-emerald-600 dark:bg-emerald-500 px-7 text-sm font-black uppercase tracking-[0.12em] text-white shadow-glow hover:bg-emerald-700 dark:hover:bg-emerald-600"
+                className="h-13 rounded-none bg-[#5a8c5a] dark:bg-primary px-7 text-sm font-black uppercase tracking-[0.12em] text-white dark:text-primary-foreground shadow-glow hover:bg-[#4a7c4a] dark:hover:bg-primary/90"
               >
                 <Link href="/auth/register">
                   Join The Atelier
@@ -200,7 +229,7 @@ export function LandingPage() {
               <Button
                 asChild
                 variant="outline"
-                className="h-13 rounded-none border-foreground/16 bg-foreground/5 px-7 text-sm font-black uppercase tracking-[0.12em] text-foreground hover:bg-foreground/10 hover:text-foreground"
+                className="h-13 rounded-none border-foreground/16 bg-foreground/5 px-7 text-sm font-black uppercase tracking-[0.12em] text-foreground dark:text-foreground dark:border-foreground/20 dark:bg-foreground/5 hover:bg-foreground/10 hover:text-foreground"
               >
                 <Link href="/auth/signin">Enter DreamDOT</Link>
               </Button>
@@ -212,9 +241,9 @@ export function LandingPage() {
                 return (
                   <span
                     key={mode.label}
-                    className="inline-flex items-center gap-2 border border-border bg-foreground/5 px-3 py-2 text-xs font-bold text-muted-foreground"
+                    className="inline-flex items-center gap-2 border border-border bg-foreground/5 dark:bg-primary/10 px-3 py-2 text-xs font-bold text-muted-foreground dark:text-muted-foreground"
                   >
-                    <Icon className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <Icon className="size-3.5 text-[#5a8c5a] dark:text-primary" />
                     {mode.label}
                   </span>
                 )
@@ -278,7 +307,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
             <div className="border border-border bg-card/80 p-6 sm:p-8 lg:p-10 backdrop-blur-xl">
-              <p className="text-xs font-black uppercase tracking-[0.25em] text-primary">Archive 01</p>
+              <p className="text-xs font-black uppercase tracking-[0.25em] text-[#5a8c5a] dark:text-primary">Archive 01</p>
               <h2 className="mt-9 max-w-lg font-serif text-5xl font-black italic leading-[0.92] text-foreground sm:text-7xl">
                 One studio for every drop.
               </h2>
@@ -300,11 +329,11 @@ export function LandingPage() {
                     transition={{ duration: 0.55, ease: "easeOut" }}
                     className="grid gap-5 border border-border bg-card/80 p-5 backdrop-blur-xl sm:grid-cols-[auto_1fr] sm:p-6"
                   >
-                    <div className="flex size-14 items-center justify-center border border-primary/30 bg-primary/10 text-primary">
+                    <div className="flex size-14 items-center justify-center border border-[#5a8c5a]/30 dark:border-primary/30 bg-[#5a8c5a]/10 dark:bg-primary/10 text-[#5a8c5a] dark:text-primary">
                       <Icon className="size-6" />
                     </div>
                     <div>
-                      <p className="text-[0.65rem] font-black uppercase tracking-[0.22em] text-primary">
+                      <p className="text-[0.65rem] font-black uppercase tracking-[0.22em] text-[#5a8c5a] dark:text-primary">
                         Archive {card.index}
                       </p>
                       <h3 className="mt-2 font-serif text-3xl font-black italic leading-none text-foreground">
@@ -324,7 +353,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl border border-border bg-card/80 p-5 sm:p-8 lg:p-10 backdrop-blur-xl">
           <div className="grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.25em] text-primary">Archive 02</p>
+              <p className="text-xs font-black uppercase tracking-[0.25em] text-[#5a8c5a] dark:text-primary">Archive 02</p>
               <h2 className="mt-8 font-serif text-5xl font-black italic leading-[0.92] text-foreground sm:text-7xl">
                 Discovery that feels alive.
               </h2>
@@ -337,13 +366,13 @@ export function LandingPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="min-h-72 border border-border bg-muted/50 p-5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-[0.22em] text-primary">Feed</span>
+                  <span className="text-xs font-black uppercase tracking-[0.22em] text-[#5a8c5a] dark:text-primary">Feed</span>
                   <Search className="size-4 text-chart-3" />
                 </div>
                 <div className="mt-8 space-y-4">
                   {["Long reads", "Visual worlds", "Research drops", "Creator picks"].map((item, index) => (
                     <div key={item} className="flex items-center gap-3">
-                      <span className="flex size-7 items-center justify-center border border-primary/25 text-xs font-black text-primary">
+                      <span className="flex size-7 items-center justify-center border border-[#5a8c5a]/25 dark:border-primary/25 text-xs font-black text-[#5a8c5a] dark:text-primary">
                         {index + 1}
                       </span>
                       <span className="text-sm font-bold text-foreground">{item}</span>
@@ -357,7 +386,7 @@ export function LandingPage() {
                   <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent,color-mix(in_srgb,var(--background)_95%,transparent))]" />
                 </div>
                 <div className="p-5">
-                  <p className="text-xs font-black uppercase tracking-[0.22em] text-primary">Marketplace</p>
+                  <p className="text-xs font-black uppercase tracking-[0.22em] text-[#5a8c5a] dark:text-primary">Marketplace</p>
                   <h3 className="mt-4 font-serif text-3xl font-black italic leading-none">Neural Folio Kit</h3>
                   <p className="mt-4 text-sm leading-6 text-muted-foreground">
                     Writing, illustration, audio, video, research, templates, and code can each become a paid item.
@@ -373,7 +402,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.25em] text-primary">Archive 03</p>
+              <p className="text-xs font-black uppercase tracking-[0.25em] text-[#5a8c5a] dark:text-primary">Archive 03</p>
               <h2 className="mt-5 font-serif text-5xl font-black italic leading-[0.92] text-foreground sm:text-7xl">
                 Earn without leaving the room.
               </h2>
@@ -386,7 +415,7 @@ export function LandingPage() {
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {economyStats.map((stat) => (
               <article key={stat.label} className="border border-border bg-card/80 p-6 backdrop-blur-xl">
-                <p className="font-serif text-5xl font-black italic leading-none text-primary">{stat.value}</p>
+                <p className="font-serif text-5xl font-black italic leading-none text-[#5a8c5a] dark:text-primary">{stat.value}</p>
                 <p className="mt-5 text-sm font-bold leading-6 text-muted-foreground">{stat.label}</p>
               </article>
             ))}
@@ -394,7 +423,7 @@ export function LandingPage() {
 
           <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_1fr]">
             <div className="border border-border bg-card/80 p-6 sm:p-8 backdrop-blur-xl">
-              <div className="flex size-14 items-center justify-center border border-primary/30 bg-primary/10 text-primary">
+              <div className="flex size-14 items-center justify-center border border-[#5a8c5a]/30 dark:border-primary/30 bg-[#5a8c5a]/10 dark:bg-primary/10 text-[#5a8c5a] dark:text-primary">
                 <WalletCards className="size-6" />
               </div>
               <h3 className="mt-8 font-serif text-4xl font-black italic leading-none">Credit Wallet</h3>
@@ -404,7 +433,7 @@ export function LandingPage() {
               </p>
             </div>
             <div className="border border-border bg-card/80 p-6 sm:p-8 backdrop-blur-xl">
-              <div className="flex size-14 items-center justify-center border border-chart-3/40 bg-chart-3/10 text-chart-3">
+              <div className="flex size-14 items-center justify-center border border-[#5a8c5a]/30 dark:border-primary/30 bg-[#5a8c5a]/10 dark:bg-primary/10 text-[#5a8c5a] dark:text-primary">
                 <BadgeDollarSign className="size-6" />
               </div>
               <h3 className="mt-8 font-serif text-4xl font-black italic leading-none">Creator Terms</h3>
@@ -424,7 +453,7 @@ export function LandingPage() {
               const Icon = signal.icon
               return (
                 <article key={signal.title} className="border border-border bg-card/80 p-6 sm:p-8 backdrop-blur-xl">
-                  <Icon className="size-7 text-primary" />
+                  <Icon className="size-7 text-[#5a8c5a] dark:text-primary" />
                   <h3 className="mt-7 font-serif text-3xl font-black italic leading-none">{signal.title}</h3>
                   <p className="mt-4 text-sm leading-7 text-muted-foreground">{signal.body}</p>
                 </article>
@@ -435,18 +464,18 @@ export function LandingPage() {
       </section>
 
       <section className="relative z-10 px-4 py-16 sm:px-6 lg:py-24">
-        <div className="mx-auto max-w-5xl border border-primary/25 bg-card/80 p-8 text-center shadow-[var(--shadow-glow-lg)] backdrop-blur-2xl sm:p-12">
-          <p className="text-xs font-black uppercase tracking-[0.25em] text-primary">Limited access</p>
-          <h2 className="mt-6 font-serif text-5xl font-black italic leading-[0.92] text-foreground sm:text-7xl">
+        <div className="mx-auto max-w-5xl border border-[#5a8c5a]/25 dark:border-primary/25 bg-[#5a8c5a]/5 dark:bg-background p-8 text-center shadow-sm dark:shadow-[var(--shadow-glow-lg)] backdrop-blur-2xl sm:p-12">
+          <p className="text-xs font-black uppercase tracking-[0.25em] text-[#5a8c5a] dark:text-primary">Limited access</p>
+          <h2 className="mt-6 font-serif text-5xl font-black italic leading-[0.92] text-foreground dark:text-foreground sm:text-7xl">
             Ready to craft?
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-muted-foreground dark:text-muted-foreground sm:text-base">
             Open the atelier, publish the first piece, and start building a direct creative economy around it.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Button
               asChild
-              className="h-13 rounded-none bg-primary px-7 text-sm font-black uppercase tracking-[0.12em] text-primary-foreground shadow-glow hover:bg-primary/90"
+              className="h-13 rounded-none bg-[#5a8c5a] dark:bg-primary px-7 text-sm font-black uppercase tracking-[0.12em] text-white dark:text-primary-foreground shadow-glow hover:bg-[#4a7c4a] dark:hover:bg-primary/90"
             >
               <Link href="/auth/register">
                 Start Creating
@@ -456,7 +485,7 @@ export function LandingPage() {
             <Button
               asChild
               variant="outline"
-              className="h-13 rounded-none border-foreground/16 bg-foreground/5 px-7 text-sm font-black uppercase tracking-[0.12em] text-foreground hover:bg-foreground/10 hover:text-foreground"
+              className="h-13 rounded-none border-[#5a8c5a]/30 dark:border-primary/30 bg-[#5a8c5a]/5 dark:bg-primary/10 px-7 text-sm font-black uppercase tracking-[0.12em] text-[#5a8c5a] dark:text-primary hover:bg-[#5a8c5a]/10 dark:hover:bg-primary/20 hover:text-[#4a7c4a] dark:hover:text-primary"
             >
               <Link href="/auth/signin">Sign In</Link>
             </Button>
@@ -464,17 +493,17 @@ export function LandingPage() {
         </div>
       </section>
 
-      <footer className="relative z-10 border-t border-border bg-secondary/60 px-4 py-12 sm:px-6 lg:py-16">
+      <footer className="relative z-10 border-t border-[#5a8c5a]/20 dark:border-primary/20 bg-[#5a8c5a]/8 dark:bg-background px-4 py-12 sm:px-6 lg:py-16">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-10 lg:grid-cols-[1.25fr_1.75fr_0.9fr]">
             <div>
               <Link href="/" className="inline-flex items-center gap-3" aria-label="DreamDOT home">
-                <span className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-glow">
+                <span className="flex size-9 items-center justify-center rounded-full bg-[#5a8c5a] dark:bg-primary text-white shadow-glow">
                   <Sparkles className="size-4" />
                 </span>
-                <span className="font-serif text-2xl font-black italic text-primary">DreamDOT</span>
+                <span className="font-serif text-2xl font-black italic text-[#5a8c5a] dark:text-primary">DreamDOT</span>
               </Link>
-              <p className="mt-5 max-w-sm text-sm leading-7 text-muted-foreground">
+              <p className="mt-5 max-w-sm text-sm leading-7 text-[#5a8c5a]/75 dark:text-muted-foreground">
                 A creator-first home for publishing, community, discovery, messaging, and credit-powered
                 monetization.
               </p>
@@ -482,7 +511,7 @@ export function LandingPage() {
                 {["Writing", "Visual Art", "Audio", "Video", "Research"].map((item) => (
                   <span
                     key={item}
-                    className="border border-border bg-foreground/5 px-3 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.16em] text-muted-foreground"
+                    className="border border-[#5a8c5a]/30 dark:border-primary/30 bg-[#5a8c5a]/10 dark:bg-primary/10 px-3 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.16em] text-[#5a8c5a] dark:text-primary"
                   >
                     {item}
                   </span>
@@ -493,7 +522,7 @@ export function LandingPage() {
             <div className="grid gap-8 sm:grid-cols-3">
               {footerGroups.map((group) => (
                 <div key={group.title}>
-                  <h3 className="text-xs font-black uppercase tracking-[0.24em] text-primary">
+                  <h3 className="text-xs font-black uppercase tracking-[0.24em] text-[#5a8c5a] dark:text-primary">
                     {group.title}
                   </h3>
                   <ul className="mt-5 space-y-3">
@@ -501,7 +530,7 @@ export function LandingPage() {
                       <li key={link.href}>
                         <Link
                           href={link.href}
-                          className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                          className="text-sm font-semibold text-[#5a8c5a]/75 dark:text-muted-foreground transition-colors hover:text-[#5a8c5a] dark:hover:text-primary"
                         >
                           {link.label}
                         </Link>
@@ -512,14 +541,14 @@ export function LandingPage() {
               ))}
             </div>
 
-            <div className="border border-primary/25 bg-card/80 p-5 backdrop-blur-xl">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-primary">Atelier Access</p>
-              <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            <div className="border border-[#5a8c5a]/30 dark:border-primary/30 bg-white dark:bg-muted/20 p-5 backdrop-blur-xl shadow-sm">
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#5a8c5a] dark:text-primary">Atelier Access</p>
+              <p className="mt-4 text-sm leading-6 text-[#5a8c5a]/75 dark:text-muted-foreground">
                 Start with a profile, publish your first item, and bring your audience into the same creative room.
               </p>
               <Button
                 asChild
-                className="mt-6 h-11 rounded-full bg-primary px-5 text-xs font-black uppercase tracking-[0.12em] text-primary-foreground shadow-glow hover:bg-primary/90"
+                className="mt-6 h-11 rounded-full bg-[#5a8c5a] dark:bg-primary px-5 text-xs font-black uppercase tracking-[0.12em] text-white dark:text-primary-foreground shadow-glow hover:bg-[#4a7c4a] dark:hover:bg-primary/90"
               >
                 <Link href="/auth/register">
                   Open Studio
@@ -529,16 +558,16 @@ export function LandingPage() {
             </div>
           </div>
 
-          <div className="mt-12 flex flex-col gap-5 border-t border-border pt-6 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
+          <div className="mt-12 flex flex-col gap-5 border-t border-[#5a8c5a]/20 dark:border-primary/20 pt-6 text-xs text-[#5a8c5a]/75 dark:text-muted-foreground md:flex-row md:items-center md:justify-between">
             <p>© 2026 DreamDOT. Built for the weightless creative.</p>
             <div className="flex flex-wrap gap-5 font-bold uppercase tracking-[0.16em]">
-              <Link href="/privacy" className="hover:text-emerald-600 dark:hover:text-emerald-400">
+              <Link href="/privacy" className="hover:text-[#5a8c5a] dark:hover:text-primary transition-colors">
                 Privacy
               </Link>
-              <Link href="/terms" className="hover:text-emerald-600 dark:hover:text-emerald-400">
+              <Link href="/terms" className="hover:text-[#5a8c5a] dark:hover:text-primary transition-colors">
                 Terms
               </Link>
-              <Link href="/settings" className="hover:text-emerald-600 dark:hover:text-emerald-400">
+              <Link href="/settings" className="hover:text-[#5a8c5a] dark:hover:text-primary transition-colors">
                 Account
               </Link>
             </div>

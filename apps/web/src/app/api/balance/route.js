@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { prismaSocial } from '@/lib/db'
+import { prismaSocial } from '@/lib/prisma/social'
 
 const USD_CONVERSION_RATE = 0.01 // 1 credit = 0.01 USD
 

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
-import { prismaUser, prismaSocial, prismaItem } from '@/lib/db'
+import { prismaUser } from '@/lib/prisma/user'
+import { prismaSocial } from '@/lib/prisma/social'
+import { prismaItems } from '@/lib/prisma/items'
 
 export async function GET() {
   try {

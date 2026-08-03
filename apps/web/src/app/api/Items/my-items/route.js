@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prismaSocial } from '@/lib/db'
+import { prismaSocial } from '@/lib/prisma/social'
 import { Item } from '@repo/database-mongo'
 import { connectToDatabase } from '@/lib/mongoose/connection'
 

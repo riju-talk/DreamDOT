@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { SessionProvider } from 'next-auth/react';
 import type { Session } from 'next-auth';
 
@@ -17,5 +17,15 @@ export function SessionContextProvider({
   session,
   children,
 }: SessionContextProviderProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return children;
+  }
+
   return <SessionProvider session={session}>{children}</SessionProvider>;
 }

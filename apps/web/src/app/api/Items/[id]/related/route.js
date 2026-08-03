@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { Item } from '@repo/database-mongo'
 import { connectToDatabase } from '@/lib/mongoose/connection'
-import { prismaSocial } from '@/lib/db'
+import { prismaSocial } from '@/lib/prisma/social'
 
 export async function GET(request, { params }) {
   try {

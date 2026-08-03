@@ -1,8 +1,8 @@
-import { SocialDiscoverHero } from "../../../components/social-discover-hero"
-import { SocialFeedWrapper } from "../../../components/social-feed-wrapper"
-import { TrendingHashtags } from "../../../components/trending-hashtags"
-import { SuggestedCreators } from "../../../components/suggested-creators"
-import { AuthenticatedLayout } from "../../../components/authenticated-layout"
+import { SocialDiscoverHero } from "@/components/social-discover-hero"
+import { SocialFeedWrapper } from "@/components/social-feed-wrapper"
+import { TrendingHashtags } from "@/components/trending-hashtags"
+import { SuggestedCreators } from "@/components/suggested-creators"
+import { AuthenticatedLayout } from "@/components/authenticated-layout"
 
 export default async function DiscoverPage() {
   return (

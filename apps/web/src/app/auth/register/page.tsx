@@ -5,7 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useSession, signIn as nextAuthSignIn } from "next-auth/react"
-import { ArrowRight, Check, Eye, EyeOff, Loader2, PenLine, ShieldCheck, Sparkles, WalletCards } from "lucide-react"
+import { ArrowRight, Check, Eye, EyeOff, Loader2, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,17 +15,10 @@ import { OAuthButtons } from "../../../components/auth/OAuthButtons"
 import { ModeToggle } from "@/components/mode-toggle"
 
 const fieldClass =
-  "h-12 rounded-xl border-lime-300 dark:border-lime-900/40 bg-white/85 px-4 text-slate-900 placeholder:text-slate-500 focus-visible:ring-lime-400 dark:bg-slate-950/75 dark:text-slate-50 dark:placeholder:text-slate-400 dark:focus-visible:ring-lime-500"
+  "h-12 rounded-xl border-[#5a8c5a]/30 dark:border-primary/30 bg-white/85 dark:bg-muted/20 px-4 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus-visible:ring-[#5a8c5a] dark:focus-visible:ring-primary"
 
 const registerImage =
   "https://res.cloudinary.com/diaoy8eua/image/upload/v1750944374/pexels-lukasfst-19635556_ywjhpd.jpg"
-
-const perks = [
-  { label: "Publish writing, art, audio, video, and research", icon: PenLine },
-  { label: "Open a direct audience room with messages", icon: Sparkles },
-  { label: "Sell with credit-powered creator economics", icon: WalletCards },
-  { label: "Control visibility before every release", icon: ShieldCheck },
-]
 
 export default function RegisterPage() {
   const { status } = useSession()
@@ -153,7 +146,7 @@ export default function RegisterPage() {
 
   if (status === "loading") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-slate-950 text-emerald-600 dark:text-emerald-400">
+      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-background text-[#5a8c5a] dark:text-primary">
         <Loader2 className="size-6 animate-spin" />
       </div>
     )
@@ -161,87 +154,56 @@ export default function RegisterPage() {
 
   return (
     <TooltipProvider>
-      <main className="min-h-screen overflow-hidden bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50">
-        <div className="pointer-events-none fixed inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,118,86,0.12),transparent_34%),linear-gradient(90deg,rgba(15,23,16,0.03)_1px,transparent_1px),linear-gradient(180deg,rgba(15,23,16,0.025)_1px,transparent_1px)] bg-[length:auto,72px_72px,72px_72px] dark:bg-[radial-gradient(circle_at_top_left,rgba(34,180,125,0.08),transparent_34%),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.015)_1px,transparent_1px)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),#ffffff_76%)] dark:bg-[linear-gradient(180deg,rgba(15,23,16,0.04),#0f1710_76%)]" />
+      <main className="min-h-screen overflow-hidden bg-white dark:bg-background text-slate-900 dark:text-slate-50">
+        <div className="pointer-events-none fixed inset-0 z-0">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(90,140,90,0.08),transparent_34%),linear-gradient(90deg,rgba(15,23,16,0.02)_1px,transparent_1px),linear-gradient(180deg,rgba(15,23,16,0.015)_1px,transparent_1px)] bg-[length:auto,72px_72px,72px_72px] dark:bg-[radial-gradient(circle_at_top_left,rgba(153,255,51,0.06),transparent_34%),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.01)_1px,transparent_1px)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),#ffffff_76%)] dark:bg-[linear-gradient(180deg,rgba(15,23,16,0.02),var(--background)_76%)]" />
         </div>
 
-        <div className="relative z-10 mx-auto grid min-h-screen w-full max-w-7xl gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-stretch lg:py-8">
-          <section className="hidden min-h-screen overflow-hidden rounded-[2rem] border border-emerald-200 dark:border-emerald-900/30 bg-white/75 dark:bg-slate-900/86 p-6 shadow-[0_34px_120px_rgba(15,23,16,0.14)] dark:shadow-[0_40px_140px_rgba(0,0,0,0.42)] backdrop-blur-xl lg:block">
-            <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[1.5rem] border border-slate-200/40 dark:border-slate-700/40 bg-slate-50 dark:bg-slate-900">
+        <div className="relative z-10 mx-auto grid w-full max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-2 lg:items-stretch lg:gap-8 lg:py-8">
+          <section className="hidden overflow-hidden rounded-2xl border border-[#5a8c5a]/20 dark:border-primary/20 bg-white/80 dark:bg-muted/10 p-6 shadow-sm dark:shadow-glow lg:flex lg:flex-col">
+            <div className="relative w-full flex-1 overflow-hidden rounded-xl border-2 border-[#5a8c5a] dark:border-primary shadow-[0_0_30px_rgba(90,140,90,0.3)] dark:shadow-[0_0_30px_rgba(153,255,51,0.4)]">
               <Image
                 src={registerImage}
-                alt=""
+                alt="Build your creative room"
                 fill
                 priority
-                sizes="46vw"
+                sizes="50vw"
                 className="object-cover"
               />
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(248,250,243,0.92),rgba(248,250,243,0.3)_48%,rgba(248,250,243,0.9))] dark:bg-[linear-gradient(135deg,rgba(15,23,16,0.86),rgba(15,23,16,0.28)_48%,rgba(15,23,16,0.9)]" />
-              <div className="relative flex items-center justify-between gap-3 z-10">
-                <div className="flex items-center gap-3">
-                  <span className="flex size-10 items-center justify-center rounded-full bg-lime-500 dark:bg-lime-400 text-slate-900">
-                    <Sparkles className="size-5" />
-                  </span>
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-[0.28em] text-lime-600 dark:text-lime-400">Creator access</p>
-                    <p className="font-serif text-lg font-black italic text-slate-900 dark:text-slate-100">Open your atelier.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative z-10">
-                <h1 className="max-w-xl font-serif text-5xl font-black italic leading-[0.88] text-slate-900 dark:text-slate-100">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              
+              <div className="absolute inset-0 flex items-center justify-center p-8">
+                <h1 className="font-serif text-5xl sm:text-6xl font-black italic text-center text-white leading-tight drop-shadow-lg">
                   Build your creative room
                 </h1>
-                <p className="mt-4 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
-                  Create one identity for publishing, discovery, community, and credits.
-                </p>
-              </div>
-
-              <div className="relative z-10 grid gap-3">
-                {perks.map((perk) => {
-                  const Icon = perk.icon
-                  return (
-                    <div key={perk.label} className="flex items-center gap-3 border border-slate-200/40 dark:border-slate-700/40 bg-white/72 dark:bg-slate-800/78 p-3 backdrop-blur-xl">
-                      <span className="flex size-9 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-900/30 text-lime-600 dark:text-lime-400">
-                        <Icon className="size-4" />
-                      </span>
-                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{perk.label}</span>
-                    </div>
-                  )
-                })}
               </div>
             </div>
           </section>
 
-          <section className="mx-auto flex w-full max-w-xl flex-col">
-            <div className="rounded-[2rem] border border-slate-200/40 dark:border-slate-700/40 bg-white/82 dark:bg-slate-900/88 p-5 shadow-[0_28px_100px_rgba(15,23,16,0.12)] dark:shadow-[0_28px_110px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:p-7">
-              <div className="mb-6 flex items-center justify-between gap-4">
-                <Link href="/" className="inline-flex items-center gap-2" aria-label="DreamDOT home">
-                  <span className="flex size-8 items-center justify-center rounded-full bg-emerald-600 dark:bg-emerald-500 text-white">
-                    <Sparkles className="size-4" />
-                  </span>
-                  <span className="font-serif text-lg font-black italic text-emerald-700 dark:text-emerald-400 hidden sm:inline">DreamDOT</span>
-                </Link>
-                <ModeToggle />
-              </div>
+          <section className="mx-auto flex w-full max-w-md flex-col justify-center">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <Link href="/" className="inline-flex items-center gap-2" aria-label="DreamDOT home">
+                <span className="flex size-8 items-center justify-center rounded-full bg-[#5a8c5a] dark:bg-primary text-white">
+                  <Sparkles className="size-4" />
+                </span>
+                <span className="font-serif text-lg font-black italic text-[#5a8c5a] dark:text-primary hidden sm:inline">DreamDOT</span>
+              </Link>
+              <ModeToggle />
+            </div>
 
-              <div className="mb-8">
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-lime-600 dark:text-lime-400">Join the dream</p>
-                <h2 className="mt-3 font-serif text-4xl font-black italic leading-none sm:text-5xl">
-                  Create your account
+            <div className="flex h-full flex-col rounded-2xl border border-[#5a8c5a]/15 dark:border-primary/15 bg-white dark:bg-muted/20 p-6 shadow-sm sm:p-8 backdrop-blur-sm">
+              <div className="mb-6">
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#5a8c5a] dark:text-primary">Join the dream</p>
+                <h2 className="mt-2 font-serif text-3xl font-black italic leading-none text-slate-900 dark:text-slate-50">
+                  Create account
                 </h2>
-                <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">
-                  Start publishing, selling, and building a direct creative room around your work.
-                </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid gap-4 sm:grid-cols-2">
+              <form onSubmit={handleSubmit} className="flex flex-col flex-1 space-y-4">
+                <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-slate-900 dark:text-slate-100">
+                    <Label htmlFor="name" className="text-xs font-bold text-slate-900 dark:text-slate-100">
                       Full Name
                     </Label>
                     <Input
@@ -251,14 +213,14 @@ export default function RegisterPage() {
                       placeholder="Ada Lovelace"
                       value={formData.name}
                       onChange={handleChange}
-                      className={`${fieldClass} ${errors.name ? "border-red-400" : ""}`}
+                      className={`${fieldClass} ${errors.name ? "border-red-400 dark:border-red-400" : ""}`}
                       required
                     />
-                    {errors.name && <p className="text-xs text-red-300">{errors.name}</p>}
+                    {errors.name && <p className="text-xs text-red-500 dark:text-red-400">{errors.name}</p>}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="username" className="text-slate-900 dark:text-slate-100">
+                    <Label htmlFor="username" className="text-xs font-bold text-slate-900 dark:text-slate-100">
                       Username
                     </Label>
                     <Input
@@ -268,15 +230,15 @@ export default function RegisterPage() {
                       placeholder="dreamsmith"
                       value={formData.username}
                       onChange={handleChange}
-                      className={`${fieldClass} ${errors.username ? "border-red-400" : ""}`}
+                      className={`${fieldClass} ${errors.username ? "border-red-400 dark:border-red-400" : ""}`}
                       required
                     />
-                    {errors.username && <p className="text-xs text-red-300">{errors.username}</p>}
+                    {errors.username && <p className="text-xs text-red-500 dark:text-red-400">{errors.username}</p>}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-slate-900 dark:text-slate-100">
+                  <Label htmlFor="email" className="text-xs font-bold text-slate-900 dark:text-slate-100">
                     Email
                   </Label>
                   <Input
@@ -286,16 +248,16 @@ export default function RegisterPage() {
                     placeholder="you@example.com"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`${fieldClass} ${errors.email ? "border-red-400" : ""}`}
+                    className={`${fieldClass} ${errors.email ? "border-red-400 dark:border-red-400" : ""}`}
                     required
                   />
-                  {errors.email && <p className="text-xs text-red-300">{errors.email}</p>}
+                  {errors.email && <p className="text-xs text-red-500 dark:text-red-400">{errors.email}</p>}
                 </div>
 
                 <Tooltip open={!pwdValid && formData.password.length > 0}>
                   <TooltipTrigger asChild>
                     <div className="space-y-2">
-                      <Label htmlFor="password" className="text-slate-900 dark:text-slate-100">
+                      <Label htmlFor="password" className="text-xs font-bold text-slate-900 dark:text-slate-100">
                         Password
                       </Label>
                       <div className="relative">
@@ -306,12 +268,12 @@ export default function RegisterPage() {
                           placeholder="Create a strong password"
                           value={formData.password}
                           onChange={handleChange}
-                          className={`${fieldClass} pr-11 ${errors.password ? "border-red-400" : ""}`}
+                          className={`${fieldClass} pr-11 ${errors.password ? "border-red-400 dark:border-red-400" : ""}`}
                           required
                         />
                         <button
                           type="button"
-                          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-500 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-500 transition-colors hover:text-[#5a8c5a] dark:text-slate-400 dark:hover:text-primary"
                           onClick={() => setShowPassword(!showPassword)}
                           disabled={isLoading}
                         >
@@ -319,10 +281,10 @@ export default function RegisterPage() {
                           <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
                         </button>
                       </div>
-                      {errors.password && <p className="text-xs text-red-300">{errors.password}</p>}
+                      {errors.password && <p className="text-xs text-red-500 dark:text-red-400">{errors.password}</p>}
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent side="top" align="start">
+                  <TooltipContent side="top" align="start" className="bg-slate-900 dark:bg-slate-50 text-slate-50 dark:text-slate-900">
                     <ul className="space-y-1 text-xs">
                       <li>At least 8 characters</li>
                       <li>One uppercase letter</li>
@@ -335,7 +297,7 @@ export default function RegisterPage() {
                 <Tooltip open={!matchValid && formData.confirmPwd.length > 0}>
                   <TooltipTrigger asChild>
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPwd" className="text-slate-900 dark:text-slate-100">
+                      <Label htmlFor="confirmPwd" className="text-xs font-bold text-slate-900 dark:text-slate-100">
                         Confirm Password
                       </Label>
                       <div className="relative">
@@ -346,24 +308,28 @@ export default function RegisterPage() {
                           placeholder="Repeat your password"
                           value={formData.confirmPwd}
                           onChange={handleChange}
-                          className={`${fieldClass} pr-11 ${errors.confirmPwd ? "border-red-400" : ""}`}
+                          className={`${fieldClass} pr-11 ${errors.confirmPwd ? "border-red-400 dark:border-red-400" : ""}`}
                           required
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-lime-500 dark:text-lime-400">
-                          {matchValid ? <Check className="size-4" /> : <Eye className="size-4 opacity-45" />}
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                          {matchValid ? (
+                            <Check className="size-4 text-[#5a8c5a] dark:text-primary" />
+                          ) : (
+                            <Eye className="size-4 text-slate-400 opacity-45" />
+                          )}
                         </span>
                       </div>
-                      {errors.confirmPwd && <p className="text-xs text-red-300">{errors.confirmPwd}</p>}
+                      {errors.confirmPwd && <p className="text-xs text-red-500 dark:text-red-400">{errors.confirmPwd}</p>}
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent side="top" align="start">
+                  <TooltipContent side="top" align="start" className="bg-slate-900 dark:bg-slate-50 text-slate-50 dark:text-slate-900">
                     Passwords do not match
                   </TooltipContent>
                 </Tooltip>
 
                 <Button
                   type="submit"
-                  className="h-12 w-full rounded-full bg-emerald-600 dark:bg-emerald-500 text-sm font-black uppercase tracking-[0.12em] text-white shadow-[0_0_32px_rgba(34,118,86,0.22)] hover:bg-emerald-700 dark:hover:bg-emerald-600"
+                  className="h-12 w-full rounded-full bg-[#5a8c5a] dark:bg-primary text-sm font-black uppercase tracking-[0.12em] text-white dark:text-primary-foreground shadow-sm dark:shadow-glow hover:bg-[#4a7c4a] dark:hover:bg-primary/90"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -380,7 +346,7 @@ export default function RegisterPage() {
                 </Button>
               </form>
 
-              <div className="mt-8">
+              <div className="mt-5">
                 <OAuthButtons
                   isLoading={isLoading}
                   googleEnabled={googleEnabled}
@@ -390,15 +356,15 @@ export default function RegisterPage() {
                 />
               </div>
 
-              <div className="mt-7 grid gap-3 border-t border-slate-200/40 dark:border-slate-700/40 pt-5 text-center text-sm text-slate-600 dark:text-slate-400 sm:grid-cols-2">
+              <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#5a8c5a]/10 dark:border-primary/10 pt-4 text-xs font-bold text-slate-600 dark:text-slate-400">
                 <p>
                   Already have an account?{" "}
-                  <Link href="/auth/signin" className="font-bold text-lime-600 hover:text-lime-700 dark:text-lime-400 dark:hover:text-lime-300">
+                  <Link href="/auth/signin" className="text-[#5a8c5a] hover:text-[#4a7c4a] dark:text-primary dark:hover:text-primary/80">
                     Sign in
                   </Link>
                 </p>
-                <Link href="/feed" className="font-bold text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300">
-                  Preview the feed
+                <Link href="/feed" className="text-[#5a8c5a] hover:text-[#4a7c4a] dark:text-primary dark:hover:text-primary/80">
+                  Browse as guest
                 </Link>
               </div>
             </div>

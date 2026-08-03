@@ -1,124 +1,131 @@
 import { NextResponse } from 'next/server'
-import { prismaSocial } from '@/lib/prisma/social'
-import { prismaItems } from '@/lib/prisma/items'
+import { fetchPosts } from '@/lib/mongoose/posts'
+import { fetchItems } from '@/lib/mongoose/items'
+import { prismaUser } from '@/lib/prisma/user'
+
+const FALLBACK_IMAGE = 'https://cloudinary-marketing-res.cloudinary.com/images/w_1000,c_scale/v1699909962/fallback_image_header/fallback_image_header-png?_i=AA'
 
 /**
  * GET /api/posts/feed
- * Main feed - randomized posts and items with lazy loading
- * Query params:
- *  - page: page number (default: 1)
- *  - limit: items per page (default: 10, max 50)
+ * Fetch real posts and items from database (PostgreSQL + MongoDB)
  */
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '10')
 
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
-    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '10', 10)), 50)
-    const offset = (page - 1) * limit
+    // Fetch posts from PostgreSQL + MongoDB
+    const postsResult = await fetchPosts({ page, limit })
+    const itemsResult = await fetchItems({ page, limit })
 
-    let feed = []
+    // Enrich posts with user data
+    let enrichedPosts = postsResult.posts
+    if (enrichedPosts.length > 0) {
+      const userIds = [...new Set(enrichedPosts.map(p => p.userId).filter(Boolean))]
+      if (userIds.length > 0) {
+        const users = await prismaUser.users.findMany({
+          where: { id: { in: userIds } },
+          select: {
+            id: true,
+            is_verified: true,
+            user_profile: {
+              select: {
+                display_name: true,
+                avatar_url: true,
+              },
+            },
+          },
+        })
 
-    // Fetch all visible posts
-    const allPosts = await prismaSocial.posts.findMany({
-      where: { visibility: true },
-      include: {
-        users: {
-          select: { id: true, email: true }
-        },
-        posts_analytics: true,
-      },
-    })
+        const userMap = new Map(users.map(u => [u.id, u]))
 
-      // Format posts
-      const formattedPosts = allPosts.map(post => ({
-        id: post.id,
-        type: 'post',
-        userId: post.user_id,
-        content: post.content,
-        visibility: post.visibility,
-        createdAt: post.created_at,
-        likes: post.posts_analytics?.likes_count ? Array(post.posts_analytics.likes_count).fill('') : [],
-        comments: [],
-        author: {
-          id: post.users.id,
-          email: post.users.email,
-          name: post.users.email?.split('@')[0] || 'User',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
-          verified: false,
-        }
-      }))
-
-    feed.push(...formattedPosts)
-
-    // Fetch all public items
-    const allItems = await prismaItems.items.findMany({
-      where: { visibility: 'public' },
-      include: {
-        users: {
-          select: { id: true }
-        },
-      },
-    })
-
-    // Format items
-    const formattedItems = allItems.map(item => ({
-      id: item.item_id,
-      type: 'item',
-      userId: item.user_id,
-      title: item.title,
-      description: item.description,
-      category: item.category || 'general',
-      price: parseFloat(item.price?.toString() || '0'),
-      image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&h=500&fit=crop',
-      rating: Math.floor(Math.random() * 5),
-      sales: Math.floor(Math.random() * 100),
-      views: Math.floor(Math.random() * 1000),
-      visibility: item.visibility,
-      createdAt: item.created_at,
-      creator: {
-        id: item.users.id,
-        name: `Creator ${item.users.id?.slice(0, 4)}`,
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
-        verified: false,
+        enrichedPosts = enrichedPosts.map(post => {
+          const userData = userMap.get(post.userId)
+          return {
+            ...post,
+            author: {
+              id: post.userId,
+              name: userData?.user_profile?.display_name || 'User',
+              avatar: userData?.user_profile?.avatar_url || FALLBACK_IMAGE,
+              verified: userData?.is_verified || false,
+            },
+            user: {
+              id: post.userId,
+              display_name: userData?.user_profile?.display_name || 'User',
+              username: userData?.user_profile?.display_name || 'user',
+              avatar_url: userData?.user_profile?.avatar_url || FALLBACK_IMAGE,
+              verified: userData?.is_verified || false,
+            },
+          }
+        })
       }
-    }))
+    }
 
-    feed.push(...formattedItems)
+    // Enrich items with user data
+    let enrichedItems = itemsResult.items
+    if (enrichedItems.length > 0) {
+      const userIds = [...new Set(enrichedItems.map(i => i.userId).filter(Boolean))]
+      if (userIds.length > 0) {
+        const users = await prismaUser.users.findMany({
+          where: { id: { in: userIds } },
+          select: {
+            id: true,
+            is_verified: true,
+            user_profile: {
+              select: {
+                display_name: true,
+                avatar_url: true,
+              },
+            },
+          },
+        })
 
-    // Shuffle entire feed randomly
-    feed = shuffleArray(feed)
+        const userMap = new Map(users.map(u => [u.id, u]))
 
-    const total = feed.length
+        enrichedItems = enrichedItems.map(item => ({
+          ...item,
+          creator: {
+            name: userMap.get(item.userId)?.user_profile?.display_name || 'Creator',
+            avatar: userMap.get(item.userId)?.user_profile?.avatar_url || FALLBACK_IMAGE,
+            verified: userMap.get(item.userId)?.is_verified || false,
+          },
+          image: item.media?.[0]?.url || FALLBACK_IMAGE,
+        }))
+      }
+    }
 
-    // Apply lazy loading with offset and limit
-    const paginatedFeed = feed.slice(offset, offset + limit)
+    // Merge posts and items into single feed
+    const feed = [
+      ...enrichedPosts.map(p => ({ ...p, type: 'post' })),
+      ...enrichedItems.map(i => ({ ...i, type: 'item' })),
+    ]
+
+    // Randomize (shuffle) the feed
+    for (let i = feed.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [feed[i], feed[j]] = [feed[j], feed[i]]
+    }
 
     return NextResponse.json(
       {
-        posts: paginatedFeed,
-        hasMore: offset + limit < total,
+        feed,
+        posts: enrichedPosts,
+        items: enrichedItems,
+        pagination: {
+          total: (postsResult.pagination?.total || 0) + (itemsResult.pagination?.total || 0),
+          page,
+          limit,
+          hasMore: (postsResult.pagination?.hasMore || false) || (itemsResult.pagination?.hasMore || false),
+        }
       },
       { status: 200 }
     )
   } catch (error) {
-    console.error('Error fetching feed:', error)
-
+    console.error('❌ Error fetching feed:', error)
     return NextResponse.json(
-      { posts: [], hasMore: false },
+      { error: 'Failed to fetch feed', details: error.message },
       { status: 500 }
     )
   }
-}
-
-/**
- * Fisher-Yates shuffle algorithm for randomization
- */
-function shuffleArray(array) {
-  const shuffled = [...array]
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-  }
-  return shuffled
 }

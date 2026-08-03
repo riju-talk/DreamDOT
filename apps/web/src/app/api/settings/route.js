@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { prismaUser } from "@/lib/db"
+import { prismaUser } from "@/lib/prisma/user"
 
 // Helper function to get user with profile (reusable)
 async function getUserWithProfile(email) {

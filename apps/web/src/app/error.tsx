@@ -1,10 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { RotateCcw, Home } from 'lucide-react'
-import Link from 'next/link'
-
 export default function Error({
   error,
   reset,
@@ -12,33 +7,24 @@ export default function Error({
   error: Error & { digest?: string }
   reset: () => void
 }) {
-  useEffect(() => {
-    console.error(error)
-  }, [error])
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4">
-      <div className="text-center space-y-6">
-        <div className="space-y-2">
-          <h1 className="text-6xl font-bold text-foreground">500</h1>
-          <p className="text-2xl font-semibold text-muted-foreground">Something went wrong</p>
-        </div>
-
-        <p className="text-muted-foreground max-w-md mx-auto">
-          {error.message || 'An unexpected error occurred. Please try again.'}
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ textAlign: 'center' }}>
+        <h1 style={{ fontSize: '3.75rem', fontWeight: 'bold' }}>500</h1>
+        <p style={{ fontSize: '1.5rem', fontWeight: '600', marginTop: '0.5rem' }}>Something went wrong</p>
+        <p style={{ marginTop: '1rem', maxWidth: '28rem', margin: '1rem auto' }}>
+          An unexpected error occurred. Please try again.
         </p>
-
-        <div className="flex gap-4 justify-center pt-4">
-          <Button onClick={() => reset()} className="gap-2">
-            <RotateCcw className="h-4 w-4" />
+        <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+          <button
+            onClick={() => reset()}
+            style={{ padding: '0.5rem 1.5rem', backgroundColor: '#2563eb', color: 'white', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer' }}
+          >
             Try Again
-          </Button>
-          <Link href="/">
-            <Button variant="outline" className="gap-2">
-              <Home className="h-4 w-4" />
-              Go Home
-            </Button>
-          </Link>
+          </button>
+          <a href="/" style={{ padding: '0.5rem 1.5rem', backgroundColor: '#e5e7eb', color: '#1f2937', borderRadius: '0.5rem', fontWeight: '600', display: 'inline-flex', alignItems: 'center' }}>
+            Go Home
+          </a>
         </div>
       </div>
     </div>

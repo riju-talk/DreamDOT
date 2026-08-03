@@ -5,7 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useSession, signIn as nextAuthSignIn, SignInResponse } from "next-auth/react"
-import { ArrowRight, Eye, EyeOff, Loader2, MessageSquareText, Search, Sparkles, WalletCards } from "lucide-react"
+import { ArrowRight, Eye, EyeOff, Loader2, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,16 +19,10 @@ interface FormData {
 }
 
 const fieldClass =
-  "h-12 rounded-xl border-lime-300 dark:border-lime-900/40 bg-white/85 px-4 text-slate-900 placeholder:text-slate-500 focus-visible:ring-lime-400 dark:bg-slate-950/75 dark:text-slate-50 dark:placeholder:text-slate-400 dark:focus-visible:ring-lime-500"
+  "h-12 rounded-xl border-[#5a8c5a]/30 dark:border-primary/30 bg-white/85 dark:bg-muted/20 px-4 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus-visible:ring-[#5a8c5a] dark:focus-visible:ring-primary"
 
 const signinImage =
   "https://res.cloudinary.com/diaoy8eua/image/upload/v1750937757/pexels-artem-yellow-422929671-15157857_qqkdym.jpg"
-
-const previewNotes = [
-  { label: "Browse public creator drops", icon: Search },
-  { label: "See the social feed preview", icon: MessageSquareText },
-  { label: "Return when you are ready to publish or buy", icon: WalletCards },
-]
 
 export default function SignInPage() {
   const { status } = useSession()
@@ -109,45 +103,45 @@ export default function SignInPage() {
 
   if (status === "loading") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-slate-950 text-emerald-600 dark:text-emerald-400">
+      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-background text-[#5a8c5a] dark:text-primary">
         <Loader2 className="size-6 animate-spin" />
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50">
-      <div className="pointer-events-none fixed inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,118,86,0.12),transparent_34%),linear-gradient(90deg,rgba(15,23,16,0.03)_1px,transparent_1px),linear-gradient(180deg,rgba(15,23,16,0.025)_1px,transparent_1px)] bg-[length:auto,72px_72px,72px_72px] dark:bg-[radial-gradient(circle_at_top_right,rgba(34,180,125,0.08),transparent_34%),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.015)_1px,transparent_1px)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),#ffffff_76%)] dark:bg-[linear-gradient(180deg,rgba(15,23,16,0.04),#0f1710_76%)]" />
+    <main className="min-h-screen overflow-hidden bg-white dark:bg-background text-slate-900 dark:text-slate-50">
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(90,140,90,0.08),transparent_34%),linear-gradient(90deg,rgba(15,23,16,0.02)_1px,transparent_1px),linear-gradient(180deg,rgba(15,23,16,0.015)_1px,transparent_1px)] bg-[length:auto,72px_72px,72px_72px] dark:bg-[radial-gradient(circle_at_top_right,rgba(153,255,51,0.06),transparent_34%),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.01)_1px,transparent_1px)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),#ffffff_76%)] dark:bg-[linear-gradient(180deg,rgba(15,23,16,0.02),var(--background)_76%)]" />
       </div>
 
-      <div className="relative z-10 mx-auto grid min-h-screen w-full max-w-7xl gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:py-8">
-        <section className="mx-auto flex w-full max-w-xl flex-col">
+      <div className="relative z-10 mx-auto grid w-full max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-2 lg:items-stretch lg:gap-8 lg:py-10">
+        <section className="mx-auto flex w-full max-w-md flex-col justify-center">
           <div className="mb-6 flex items-center justify-between">
             <Link href="/" className="inline-flex items-center gap-3" aria-label="DreamDOT home">
-              <span className="flex size-9 items-center justify-center rounded-full bg-lime-500 dark:bg-lime-400 text-slate-900">
+              <span className="flex size-9 items-center justify-center rounded-full bg-[#5a8c5a] dark:bg-primary text-white">
                 <Sparkles className="size-4" />
               </span>
-              <span className="font-serif text-2xl font-black italic text-lime-600 dark:text-lime-400">DreamDOT</span>
+              <span className="font-serif text-2xl font-black italic text-[#5a8c5a] dark:text-primary hidden sm:inline">DreamDOT</span>
             </Link>
             <ModeToggle />
           </div>
 
-          <div className="rounded-[2rem] border border-slate-200/40 dark:border-slate-700/40 bg-white/82 dark:bg-slate-900/88 p-5 shadow-[0_28px_100px_rgba(15,23,16,0.12)] dark:shadow-[0_28px_110px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:p-7">
+          <div className="flex h-full flex-col rounded-2xl border border-[#5a8c5a]/15 dark:border-primary/15 bg-white dark:bg-muted/20 p-6 shadow-sm sm:p-8 backdrop-blur-sm">
             <div className="mb-8">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-lime-600 dark:text-lime-400">Return to the room</p>
-              <h1 className="mt-3 font-serif text-5xl font-black italic leading-none sm:text-6xl">
-                Welcome back.
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#5a8c5a] dark:text-primary">Return to the room</p>
+              <h1 className="mt-3 font-serif text-4xl font-black italic leading-none text-slate-900 dark:text-slate-50">
+                Welcome back
               </h1>
-              <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">
-                Sign in to publish, message collaborators, manage credits, and continue building your creator profile.
+              <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                Sign in to publish, message, manage credits, and continue building your creator profile.
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-900 dark:text-slate-100">
+                <Label htmlFor="email" className="text-xs font-bold text-slate-900 dark:text-slate-100">
                   Email
                 </Label>
                 <Input
@@ -157,18 +151,18 @@ export default function SignInPage() {
                   placeholder="you@example.com"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`${fieldClass} ${errors.email ? "border-red-400" : ""}`}
+                  className={`${fieldClass} ${errors.email ? "border-red-400 dark:border-red-400" : ""}`}
                   autoComplete="email"
                 />
-                {errors.email && <p className="text-xs text-red-300">{errors.email}</p>}
+                {errors.email && <p className="text-xs text-red-500 dark:text-red-400">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-3">
-                  <Label htmlFor="password" className="text-slate-900 dark:text-slate-100">
+                  <Label htmlFor="password" className="text-xs font-bold text-slate-900 dark:text-slate-100">
                     Password
                   </Label>
-                  <Link href="/auth/register" className="text-xs font-bold text-lime-600 hover:text-lime-700 dark:text-lime-400 dark:hover:text-lime-300">
+                  <Link href="/auth/register" className="text-xs font-bold text-[#5a8c5a] hover:text-[#4a7c4a] dark:text-primary dark:hover:text-primary/80">
                     Need access?
                   </Link>
                 </div>
@@ -180,12 +174,12 @@ export default function SignInPage() {
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleChange}
-                    className={`${fieldClass} pr-11 ${errors.password ? "border-red-400" : ""}`}
+                    className={`${fieldClass} pr-11 ${errors.password ? "border-red-400 dark:border-red-400" : ""}`}
                     autoComplete="current-password"
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-500 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-500 transition-colors hover:text-[#5a8c5a] dark:text-slate-400 dark:hover:text-primary"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isLoading}
                   >
@@ -193,12 +187,12 @@ export default function SignInPage() {
                     <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
                   </button>
                 </div>
-                {errors.password && <p className="text-xs text-red-300">{errors.password}</p>}
+                {errors.password && <p className="text-xs text-red-500 dark:text-red-400">{errors.password}</p>}
               </div>
 
               <Button
                 type="submit"
-                className="h-12 w-full rounded-full bg-lime-500 dark:bg-lime-400 text-slate-900 dark:text-slate-900 text-sm font-black uppercase tracking-[0.12em] shadow-[0_0_32px_rgba(132,204,22,0.3)] hover:bg-lime-600 dark:hover:bg-lime-500"
+                className="h-12 w-full rounded-full bg-[#5a8c5a] dark:bg-primary text-sm font-black uppercase tracking-[0.12em] text-white dark:text-primary-foreground shadow-sm dark:shadow-glow hover:bg-[#4a7c4a] dark:hover:bg-primary/90"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -215,7 +209,7 @@ export default function SignInPage() {
               </Button>
             </form>
 
-            <div className="mt-8">
+            <div className="mt-6">
               <OAuthButtons
                 isLoading={isLoading}
                 googleEnabled={googleEnabled}
@@ -225,59 +219,36 @@ export default function SignInPage() {
               />
             </div>
 
-            <div className="mt-7 grid gap-3 border-t border-slate-200/40 dark:border-slate-700/40 pt-5 text-center text-sm text-slate-600 dark:text-slate-400 sm:grid-cols-2">
+            <div className="mt-6 flex items-center justify-between gap-3 border-t border-[#5a8c5a]/10 dark:border-primary/10 pt-4 text-xs font-bold text-slate-600 dark:text-slate-400">
               <p>
                 New to DreamDOT?{" "}
-                <Link href="/auth/register" className="font-bold text-lime-600 hover:text-lime-700 dark:text-lime-400 dark:hover:text-lime-300">
+                <Link href="/auth/register" className="text-[#5a8c5a] hover:text-[#4a7c4a] dark:text-primary dark:hover:text-primary/80">
                   Create account
                 </Link>
               </p>
-              <Link href="/feed" className="font-bold text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300">
-                Preview feed without signing in
+              <Link href="/feed" className="text-[#5a8c5a] hover:text-[#4a7c4a] dark:text-primary dark:hover:text-primary/80">
+                Preview
               </Link>
             </div>
           </div>
         </section>
 
-        <section className="hidden min-h-[660px] overflow-hidden rounded-[2rem] border border-emerald-200 dark:border-emerald-900/30 bg-white/75 dark:bg-slate-900/86 p-6 shadow-[0_34px_120px_rgba(15,23,16,0.14)] dark:shadow-[0_40px_140px_rgba(0,0,0,0.42)] backdrop-blur-xl lg:block">
-          <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-[1.5rem] border border-slate-200/40 dark:border-slate-700/40 bg-slate-50 dark:bg-slate-900 p-7">
+        <section className="hidden overflow-hidden rounded-2xl border border-[#5a8c5a]/20 dark:border-primary/20 bg-white/80 dark:bg-muted/10 p-6 shadow-sm dark:shadow-glow lg:flex lg:flex-col">
+          <div className="relative w-full flex-1 overflow-hidden rounded-xl border-2 border-[#5a8c5a] dark:border-primary shadow-[0_0_30px_rgba(90,140,90,0.3)] dark:shadow-[0_0_30px_rgba(153,255,51,0.4)]">
             <Image
               src={signinImage}
-              alt=""
+              alt="Welcome back to DreamDOT"
               fill
               priority
-              sizes="44vw"
-              className="object-cover opacity-78 dark:opacity-68"
+              sizes="50vw"
+              className="object-cover"
             />
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(248,250,243,0.92),rgba(248,250,243,0.22)_50%,rgba(248,250,243,0.9))] dark:bg-[linear-gradient(135deg,rgba(15,23,16,0.9),rgba(15,23,16,0.18)_50%,rgba(15,23,16,0.9))]" />
-
-            <div className="relative flex items-center justify-between text-xs font-black uppercase tracking-[0.24em] text-slate-900 dark:text-slate-100">
-              <span>Feed Preview</span>
-              <span className="text-emerald-700 dark:text-lime-400">Public</span>
-            </div>
-
-            <div className="relative">
-              <p className="text-xs font-black uppercase tracking-[0.28em] text-lime-600 dark:text-lime-400">No account required</p>
-              <h2 className="mt-5 max-w-xl font-serif text-7xl font-black italic leading-[0.88]">
-                Look around first.
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            
+            <div className="absolute inset-0 flex items-center justify-center p-8">
+              <h2 className="font-serif text-5xl sm:text-6xl font-black italic text-center text-white leading-tight drop-shadow-lg">
+                Look around first
               </h2>
-              <p className="mt-6 max-w-md text-sm leading-7 text-slate-600 dark:text-slate-300">
-                The feed can now be opened as a preview. Sign in only when you want to create, buy, message, or save.
-              </p>
-            </div>
-
-            <div className="relative grid gap-3">
-              {previewNotes.map((note) => {
-                const Icon = note.icon
-                return (
-                  <div key={note.label} className="flex items-center gap-3 border border-slate-200/40 dark:border-slate-700/40 bg-white/72 dark:bg-slate-800/78 p-3 backdrop-blur-xl">
-                    <span className="flex size-9 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-900/30 text-lime-600 dark:text-lime-400">
-                      <Icon className="size-4" />
-                    </span>
-                    <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{note.label}</span>
-                  </div>
-                )
-              })}
             </div>
           </div>
         </section>

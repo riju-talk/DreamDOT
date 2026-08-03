@@ -73,11 +73,12 @@ export async function fetchItems(
     }
 
     // --- 4. Fetch from PostgreSQL (items_d schema) ---
-    const mongoIds = mongoItems.map((it) => String(it._id));
+    // Use sqlId (stored in MongoDB) to match PostgreSQL item_id
+    const sqlIds = mongoItems.map((it) => String(it.sqlId));
     // Fetching corresponding SQL entries from Prisma
     console.time("⏱️ Prisma fetch");
     const sqlItems = await prismaItems.items.findMany({
-      where: { item_id: { in: mongoIds } },
+      where: { sql_id: { in: sqlIds } },
       select: {
         item_id: true,
         price: true,
@@ -101,6 +102,7 @@ export async function fetchItems(
         ? ratings.reduce((a, b) => a + b, 0) / ratings.length
         : null;
 
+      // Use sql_id as key to match MongoDB sqlId
       sqlMap.set(s.item_id, {
         price: parseFloat(s.price?.toString() ?? "0"),
         rating: avgRating,
@@ -113,8 +115,9 @@ export async function fetchItems(
 
     // --- 6. Merge Mongo + SQL ---
     const mergedItems: any[] = mongoItems.map((mongo) => {
+      // Use sqlId to look up in sqlMap
+      const sql = sqlMap.get(String(mongo.sqlId));
       const mongoId = String(mongo._id);
-      const sql = sqlMap.get(mongoId);
 
       return {
         ...mongo,

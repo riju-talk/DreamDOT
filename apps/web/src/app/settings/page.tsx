@@ -1,98 +1,107 @@
 "use client"
-import Image from "next/image"
+
 import { useState } from "react"
-import { AuthenticatedLayout } from "../../../components/authenticated-layout"
-import {
-  Card, CardContent, CardDescription, CardFooter,
-  CardHeader, CardTitle
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { FaTimes, FaPlus, FaTrash } from "react-icons/fa"
-import { Save, Settings } from "lucide-react"
-import {
-  Select, SelectTrigger, SelectValue,
-  SelectContent, SelectItem
-} from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
+import { useSession } from "next-auth/react"
+import { Settings, Lock, Bell, Eye, Link2, Shield } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChangePassword } from "../../../components/change-passoword"
-import { DeleteAccount } from "../../../components/delete-account"
-import { PrivacySettings } from "../../../components/privacy-settings"
-import { NotificationSettings } from "../../../components/notification-settings"
-import { SecuritySettings } from "../../../components/security-settings"
-import { IntegrationsSettings } from "../../../components/integrations-settings"
-import { uploadImageToImageKit } from "@/lib/imagekitupload"
-import { COUNTRIES } from "@/lib/countries"
-import { Toaster, toast } from "sonner"
+import { AuthenticatedLayout } from "@/components/authenticated-layout"
+import { AccountSettingsTab } from "@/components/settings/account-tab"
+import { SecuritySettingsTab } from "@/components/settings/security-tab"
+import { PrivacySettingsTab } from "@/components/settings/privacy-tab"
+import { NotificationsSettingsTab } from "@/components/settings/notifications-tab"
+import { IntegrationsSettingsTab } from "@/components/settings/integrations-tab"
+import { Toaster } from "sonner"
+
+const tabs = [
+  { value: "account", label: "Account", icon: Settings },
+  { value: "security", label: "Security", icon: Shield },
+  { value: "privacy", label: "Privacy", icon: Eye },
+  { value: "notifications", label: "Notifications", icon: Bell },
+  { value: "integrations", label: "Integrations", icon: Link2 },
+]
 
 export default function SettingsPage() {
+  const { data: session, status } = useSession()
   const [activeTab, setActiveTab] = useState("account")
+
+  if (status === "loading") {
+    return (
+      <AuthenticatedLayout>
+        <div className="flex items-center justify-center py-12">
+          <p className="text-muted-foreground">Loading settings...</p>
+        </div>
+      </AuthenticatedLayout>
+    )
+  }
+
+  if (status === "unauthenticated") {
+    return (
+      <AuthenticatedLayout>
+        <div className="flex items-center justify-center py-12">
+          <p className="text-muted-foreground">You must be signed in to access settings.</p>
+        </div>
+      </AuthenticatedLayout>
+    )
+  }
 
   return (
     <AuthenticatedLayout>
       <Toaster position="top-center" richColors />
+      
       <div className="space-y-8">
-        <div>
-          <Badge variant="outline" className="mb-4 px-4 py-1.5 rounded-full border-primary/20 bg-primary/5 text-primary text-xs font-mono tracking-[0.3em] uppercase">
-            <Settings className="mr-2 h-3 w-3" /> System
-          </Badge>
-          <h1 className="text-4xl font-serif tracking-tight">Settings</h1>
-          <p className="text-muted-foreground mt-2">Manage your account, privacy, and preferences</p>
+        {/* Header */}
+        <div className="space-y-3">
+          <h1 className="font-serif text-4xl font-black italic text-slate-900 dark:text-slate-50">
+            Settings
+          </h1>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Manage your account, security, privacy, and preferences
+          </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-4 w-full">
-            <TabsTrigger value="account">Account</TabsTrigger>
-            <TabsTrigger value="privacy">Privacy</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <TabsList className="grid w-full grid-cols-5 rounded-lg border border-[#5a8c5a]/15 dark:border-primary/15 bg-white/50 dark:bg-muted/20 p-1 backdrop-blur-sm">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              return (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="flex items-center gap-2 rounded-md data-[state=active]:bg-[#5a8c5a]/10 dark:data-[state=active]:bg-primary/10 data-[state=active]:text-[#5a8c5a] dark:data-[state=active]:text-primary text-xs font-bold uppercase transition-colors"
+                >
+                  <Icon className="size-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </TabsTrigger>
+              )
+            })}
           </TabsList>
 
           {/* Account Tab */}
-          <TabsContent value="account" className="space-y-8 mt-8">
-            <Card className="border-border/50 shadow-[var(--shadow-float)]">
-              <CardHeader>
-                <CardTitle className="text-xl font-serif">Account Information</CardTitle>
-                <CardDescription>
-                  Manage your account details and preferences
-                </CardDescription>
-              </CardHeader>
-              {/* Account content here - keep existing form */}
-            </Card>
-
-            <ChangePassword />
-            <DeleteAccount />
-          </TabsContent>
-
-          {/* Privacy Tab */}
-          <TabsContent value="privacy" className="mt-8">
-            <PrivacySettings />
-          </TabsContent>
-
-          {/* Notifications Tab */}
-          <TabsContent value="notifications" className="mt-8">
-            <NotificationSettings />
+          <TabsContent value="account">
+            <AccountSettingsTab user={session?.user} />
           </TabsContent>
 
           {/* Security Tab */}
-          <TabsContent value="security" className="mt-8">
-            <SecuritySettings />
+          <TabsContent value="security">
+            <SecuritySettingsTab user={session?.user} />
+          </TabsContent>
+
+          {/* Privacy Tab */}
+          <TabsContent value="privacy">
+            <PrivacySettingsTab user={session?.user} />
+          </TabsContent>
+
+          {/* Notifications Tab */}
+          <TabsContent value="notifications">
+            <NotificationsSettingsTab user={session?.user} />
+          </TabsContent>
+
+          {/* Integrations Tab */}
+          <TabsContent value="integrations">
+            <IntegrationsSettingsTab user={session?.user} />
           </TabsContent>
         </Tabs>
-
-        {/* Integrations Card */}
-        <Card className="border-border/50 shadow-[var(--shadow-float)]">
-          <CardHeader>
-            <CardTitle>Integrations</CardTitle>
-            <CardDescription>Connect external services</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <IntegrationsSettings />
-          </CardContent>
-        </Card>
       </div>
     </AuthenticatedLayout>
   )

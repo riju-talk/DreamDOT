@@ -19,8 +19,6 @@ export async function fetchPosts(options: FetchPostsOptions = {}) {
     const { userId, page = 1, limit = 10 } = options;
     const skip = (page - 1) * limit;
 
-    // FetchPosts called with options
-
     // Step 1: Fetch PostgreSQL metadata
     const sqlTimerLabel = `⏱ SQL Fetch Time (${Date.now()})`;
     console.time(sqlTimerLabel);
@@ -28,35 +26,17 @@ export async function fetchPosts(options: FetchPostsOptions = {}) {
       skip,
       take: limit,
       orderBy: { created_at: "desc" },
-      select: {
-        id: true,
-        user_id: true,
-        sql_id: true,
-        visibility: true,
-        created_at: true,
-        updated_at: true,
-        posts_analytics: true,
-        users: {
-          select: {
-            id: true,
-            is_verified: true,
-            user_profile: {
-              select: {
-                display_name: true,
-                username: true,
-                avatar_url: true,
-              },
-            },
-          },
-        },
-      },
       where: userId ? { user_id: userId } : {},
+      include: {
+        posts_analytics: true,
+      },
     });
     console.timeEnd(sqlTimerLabel);
 
     const totalCount = await prismaSocial.posts.count({
       where: userId ? { user_id: userId } : {},
     });
+
     if (sqlPosts.length === 0) {
       return {
         posts: [],
@@ -95,10 +75,36 @@ export async function fetchPosts(options: FetchPostsOptions = {}) {
       }
     });
 
+    // Fetch user data separately
+    const userIds = sqlPosts.map(p => p.user_id).filter(Boolean);
+    const users: Record<string, any> = {};
+    
+    if (userIds.length > 0) {
+      const prismaUser = require('../prisma/user').prismaUser;
+      const userData = await prismaUser.users.findMany({
+        where: { id: { in: userIds } },
+        select: {
+          id: true,
+          is_verified: true,
+          user_profile: {
+            select: {
+              display_name: true,
+              username: true,
+              avatar_url: true,
+            },
+          },
+        },
+      });
+      userData.forEach((u: any) => {
+        users[u.id] = u;
+      });
+    }
+
     // Step 3: Merge - now trivial!
     const posts = sqlPosts.map((sqlPost) => {
       const uid = String(sqlPost.user_id);
       const mongoPost = mongoPostsMap.get(sqlPost.id);
+      const user = users[uid];
 
       if (mongoPost) {
         console.log(`✅ Matched SQL ${sqlPost.id}`);
@@ -115,19 +121,19 @@ export async function fetchPosts(options: FetchPostsOptions = {}) {
         createdAt: mongoPost?.createdAt ?? sqlPost.created_at,
         likes: mongoPost?.likes ?? [],
         comments: mongoPost?.comments ?? [],
-        analytics: sqlPost.posts_analytics ?? {
-          likes_count: 0,
-          comments_count: 0,
-          views_count: 0,
+        analytics: {
+          likes_count: sqlPost.posts_analytics?.likes_count ?? 0,
+          comments_count: sqlPost.posts_analytics?.comments_count ?? 0,
+          views_count: sqlPost.posts_analytics?.views_count ?? 0,
           shares_count: 0,
         },
         user: {
-          id: sqlPost.users.id,
-          username: sqlPost.users.user_profile?.username || "user",
-          display_name: sqlPost.users.user_profile?.display_name || null,
+          id: user?.id || uid,
+          username: user?.user_profile?.username || "user",
+          display_name: user?.user_profile?.display_name || null,
           avatar_url:
-            sqlPost.users.user_profile?.avatar_url || "/placeholder.svg",
-          verified: sqlPost.users.is_verified || false,
+            user?.user_profile?.avatar_url || "/placeholder.svg",
+          verified: user?.is_verified || false,
         },
         mongoId: mongoPost?._id?.toString(),
       };
