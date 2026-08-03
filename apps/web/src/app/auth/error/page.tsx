@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { AlertCircle, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -45,6 +46,14 @@ const errorMessages: Record<string, { title: string; description: string }> = {
 }
 
 export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center" />}>
+      <AuthErrorContent />
+    </Suspense>
+  )
+}
+
+function AuthErrorContent() {
   const searchParams = useSearchParams()
   const error = searchParams.get("error") || "default"
 

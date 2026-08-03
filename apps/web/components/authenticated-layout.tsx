@@ -8,9 +8,10 @@ import { MobileNav } from "./mobile-nav"
 
 interface AuthenticatedLayoutProps {
   children: ReactNode
+  fullBleed?: boolean
 }
 
-export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
+export function AuthenticatedLayout({ children, fullBleed = false }: AuthenticatedLayoutProps) {
   return (
     <SidebarProvider defaultOpen>
       <div className="flex min-h-screen w-full bg-background">
@@ -28,7 +29,7 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
 
           {/* Scrollable Content Area */}
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-            <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8 sm:py-12 md:py-16">
+            <div className={fullBleed ? "w-full" : "container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8 sm:py-12 md:py-16"}>
               {children}
             </div>
           </div>

@@ -1,5 +1,6 @@
-// src/lib/search.ts — server-only Fuse.js search over Prisma results
-"use server"
+// src/lib/search.ts — server-only Fuse.js search over Prisma results.
+// Plain server module (no "use server"): imported by the server action boundary
+// in src/app/actions/search.ts, which must only export async functions.
 
 import { prismaUser } from "@/lib/prisma/user";
 import { prismaItems } from "@/lib/prisma/items";

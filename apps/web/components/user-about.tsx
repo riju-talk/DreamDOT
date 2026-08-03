@@ -1,11 +1,46 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Users, Target } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { getUserAbout } from "@/lib/user-profile/user-about"
-import { handleUpdateUserAbout } from "@/lib/user-profile/user-about-actions"
+import { handleUpdateUserAbout, getUserAboutAction } from "@/lib/user-profile/user-about-actions"
 
-export async function UserAbout() {
-  const about = await getUserAbout()
+interface AboutData {
+  about?: string | null
+  goals?: string | null
+  skills?: string[] | null
+}
+
+export function UserAbout({ userId }: { userId?: string }) {
+  const [about, setAbout] = useState<AboutData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    setIsLoading(true)
+    getUserAboutAction(userId)
+      .then((data) => {
+        if (!cancelled) setAbout(data)
+      })
+      .catch(() => {
+        if (!cancelled) setAbout(null)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [userId])
+
+  if (isLoading) {
+    return (
+      <Card className="dream-card w-full max-w-2xl mx-auto">
+        <CardContent className="pt-6 text-muted-foreground text-sm">Loading about...</CardContent>
+      </Card>
+    )
+  }
 
   return (
     <form action={handleUpdateUserAbout}>

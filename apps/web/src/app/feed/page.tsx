@@ -536,8 +536,8 @@ export default function FeedPage() {
             <div className="space-y-6">
               {feedContent.length > 0 ? (
                 <>
-                  {feedContent.map((item) => (
-                    <div key={item.id}>
+                  {feedContent.map((item, index) => (
+                    <div key={item.id ?? index}>
                       {item.type === 'post' ? (
                         <PostCard post={item as Post} />
                       ) : (

@@ -6,7 +6,7 @@ import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 
 const categories = [
@@ -48,6 +48,14 @@ const ecosystemStats = [
 ]
 
 export default function MarketplacePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <MarketplaceContent />
+    </Suspense>
+  )
+}
+
+function MarketplaceContent() {
   const searchParams = useSearchParams()
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)

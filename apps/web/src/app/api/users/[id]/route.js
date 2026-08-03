@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prismaUser } from '@/lib/prisma/user'
+import { prismaSocial } from '@/lib/prisma/social'
 
 export async function GET(_request, { params }) {
   try {
@@ -17,8 +18,9 @@ export async function GET(_request, { params }) {
             username: true,
             display_name: true,
             avatar_url: true,
+            banner_url: true,
             bio: true,
-            location: true,
+            country: true,
             website: true,
             social_links: true,
           },
@@ -34,12 +36,12 @@ export async function GET(_request, { params }) {
       )
     }
 
-    // Get follower/following counts
-    const followerCount = await prismaUser.following.count({
+    // Follower/following counts from the social schema
+    const followerCount = await prismaSocial.following.count({
       where: { followee_id: userId },
     })
 
-    const followingCount = await prismaUser.following.count({
+    const followingCount = await prismaSocial.following.count({
       where: { follower_id: userId },
     })
 
@@ -47,32 +49,36 @@ export async function GET(_request, { params }) {
     const session = await getServerSession(authOptions)
     let isFollowing = false
 
-    if (session?.user?.email) {
-      const currentUser = await prismaUser.users.findUnique({
-        where: { email: session.user.email },
-        select: { id: true },
-      })
-
-      if (currentUser && currentUser.id !== userId) {
-        const follow = await prismaUser.following.findFirst({
-          where: {
-            follower_id: currentUser.id,
+    if (session?.user?.id && session.user.id !== userId) {
+      const follow = await prismaSocial.following.findUnique({
+        where: {
+          follower_id_followee_id: {
+            follower_id: session.user.id,
             followee_id: userId,
           },
-        })
-        isFollowing = !!follow
-      }
+        },
+      })
+      isFollowing = !!follow
     }
+
+    const p = user.user_profile
 
     return NextResponse.json(
       {
         user: {
           id: user.id,
           email: user.email,
-          ...user.user_profile,
-          followerCount,
-          followingCount,
-          joinDate: user.created_at,
+          name: p?.display_name || p?.username || user.id.slice(0, 8),
+          username: p?.username || null,
+          avatar: p?.avatar_url || null,
+          banner: p?.banner_url || null,
+          bio: p?.bio || null,
+          location: p?.country || null,
+          website: p?.website || null,
+          socialLinks: p?.social_links || [],
+          followers: followerCount,
+          following: followingCount,
+          joinedAt: user.created_at,
         },
         isFollowing,
       },

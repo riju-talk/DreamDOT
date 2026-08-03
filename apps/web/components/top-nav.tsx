@@ -107,10 +107,10 @@ function GlobalSearch() {
   }
 
   return (
-    <div ref={searchRef} className="relative w-full max-w-sm">
+    <div ref={searchRef} className="relative w-full max-w-lg">
       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
-        type="search"
+        type="text"
         placeholder="Search profiles or marketplace..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}

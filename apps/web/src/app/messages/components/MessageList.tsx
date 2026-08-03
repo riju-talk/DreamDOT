@@ -27,6 +27,7 @@ export interface Message {
 
 export interface MessageListProps {
   conversationId?: string
+  isGroup?: boolean
   onLoadMore?: () => void
   hasMoreMessages?: boolean
   isLoadingMore?: boolean
@@ -357,6 +358,7 @@ function MessageComponent({
 
 export function MessageList({
   conversationId,
+  isGroup = false,
   onLoadMore,
   hasMoreMessages = false,
   isLoadingMore = false,

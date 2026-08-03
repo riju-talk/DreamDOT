@@ -1,34 +1,38 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { connectToDatabase } from '@/lib/mongoose/connection'
-import { User } from '@repo/database-mongo'
+import { authOptions } from '@/lib/auth'
+import { prismaSocial } from '@/lib/prisma/social'
 
 /**
  * GET /api/users/[id]/follow
- * Check if current user follows this user
+ * Check if current user follows this user (social schema)
  */
-export async function GET(req, { params }) {
+export async function GET(_req, { params }) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id: userId } = params
+    const { id: userId } = await params
     if (!userId) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 })
     }
 
-    await connectToDatabase()
-    const currentUser = await User.findById(session.user.id).lean()
-
-    if (!currentUser) {
-      return NextResponse.json({ error: 'Current user not found' }, { status: 404 })
+    if (userId === session.user.id) {
+      return NextResponse.json({ isFollowing: false })
     }
 
-    const isFollowing = (currentUser.following || []).includes(userId)
+    const follow = await prismaSocial.following.findUnique({
+      where: {
+        follower_id_followee_id: {
+          follower_id: session.user.id,
+          followee_id: userId,
+        },
+      },
+    })
 
-    return NextResponse.json({ isFollowing })
+    return NextResponse.json({ isFollowing: !!follow })
   } catch (error) {
     console.error('[API] Error checking follow status:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -37,16 +41,16 @@ export async function GET(req, { params }) {
 
 /**
  * POST /api/users/[id]/follow
- * Follow user
+ * Follow user (social schema)
  */
-export async function POST(req, { params }) {
+export async function POST(_req, { params }) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id: userId } = params
+    const { id: userId } = await params
     if (!userId) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 })
     }
@@ -55,32 +59,19 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: 'Cannot follow yourself' }, { status: 400 })
     }
 
-    await connectToDatabase()
-
-    const targetUser = await User.findById(userId)
-    if (!targetUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
-    const currentUser = await User.findById(session.user.id)
-    if (!currentUser) {
-      return NextResponse.json({ error: 'Current user not found' }, { status: 404 })
-    }
-
-    // Add to following list
-    if (!currentUser.following) currentUser.following = []
-    if (!currentUser.following.includes(userId)) {
-      currentUser.following.push(userId)
-    }
-
-    // Add to followers list
-    if (!targetUser.followers) targetUser.followers = []
-    if (!targetUser.followers.includes(session.user.id)) {
-      targetUser.followers.push(session.user.id)
-    }
-
-    await currentUser.save()
-    await targetUser.save()
+    await prismaSocial.following.upsert({
+      where: {
+        follower_id_followee_id: {
+          follower_id: session.user.id,
+          followee_id: userId,
+        },
+      },
+      update: {},
+      create: {
+        follower_id: session.user.id,
+        followee_id: userId,
+      },
+    })
 
     return NextResponse.json(
       { message: 'Followed successfully', isFollowing: true },
@@ -94,44 +85,26 @@ export async function POST(req, { params }) {
 
 /**
  * DELETE /api/users/[id]/follow
- * Unfollow user
+ * Unfollow user (social schema)
  */
-export async function DELETE(req, { params }) {
+export async function DELETE(_req, { params }) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id: userId } = params
+    const { id: userId } = await params
     if (!userId) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 })
     }
 
-    await connectToDatabase()
-
-    const targetUser = await User.findById(userId)
-    if (!targetUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
-    const currentUser = await User.findById(session.user.id)
-    if (!currentUser) {
-      return NextResponse.json({ error: 'Current user not found' }, { status: 404 })
-    }
-
-    // Remove from following list
-    if (currentUser.following) {
-      currentUser.following = currentUser.following.filter((id) => id !== userId)
-    }
-
-    // Remove from followers list
-    if (targetUser.followers) {
-      targetUser.followers = targetUser.followers.filter((id) => id !== session.user.id)
-    }
-
-    await currentUser.save()
-    await targetUser.save()
+    await prismaSocial.following.deleteMany({
+      where: {
+        follower_id: session.user.id,
+        followee_id: userId,
+      },
+    })
 
     return NextResponse.json({ message: 'Unfollowed successfully', isFollowing: false })
   } catch (error) {
