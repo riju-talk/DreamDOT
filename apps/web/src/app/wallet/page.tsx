@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { AuthenticatedLayout } from "../../../components/authenticated-layout"
+import { AuthenticatedLayout } from "@/components/authenticated-layout"
 import { Wallet, History } from "lucide-react"
 
 export default function WalletPage() {

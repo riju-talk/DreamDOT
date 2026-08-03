@@ -4,101 +4,92 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { AuthenticatedLayout } from '@/components/authenticated-layout'
-import { Button } from '@/components/ui/button'
-import { Loader2, MessageSquare, Share2, MapPin, Globe, Link as LinkIcon, Check, UserPlus, UserCheck, Heart, Star, ShoppingBag } from 'lucide-react'
-import Link from 'next/link'
-import Image from 'next/image'
+import { Loader2, Heart, MessageSquare, UserPlus, UserCheck } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useTheme } from 'next-themes'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
 
-interface ProfileData {
+interface Post {
   id: string
-  email: string
+  content: string
+  media: { url: string }[]
+  analytics: { likes_count: number; comments_count: number }
+}
+
+interface Profile {
+  id: string
   name: string
-  username?: string | null
-  avatar?: string | null
-  banner?: string | null
-  bio?: string | null
-  location?: string | null
-  website?: string | null
-  socialLinks?: unknown
+  username: string
+  avatar: string
+  banner: string
+  bio: string
   followers: number
   following: number
-  joinedAt: string
 }
 
 export default function UserProfilePage() {
   const params = useParams()
   const router = useRouter()
   const { data: session } = useSession()
-  const { theme } = useTheme()
   const userId = params?.userId as string
 
-  const [profile, setProfile] = useState<ProfileData | null>(null)
-  const [isFollowing, setIsFollowing] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [userPosts, setUserPosts] = useState<Post[]>([])
+  const [likedPosts, setLikedPosts] = useState<Post[]>([])
+  const [savedPosts, setSavedPosts] = useState<Post[]>([])
+  const [activeTab, setActiveTab] = useState<'posts' | 'likes' | 'saves'>('posts')
+  const [isFollowing, setIsFollowing] = useState(false)
   const [isFollowLoading, setIsFollowLoading] = useState(false)
-  const [isDmLoading, setIsDmLoading] = useState(false)
-  const [copied, setCopied] = useState(false)
-  const [activeTab, setActiveTab] = useState<'posts' | 'products'>('posts')
-  const [mounted, setMounted] = useState(false)
-  const [userPosts, setUserPosts] = useState<any[]>([])
-  const [userItems, setUserItems] = useState<any[]>([])
-  const [isContentLoading, setIsContentLoading] = useState(false)
 
   const isOwnProfile = session?.user?.id === userId
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  useEffect(() => {
-    async function loadProfile() {
-      try {
-        setIsLoading(true)
-        const res = await fetch(`/api/users/${userId}`)
-
-        if (!res.ok) {
-          if (res.status === 404) {
-            router.push('/profile')
-          }
-          return
-        }
-
-        const data = await res.json()
-        setProfile(data.user)
-        setIsFollowing(data.isFollowing)
-      } catch (error) {
-        console.error('[Profile] Error loading profile:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     if (userId) {
       loadProfile()
-      loadContent()
     }
-  }, [userId, router])
+  }, [userId])
 
-  const loadContent = async () => {
+  const loadProfile = async () => {
     try {
-      setIsContentLoading(true)
-      const res = await fetch(`/api/users/${userId}/content`)
-
+      setIsLoading(true)
+      const res = await fetch(`/api/users/${userId}`)
       if (res.ok) {
         const data = await res.json()
-        setUserPosts(data.posts || [])
-        setUserItems(data.items || [])
+        setProfile(data.user)
+        setIsFollowing(data.isFollowing || false)
+
+        // Fetch user posts
+        const postsRes = await fetch(`/api/users/${userId}/content`)
+        if (postsRes.ok) {
+          const postsData = await postsRes.json()
+          setUserPosts(postsData.posts || [])
+        }
+
+        // Fetch liked posts
+        const likesRes = await fetch(`/api/users/${userId}/likes`)
+        if (likesRes.ok) {
+          const likesData = await likesRes.json()
+          setLikedPosts(likesData.posts || [])
+        }
+
+        // Fetch saved posts
+        const savesRes = await fetch(`/api/users/${userId}/saves`)
+        if (savesRes.ok) {
+          const savesData = await savesRes.json()
+          setSavedPosts(savesData.posts || [])
+        }
+      } else if (res.status === 404) {
+        router.push('/feed')
       }
     } catch (error) {
-      console.error('[Profile] Error loading content:', error)
+      console.error('Error loading profile:', error)
     } finally {
-      setIsContentLoading(false)
+      setIsLoading(false)
     }
   }
 
-  const handleFollowClick = async () => {
+  const handleFollow = async () => {
     try {
       setIsFollowLoading(true)
       const method = isFollowing ? 'DELETE' : 'POST'
@@ -107,69 +98,25 @@ export default function UserProfilePage() {
       if (res.ok) {
         const data = await res.json()
         setIsFollowing(data.isFollowing)
-        setProfile((prev) => prev && {
-          ...prev,
-          followers: Math.max(0, prev.followers + (data.isFollowing ? 1 : -1)),
-        })
+        setProfile(prev =>
+          prev ? {
+            ...prev,
+            followers: prev.followers + (data.isFollowing ? 1 : -1),
+          } : null
+        )
       }
     } catch (error) {
-      console.error('[Profile] Error toggling follow:', error)
+      console.error('Error toggling follow:', error)
     } finally {
       setIsFollowLoading(false)
     }
   }
 
-  const handleOpenDm = async () => {
-    try {
-      setIsDmLoading(true)
-      // Reuse an existing direct conversation if present
-      const listRes = await fetch('/api/chat/conversations')
-      if (listRes.ok) {
-        const list = await listRes.json()
-        const existing = (list.conversations || []).find(
-          (c: any) => c.type === 'direct' && c.participants?.some((p: any) => p.id === userId)
-        )
-        if (existing) {
-          router.push('/messages')
-          return
-        }
-      }
-
-      const res = await fetch('/api/chat/conversations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'direct', participants: [userId] }),
-      })
-
-      if (res.ok) {
-        router.push('/messages')
-      }
-    } catch (error) {
-      console.error('[Profile] Error opening DM:', error)
-    } finally {
-      setIsDmLoading(false)
-    }
-  }
-
-  const handleShare = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch (error) {
-      console.error('[Profile] Error copying link:', error)
-    }
-  }
-
-  if (!mounted) {
-    return null
-  }
-
   if (isLoading) {
     return (
       <AuthenticatedLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-[#5a8c5a] dark:text-primary" />
+        <div className="flex justify-center py-32">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       </AuthenticatedLayout>
     )
@@ -185,418 +132,276 @@ export default function UserProfilePage() {
     )
   }
 
-  const displayName = profile.name || profile.username || 'User'
-  const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase()
-
   return (
-    <AuthenticatedLayout fullBleed>
-      <div className="min-h-screen bg-background text-foreground">
-        {/* Hero Banner */}
+    <AuthenticatedLayout>
+      <motion.div
+        className="space-y-0"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        {/* Full-width Banner */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="relative h-48 sm:h-64 w-full bg-gradient-to-br from-[#5a8c5a]/20 dark:from-primary/20 to-[#5a8c5a]/5 dark:to-primary/5 overflow-hidden"
+          className="relative h-56 md:h-72 -mx-6 mb-0"
         >
-          {profile.banner && (
-            <Image
-              src={profile.banner}
-              alt="Profile banner"
-              fill
-              priority
-              className="object-cover"
-            />
-          )}
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute -left-40 -top-40 w-96 h-96 rounded-full bg-[#5a8c5a]/10 dark:bg-primary/10 blur-3xl" />
-            <div className="absolute -right-32 top-1/3 w-80 h-80 rounded-full bg-[#5a8c5a]/5 dark:bg-primary/5 blur-3xl" />
+          <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#5a8c5a]/30 to-primary/20">
+            {profile?.banner ? (
+              <Image
+                src={profile.banner}
+                alt="banner"
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-[#5a8c5a]/20 to-primary/10" />
+            )}
           </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
         </motion.div>
 
-        {/* Main Content */}
-        <div className="w-full px-4 sm:px-6 lg:px-10 -mt-24 sm:-mt-32 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="bg-card border border-border rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-lg"
-          >
-            {/* Profile Header */}
-            <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start sm:items-center mb-8">
-              {/* Avatar */}
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="flex-shrink-0 -mt-12 sm:-mt-20"
-              >
-                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-[#5a8c5a] to-[#4a7c4a] dark:from-primary dark:to-primary/80 flex items-center justify-center text-white font-bold text-3xl sm:text-4xl border-4 border-background shadow-lg overflow-hidden relative">
-                  {profile.avatar ? (
-                    <Image
-                      src={profile.avatar}
-                      alt={displayName}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    initials
-                  )}
+        {/* Profile Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-6xl mx-auto px-4 md:px-6 -mt-20 relative z-10 mb-12"
+        >
+          <div className="flex flex-col md:flex-row gap-6 md:items-end">
+            {/* Avatar */}
+            <div className="relative w-40 h-40 rounded-2xl border-4 border-card bg-muted flex-shrink-0 overflow-hidden shadow-lg">
+              {profile?.avatar ? (
+                <Image
+                  src={profile.avatar}
+                  alt={profile.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-primary/50 flex items-center justify-center text-5xl font-bold text-white">
+                  {profile?.name?.charAt(0) || ''}
                 </div>
-              </motion.div>
-
-              {/* Profile Info */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="flex-grow"
-              >
-                <div className="mb-4">
-                  <h1 className="text-3xl sm:text-4xl font-black italic font-serif text-foreground mb-1">
-                    {displayName}
-                  </h1>
-                  <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                    @{profile.username || profile.id.slice(0, 8)}
-                  </p>
-                </div>
-
-                {/* Bio */}
-                {profile.bio && (
-                  <p className="text-base leading-relaxed text-foreground/80 mb-4 max-w-2xl">
-                    {profile.bio}
-                  </p>
-                )}
-
-                {/* About Row */}
-                <div className="flex flex-wrap gap-3 text-sm mb-6">
-                  {profile.location && (
-                    <div className="inline-flex items-center gap-1.5 text-muted-foreground">
-                      <MapPin className="w-4 h-4 text-[#5a8c5a] dark:text-primary" />
-                      <span>{profile.location}</span>
-                    </div>
-                  )}
-                  {profile.website && (
-                    <a
-                      href={profile.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-[#5a8c5a] dark:text-primary hover:underline"
-                    >
-                      <Globe className="w-4 h-4" />
-                      <span className="truncate">{profile.website}</span>
-                    </a>
-                  )}
-                </div>
-
-                {/* Stats Row */}
-                <div className="flex gap-6 mb-6 pb-6 border-b border-border">
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                    className="flex flex-col"
-                  >
-                    <span className="text-xl sm:text-2xl font-black text-[#5a8c5a] dark:text-primary">
-                      {profile.followers}
-                    </span>
-                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      Followers
-                    </span>
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.35 }}
-                    className="flex flex-col"
-                  >
-                    <span className="text-xl sm:text-2xl font-black text-[#5a8c5a] dark:text-primary">
-                      {profile.following}
-                    </span>
-                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      Following
-                    </span>
-                  </motion.div>
-                </div>
-
-                {/* Action Buttons */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-                  className="flex flex-wrap gap-3"
-                >
-                  {!isOwnProfile && (
-                    <>
-                      <Button
-                        onClick={handleFollowClick}
-                        disabled={isFollowLoading}
-                        className={
-                          isFollowing
-                            ? 'h-11 rounded-full border-2 border-[#5a8c5a] dark:border-primary text-[#5a8c5a] dark:text-primary px-6 text-sm font-black uppercase tracking-wider hover:bg-[#5a8c5a]/10 dark:hover:bg-primary/10 transition-all'
-                            : 'h-11 rounded-full bg-[#5a8c5a] dark:bg-primary px-6 text-sm font-black uppercase tracking-wider text-white dark:text-primary-foreground hover:bg-[#4a7c4a] dark:hover:bg-primary/90 transition-all shadow-lg'
-                        }
-                      >
-                        {isFollowLoading ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            Loading
-                          </>
-                        ) : isFollowing ? (
-                          <>
-                            <UserCheck className="w-4 h-4 mr-2" />
-                            Following
-                          </>
-                        ) : (
-                          <>
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Follow
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={handleOpenDm}
-                        disabled={isDmLoading}
-                        className="h-11 w-11 rounded-full border-border hover:border-[#5a8c5a] dark:hover:border-primary"
-                        aria-label="Send message"
-                      >
-                        {isDmLoading ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                          <MessageSquare className="w-5 h-5" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={handleShare}
-                        className="h-11 w-11 rounded-full border-border hover:border-[#5a8c5a] dark:hover:border-primary"
-                        aria-label="Copy profile link"
-                      >
-                        {copied ? (
-                          <Check className="w-5 h-5 text-[#5a8c5a] dark:text-primary" />
-                        ) : (
-                          <Share2 className="w-5 h-5" />
-                        )}
-                      </Button>
-                    </>
-                  )}
-                  {isOwnProfile && (
-                    <Button
-                      variant="outline"
-                      onClick={() => router.push('/settings')}
-                      className="h-11 rounded-full border-[#5a8c5a] dark:border-primary text-[#5a8c5a] dark:text-primary px-6 font-bold"
-                    >
-                      Edit Profile
-                    </Button>
-                  )}
-                </motion.div>
-              </motion.div>
-            </div>
-          </motion.div>
-
-          {/* Tabs Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mt-8 sm:mt-12"
-          >
-            {/* Tab Navigation */}
-            <div className="flex gap-2 sm:gap-4 border-b border-border mb-8">
-              {(['posts', 'products'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`pb-4 px-1 font-bold uppercase tracking-wider text-sm transition-all relative ${
-                    activeTab === tab
-                      ? 'text-[#5a8c5a] dark:text-primary'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {tab === 'posts' ? 'Posts' : 'Products'}
-                  {activeTab === tab && (
-                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#5a8c5a] dark:bg-primary rounded-t-full" />
-                  )}
-                </button>
-              ))}
+              )}
             </div>
 
-            {/* Content Area */}
-            {activeTab === 'posts' && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4 }}
-                className="space-y-6"
+            {/* Profile Info */}
+            <div className="flex-1">
+              <h1 className="text-3xl md:text-4xl font-black italic font-serif text-[#5a8c5a] dark:text-primary">
+                {profile?.name}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">@{profile?.username}</p>
+              {profile?.bio && (
+                <p className="text-sm text-foreground/80 mt-3 max-w-2xl">{profile.bio}</p>
+              )}
+
+              {/* Stats Row */}
+              <div className="flex gap-8 mt-6">
+                <div>
+                  <p className="text-2xl font-black text-[#5a8c5a] dark:text-primary">{profile?.followers}</p>
+                  <p className="text-xs uppercase font-bold text-muted-foreground">Followers</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-black text-[#5a8c5a] dark:text-primary">{profile?.following}</p>
+                  <p className="text-xs uppercase font-bold text-muted-foreground">Following</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-black text-[#5a8c5a] dark:text-primary">{likedPosts.length}</p>
+                  <p className="text-xs uppercase font-bold text-muted-foreground">Likes</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-black text-[#5a8c5a] dark:text-primary">{savedPosts.length}</p>
+                  <p className="text-xs uppercase font-bold text-muted-foreground">Saves</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2">
+              {isOwnProfile ? (
+                <Button className="rounded-full bg-gradient-to-r from-[#5a8c5a] to-[#4a7c4a] dark:from-primary text-white">
+                  Edit Profile
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    onClick={handleFollow}
+                    disabled={isFollowLoading}
+                    className={isFollowing
+                      ? 'rounded-full border-2 border-[#5a8c5a] dark:border-primary text-[#5a8c5a] dark:text-primary bg-transparent hover:bg-[#5a8c5a]/10'
+                      : 'rounded-full bg-gradient-to-r from-[#5a8c5a] to-[#4a7c4a] dark:from-primary text-white'
+                    }
+                  >
+                    {isFollowLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : isFollowing ? (
+                      <>
+                        <UserCheck className="w-4 h-4 mr-2" />
+                        Following
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Follow
+                      </>
+                    )}
+                  </Button>
+                  <Button variant="outline" className="rounded-full">
+                    Message
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="max-w-6xl mx-auto px-4 md:px-6"
+        >
+          <div className="flex gap-8 border-b border-border mb-8">
+            {['posts', 'likes', 'saves'].map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab as any)}
+                className={`pb-4 font-bold uppercase text-xs tracking-wider transition-colors ${
+                  activeTab === tab
+                    ? 'text-[#5a8c5a] dark:text-primary border-b-2 border-[#5a8c5a] dark:border-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
               >
-                {isContentLoading ? (
-                  <div className="flex items-center justify-center py-16">
-                    <Loader2 className="h-8 w-8 animate-spin text-[#5a8c5a] dark:text-primary" />
-                  </div>
-                ) : userPosts.length === 0 ? (
-                  <div className="text-center py-16 text-muted-foreground">
-                    <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-40" />
-                    <p className="font-bold uppercase tracking-wider text-sm">No posts yet</p>
-                    <p className="text-sm mt-1">This creator hasn't posted anything.</p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-6">
-                    {userPosts.map((post) => (
-                      <div
-                        key={post.id}
-                        className="w-full max-w-2xl bg-card border border-border rounded-2xl overflow-hidden hover:border-[#5a8c5a] dark:hover:border-primary transition-colors group"
-                      >
-                        {/* Header */}
-                        <div className="flex items-center gap-3 p-4">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5a8c5a] to-[#4a7c4a] dark:from-primary dark:to-primary/80 flex items-center justify-center text-white text-sm font-bold overflow-hidden relative flex-shrink-0">
-                            {post.user?.avatar_url ? (
-                              <Image
-                                src={post.user.avatar_url}
-                                alt={post.user?.display_name || post.user?.username || 'User'}
-                                fill
-                                className="object-cover"
-                              />
-                            ) : (
-                              (post.user?.display_name || post.user?.username || 'U').charAt(0).toUpperCase()
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-sm text-foreground truncate">
-                              {post.user?.display_name || post.user?.username || 'User'}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(post.createdAt).toLocaleString()}
-                            </p>
-                          </div>
-                        </div>
+                {tab}
+              </button>
+            ))}
+          </div>
 
-                        {/* Content */}
-                        {post.content && (
-                          <p className="px-4 pb-3 text-sm text-foreground/90 whitespace-pre-wrap">{post.content}</p>
-                        )}
-
-                        {/* Media */}
-                        {post.media?.[0]?.url && (
-                          <div className="relative w-full aspect-video bg-muted overflow-hidden">
-                            <Image
-                              src={post.media[0].url}
-                              alt={post.content?.slice(0, 60) || 'Post media'}
-                              fill
-                              className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
-                            />
+          {/* Posts Tab */}
+          {activeTab === 'posts' && (
+            <div className="pb-16">
+              {userPosts.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {userPosts.map(post => (
+                    <motion.div
+                      key={post.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="group relative rounded-2xl overflow-hidden bg-muted cursor-pointer"
+                      onClick={() => router.push(`/posts/${post.id}`)}
+                    >
+                      <div className="relative aspect-square">
+                        {post.media?.[0]?.url ? (
+                          <Image
+                            src={post.media[0].url}
+                            alt={post.content}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-primary/20 flex items-center justify-center">
+                            <span className="text-sm text-muted-foreground text-center px-4">{post.content.slice(0, 30)}</span>
                           </div>
                         )}
-
-                        {/* Engagement */}
-                        <div className="px-4 py-3 flex items-center justify-between text-xs text-muted-foreground border-b border-border/50">
-                          <span className="inline-flex items-center gap-1.5">
-                            <Heart className="w-4 h-4 fill-[#5a8c5a] text-[#5a8c5a] dark:fill-primary dark:text-primary" />
-                            {post.likes?.length || post.analytics?.likes_count || 0}
-                          </span>
-                          <span>
-                            {post.comments?.length || post.analytics?.comments_count || 0} Comments
-                          </span>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex divide-x divide-border/50">
-                          <button
-                            type="button"
-                            className="flex-1 py-2.5 flex items-center justify-center gap-2 text-sm font-semibold text-muted-foreground hover:text-[#5a8c5a] dark:hover:text-primary hover:bg-muted/50 transition-colors"
-                          >
-                            <Heart className="w-4 h-4" />
-                            Like
-                          </button>
-                          <button
-                            type="button"
-                            className="flex-1 py-2.5 flex items-center justify-center gap-2 text-sm font-semibold text-muted-foreground hover:text-[#5a8c5a] dark:hover:text-primary hover:bg-muted/50 transition-colors"
-                          >
-                            <MessageSquare className="w-4 h-4" />
-                            Comment
-                          </button>
-                          <button
-                            type="button"
-                            className="flex-1 py-2.5 flex items-center justify-center gap-2 text-sm font-semibold text-muted-foreground hover:text-[#5a8c5a] dark:hover:text-primary hover:bg-muted/50 transition-colors"
-                          >
-                            <Share2 className="w-4 h-4" />
-                            Share
-                          </button>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                          <div className="flex gap-4 text-white text-sm">
+                            <span className="flex items-center gap-1"><Heart className="w-4 h-4" /> {post.analytics.likes_count}</span>
+                            <span className="flex items-center gap-1"><MessageSquare className="w-4 h-4" /> {post.analytics.comments_count}</span>
+                          </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-            )}
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16 text-muted-foreground">No posts yet</div>
+              )}
+            </div>
+          )}
 
-            {activeTab === 'products' && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4 }}
-                className="space-y-6"
-              >
-                {isContentLoading ? (
-                  <div className="flex items-center justify-center py-16">
-                    <Loader2 className="h-8 w-8 animate-spin text-[#5a8c5a] dark:text-primary" />
-                  </div>
-                ) : userItems.length === 0 ? (
-                  <div className="text-center py-16 text-muted-foreground">
-                    <ShoppingBag className="h-10 w-10 mx-auto mb-3 opacity-40" />
-                    <p className="font-bold uppercase tracking-wider text-sm">No products yet</p>
-                    <p className="text-sm mt-1">This creator hasn't listed anything.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {userItems.map((item) => (
-                      <Link
-                        key={item._id}
-                        href={`/items/${item._id}`}
-                        className="bg-card border border-border rounded-2xl overflow-hidden hover:border-[#5a8c5a] dark:hover:border-primary transition-colors group"
-                      >
-                        <div className="relative aspect-square w-full bg-muted overflow-hidden">
-                          {item.media?.[0]?.url ? (
-                            <Image
-                              src={item.media[0].url}
-                              alt={item.title || 'Item'}
-                              fill
-                              className="object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#5a8c5a]/20 dark:from-primary/20 to-[#5a8c5a]/5 dark:to-primary/5">
-                              <ShoppingBag className="h-10 w-10 text-muted-foreground/40" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-4">
-                          <h3 className="font-bold text-foreground mb-1 line-clamp-1">{item.title}</h3>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[#5a8c5a] dark:text-primary font-bold">
-                              ${Number(item.price || 0).toFixed(2)}
-                            </span>
-                            {item.category && (
-                              <span className="text-xs text-muted-foreground capitalize">{item.category}</span>
-                            )}
+          {/* Likes Tab */}
+          {activeTab === 'likes' && (
+            <div className="pb-16">
+              {likedPosts.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {likedPosts.map(post => (
+                    <motion.div
+                      key={post.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="group relative rounded-2xl overflow-hidden bg-muted cursor-pointer"
+                      onClick={() => router.push(`/posts/${post.id}`)}
+                    >
+                      <div className="relative aspect-square">
+                        {post.media?.[0]?.url ? (
+                          <Image
+                            src={post.media[0].url}
+                            alt={post.content}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-primary/20 flex items-center justify-center">
+                            <span className="text-sm text-muted-foreground text-center px-4">{post.content.slice(0, 30)}</span>
                           </div>
-                          <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
-                            <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
-                            <span>{(Number(item.rating) || 0).toFixed(1)}</span>
-                            <span>·</span>
-                            <span>{item.sales || 0} sales</span>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                          <div className="flex gap-4 text-white text-sm">
+                            <span className="flex items-center gap-1"><Heart className="w-4 h-4" /> {post.analytics.likes_count}</span>
+                            <span className="flex items-center gap-1"><MessageSquare className="w-4 h-4" /> {post.analytics.comments_count}</span>
                           </div>
                         </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </motion.div>
-        </div>
-      </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16 text-muted-foreground">No liked posts yet</div>
+              )}
+            </div>
+          )}
+
+          {/* Saves Tab */}
+          {activeTab === 'saves' && (
+            <div className="pb-16">
+              {savedPosts.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {savedPosts.map(post => (
+                    <motion.div
+                      key={post.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="group relative rounded-2xl overflow-hidden bg-muted cursor-pointer"
+                      onClick={() => router.push(`/posts/${post.id}`)}
+                    >
+                      <div className="relative aspect-square">
+                        {post.media?.[0]?.url ? (
+                          <Image
+                            src={post.media[0].url}
+                            alt={post.content}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-primary/20 flex items-center justify-center">
+                            <span className="text-sm text-muted-foreground text-center px-4">{post.content.slice(0, 30)}</span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                          <div className="flex gap-4 text-white text-sm">
+                            <span className="flex items-center gap-1"><Heart className="w-4 h-4" /> {post.analytics.likes_count}</span>
+                            <span className="flex items-center gap-1"><MessageSquare className="w-4 h-4" /> {post.analytics.comments_count}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16 text-muted-foreground">No saved posts yet</div>
+              )}
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
     </AuthenticatedLayout>
   )
 }

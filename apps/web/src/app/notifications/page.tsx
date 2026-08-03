@@ -1,5 +1,5 @@
 import { Bell } from "lucide-react"
-import { AuthenticatedLayout } from "../../../components/authenticated-layout"
+import { AuthenticatedLayout } from "@/components/authenticated-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 

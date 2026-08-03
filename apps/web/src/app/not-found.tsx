@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { ArrowRight, FileQuestion } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default async function NotFound() {
-  const session = await getServerSession()
+  const session = await getServerSession(authOptions)
   const homeLink = session?.user ? '/feed' : '/'
 
   return (

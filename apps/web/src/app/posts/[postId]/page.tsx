@@ -106,7 +106,20 @@ export default function PostDetailPage() {
     if (postId && mounted) {
       loadPost()
     }
-  }, [postId, session?.user?.id, mounted])
+  }, [postId, session?.user?.id, mounted, router])
+
+  // Hydrate real saved state
+  useEffect(() => {
+    if (!postId || !mounted) return
+    fetch(`/api/posts/save?postIds=${postId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.saved?.[postId] !== undefined) {
+          setIsSaved(data.saved[postId])
+        }
+      })
+      .catch(() => {})
+  }, [postId, mounted])
 
   const handleLike = async () => {
     if (!session?.user?.id) return
@@ -195,224 +208,222 @@ export default function PostDetailPage() {
 
   return (
     <AuthenticatedLayout>
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Back Button */}
-        <motion.button
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          onClick={() => router.back()}
-          className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </motion.button>
-
-        {/* Post Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-card border border-border rounded-2xl overflow-hidden shadow-lg"
-        >
-          {/* Post Header */}
-          <div className="flex items-start justify-between p-6 border-b border-border/50">
-            <Link href={`/profile/${post.user.id}`} className="flex items-center gap-4 flex-1">
-              <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-[#5a8c5a] to-[#4a7c4a] dark:from-primary dark:to-primary/80 flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0">
-                {post.user.avatar_url ? (
-                  <Image
-                    src={post.user.avatar_url}
-                    alt={post.user.display_name || post.user.username}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  (post.user.display_name || post.user.username || 'U').charAt(0).toUpperCase()
-                )}
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-foreground">
-                    {post.user.display_name || post.user.username}
-                  </h3>
-                  {post.user.verified && (
-                    <span className="text-[#5a8c5a] dark:text-primary font-bold">✓</span>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground">@{post.user.username}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {new Date(post.createdAt).toLocaleString()}
-                </p>
-              </div>
-            </Link>
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
-              <MoreHorizontal className="w-5 h-5" />
-            </Button>
-          </div>
-
-          {/* Post Content */}
-          <div className="p-6 border-b border-border/50">
-            {post.content && (
-              <p className="text-base leading-relaxed text-foreground/90 mb-4 whitespace-pre-wrap">
-                {post.content}
-              </p>
-            )}
-
-            {/* Media Gallery */}
-            {post.media?.length > 0 && (
-              <div className={`grid gap-4 mt-4 ${post.media.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                {post.media.map((media, idx) => (
-                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden bg-muted">
-                    <Image
-                      src={media.url}
-                      alt={`Post media ${idx + 1}`}
-                      fill
-                      className="object-cover"
-                    />
+      <div className="min-h-screen bg-background">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+          {/* Left Side - Post Content */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="border-r border-border/50 flex flex-col"
+          >
+            {/* Post Card */}
+            <div className="bg-card border-b border-border/50">
+              {/* Post Header */}
+              <div className="flex items-start justify-between p-6 border-b border-border/50">
+                <Link href={`/profile/${post.user.id}`} className="flex items-center gap-4 flex-1">
+                  <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-[#5a8c5a] to-[#4a7c4a] dark:from-primary dark:to-primary/80 flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0">
+                    {post.user.avatar_url ? (
+                      <Image
+                        src={post.user.avatar_url}
+                        alt={post.user.display_name || post.user.username}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      (post.user.display_name || post.user.username || 'U').charAt(0).toUpperCase()
+                    )}
                   </div>
-                ))}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-foreground">
+                        {post.user.display_name || post.user.username}
+                      </h3>
+                      {post.user.verified && (
+                        <span className="text-[#5a8c5a] dark:text-primary font-bold">✓</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">@{post.user.username}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {new Date(post.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                </Link>
+                <Button variant="ghost" size="icon" className="text-muted-foreground">
+                  <MoreHorizontal className="w-5 h-5" />
+                </Button>
               </div>
-            )}
-          </div>
 
-          {/* Post Stats */}
-          <div className="px-6 py-4 flex items-center justify-between text-sm text-muted-foreground border-b border-border/50">
-            <span className="flex items-center gap-1.5">
-              <Heart className="w-4 h-4 fill-[#5a8c5a] text-[#5a8c5a] dark:fill-primary dark:text-primary" />
-              {likeCount} {likeCount === 1 ? 'Like' : 'Likes'}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <MessageCircle className="w-4 h-4" />
-              {comments.length} {comments.length === 1 ? 'Comment' : 'Comments'}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Share className="w-4 h-4" />
-              {post.analytics.shares_count} {post.analytics.shares_count === 1 ? 'Share' : 'Shares'}
-            </span>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex divide-x divide-border/50">
-            <button
-              onClick={handleLike}
-              disabled={isLiking}
-              className="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-muted-foreground hover:text-[#5a8c5a] dark:hover:text-primary hover:bg-muted/50 transition-colors"
-            >
-              {isLiking ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Heart className={`w-5 h-5 ${isLiked ? 'fill-[#5a8c5a] text-[#5a8c5a] dark:fill-primary dark:text-primary' : ''}`} />
-              )}
-              {isLiked ? 'Liked' : 'Like'}
-            </button>
-            <button className="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-muted-foreground hover:text-[#5a8c5a] dark:hover:text-primary hover:bg-muted/50 transition-colors">
-              <MessageCircle className="w-5 h-5" />
-              Reply
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-muted-foreground hover:text-[#5a8c5a] dark:hover:text-primary hover:bg-muted/50 transition-colors"
-            >
-              {isSaving ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-[#5a8c5a] text-[#5a8c5a] dark:fill-primary dark:text-primary' : ''}`} />
-              )}
-              {isSaved ? 'Saved' : 'Save'}
-            </button>
-          </div>
-        </motion.div>
-
-        {/* Comments Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-8"
-        >
-          {/* Comment Input */}
-          <form onSubmit={handleCommentSubmit} className="bg-card border border-border rounded-2xl p-6 mb-6">
-            <div className="flex gap-4">
-              <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-[#5a8c5a] to-[#4a7c4a] dark:from-primary dark:to-primary/80 flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0">
-                {session?.user?.image ? (
-                  <Image
-                    src={session.user.image}
-                    alt="Your avatar"
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  (session?.user?.name || 'U').charAt(0).toUpperCase()
+              {/* Post Content */}
+              <div className="p-6 border-b border-border/50">
+                {post.content && (
+                  <p className="text-base leading-relaxed text-foreground/90 mb-4 whitespace-pre-wrap">
+                    {post.content}
+                  </p>
                 )}
-              </div>
-              <div className="flex-1">
-                <textarea
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Share your thoughts..."
-                  className="w-full bg-transparent text-foreground placeholder:text-muted-foreground outline-none resize-none text-sm"
-                  rows={3}
-                />
-                <div className="flex justify-end gap-2 mt-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setCommentText('')}
-                    className="px-4"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={!commentText.trim() || isCommentingSubmit}
-                    className="px-6 bg-[#5a8c5a] dark:bg-primary text-white hover:bg-[#4a7c4a] dark:hover:bg-primary/90"
-                  >
-                    {isCommentingSubmit ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Comment'}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </form>
 
-          {/* Comments List */}
-          <div className="space-y-4">
-            {comments.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <MessageSquare className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                <p className="font-bold uppercase tracking-wider text-sm">No comments yet</p>
-                <p className="text-sm mt-1">Be the first to share your thoughts.</p>
-              </div>
-            ) : (
-              comments.map((comment) => (
-                <div key={comment.id} className="bg-card border border-border rounded-xl p-4">
-                  <Link href={`/profile/${comment.userId}`} className="flex items-center gap-3 mb-2">
-                    <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-[#5a8c5a] to-[#4a7c4a] dark:from-primary dark:to-primary/80 flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0">
-                      {comment.user?.avatar_url ? (
+                {/* Media Gallery */}
+                {post.media?.length > 0 && (
+                  <div className={`grid gap-4 mt-4 ${post.media.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                    {post.media.map((media, idx) => (
+                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden bg-muted">
                         <Image
-                          src={comment.user.avatar_url}
-                          alt={comment.user?.display_name || comment.user?.username}
+                          src={media.url}
+                          alt={`Post media ${idx + 1}`}
                           fill
                           className="object-cover"
                         />
-                      ) : (
-                        (comment.user?.display_name || comment.user?.username || 'U').charAt(0).toUpperCase()
-                      )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Post Stats */}
+              <div className="px-6 py-4 flex items-center justify-between text-sm text-muted-foreground border-b border-border/50">
+                <span className="flex items-center gap-1.5">
+                  <Heart className="w-4 h-4 fill-[#5a8c5a] text-[#5a8c5a] dark:fill-primary dark:text-primary" />
+                  {likeCount} {likeCount === 1 ? 'Like' : 'Likes'}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <MessageCircle className="w-4 h-4" />
+                  {comments.length} {comments.length === 1 ? 'Comment' : 'Comments'}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Share className="w-4 h-4" />
+                  {post.analytics.shares_count} {post.analytics.shares_count === 1 ? 'Share' : 'Shares'}
+                </span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex divide-x divide-border/50">
+                <button
+                  onClick={handleLike}
+                  disabled={isLiking}
+                  className="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-muted-foreground hover:text-[#5a8c5a] dark:hover:text-primary hover:bg-muted/50 transition-colors"
+                >
+                  {isLiking ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Heart className={`w-5 h-5 ${isLiked ? 'fill-[#5a8c5a] text-[#5a8c5a] dark:fill-primary dark:text-primary' : ''}`} />
+                  )}
+                  {isLiked ? 'Liked' : 'Like'}
+                </button>
+                <button className="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-muted-foreground hover:text-[#5a8c5a] dark:hover:text-primary hover:bg-muted/50 transition-colors">
+                  <MessageCircle className="w-5 h-5" />
+                  Reply
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-muted-foreground hover:text-[#5a8c5a] dark:hover:text-primary hover:bg-muted/50 transition-colors"
+                >
+                  {isSaving ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-[#5a8c5a] text-[#5a8c5a] dark:fill-primary dark:text-primary' : ''}`} />
+                  )}
+                  {isSaved ? 'Saved' : 'Save'}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Right Side - Comments Section */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="flex flex-col h-screen lg:h-auto overflow-hidden lg:overflow-auto bg-card"
+          >
+            <div className="flex flex-col h-full">
+              {/* Comment Input - Sticky */}
+              <form onSubmit={handleCommentSubmit} className="border-b border-border/50 p-6 flex-shrink-0">
+                <div className="flex gap-4">
+                  <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-[#5a8c5a] to-[#4a7c4a] dark:from-primary dark:to-primary/80 flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0">
+                    {session?.user?.image ? (
+                      <Image
+                        src={session.user.image}
+                        alt="Your avatar"
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      (session?.user?.name || 'U').charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <textarea
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      placeholder="Share your thoughts..."
+                      className="w-full bg-transparent text-foreground placeholder:text-muted-foreground outline-none resize-none text-sm"
+                      rows={2}
+                    />
+                    <div className="flex justify-end gap-2 mt-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setCommentText('')}
+                        className="px-4"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={!commentText.trim() || isCommentingSubmit}
+                        className="px-6 bg-[#5a8c5a] dark:bg-primary text-white hover:bg-[#4a7c4a] dark:hover:bg-primary/90"
+                      >
+                        {isCommentingSubmit ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Comment'}
+                      </Button>
                     </div>
-                    <div>
-                      <p className="font-bold text-sm text-foreground">
-                        {comment.user?.display_name || comment.user?.username}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(comment.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </Link>
-                  <p className="text-sm text-foreground/90 ml-13 mt-1">{comment.content}</p>
+                  </div>
                 </div>
-              ))
-            )}
-          </div>
-        </motion.div>
+              </form>
+
+              {/* Comments List - Scrollable */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="divide-y divide-border/50">
+                  {comments.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <MessageSquare className="w-10 h-10 mx-auto mb-3 opacity-40" />
+                      <p className="font-bold uppercase tracking-wider text-sm">No comments yet</p>
+                      <p className="text-sm mt-1">Be the first to share your thoughts.</p>
+                    </div>
+                  ) : (
+                    comments.map((comment) => (
+                      <div key={comment.id} className="p-4 hover:bg-muted/30 transition-colors">
+                        <Link href={`/profile/${comment.userId}`} className="flex items-start gap-3 mb-2">
+                          <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-[#5a8c5a] to-[#4a7c4a] dark:from-primary dark:to-primary/80 flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0">
+                            {comment.user?.avatar_url ? (
+                              <Image
+                                src={comment.user.avatar_url}
+                                alt={comment.user?.display_name || comment.user?.username}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              (comment.user?.display_name || comment.user?.username || 'U').charAt(0).toUpperCase()
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-bold text-sm text-foreground">
+                              {comment.user?.display_name || comment.user?.username}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(comment.createdAt).toLocaleString()}
+                            </p>
+                          </div>
+                        </Link>
+                        <p className="text-sm text-foreground/90 ml-13 mt-2">{comment.content}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </AuthenticatedLayout>
   )

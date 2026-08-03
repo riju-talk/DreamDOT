@@ -1,6 +1,6 @@
 "use client"
 import { Github } from "lucide-react"
-import { AuthenticatedLayout } from "../../../components/authenticated-layout"
+import { AuthenticatedLayout } from "@/components/authenticated-layout"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"

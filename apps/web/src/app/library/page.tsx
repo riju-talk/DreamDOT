@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AuthenticatedLayout } from "../../../components/authenticated-layout"
+import { AuthenticatedLayout } from "@/components/authenticated-layout"
 import { Lock } from "lucide-react"
 import { useState } from "react"
 import { LibraryItemCard, LibraryItem } from "./components/LibraryItemCard"

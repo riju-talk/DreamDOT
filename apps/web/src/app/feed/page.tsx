@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { AuthenticatedLayout } from '../../../components/authenticated-layout'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { AuthenticatedLayout } from '@/components/authenticated-layout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -44,6 +46,7 @@ interface Post {
   likes: string[]
   comments: { userId: string; text: string; timestamp: string }[]
   author?: { id: string; name: string; avatar: string; verified?: boolean }
+  analytics?: { likes_count?: number; comments_count?: number }
   type: 'post'
 }
 
@@ -54,6 +57,7 @@ interface FeedItem {
   category: string
   price: number
   image: string
+  media?: { type: string; url: string; alt?: string }[]
   rating: number
   sales: number
   creator: {
@@ -91,8 +95,87 @@ function FeedItemSkeleton() {
 }
 
 function PostCard({ post }: { post: Post }) {
+  const { data: session } = useSession()
+  const router = useRouter()
   const [isLiked, setIsLiked] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
+  const [likeCount, setLikeCount] = useState(post.analytics?.likes_count ?? post.likes?.length ?? 0)
+
+  // Hydrate real like/save state from the server
+  useEffect(() => {
+    let active = true
+    const loadEngagementState = async () => {
+      try {
+        const [likeRes, saveRes] = await Promise.all([
+          fetch(`/api/posts/likes?postIds=${post.id}`),
+          fetch(`/api/posts/save?postIds=${post.id}`),
+        ])
+        if (!active) return
+        if (likeRes.ok) {
+          const likeData = await likeRes.json()
+          const state = likeData.likes?.[post.id]
+          if (state) {
+            setIsLiked(state.liked)
+            setLikeCount(state.count)
+          }
+        }
+        if (saveRes.ok) {
+          const saveData = await saveRes.json()
+          const savedState = saveData.saved?.[post.id]
+          if (savedState !== undefined) setIsSaved(savedState)
+        }
+      } catch {
+        // Keep optimistic defaults on network failure
+      }
+    }
+    loadEngagementState()
+    return () => {
+      active = false
+    }
+  }, [post.id])
+
+  const handleLike = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!(session as any)?.user?.id) return
+    const method = isLiked ? 'DELETE' : 'POST'
+    const prev = { liked: isLiked, count: likeCount }
+    setIsLiked((v) => !v)
+    setLikeCount((c) => c + (prev.liked ? -1 : 1))
+    try {
+      const res = await fetch(`/api/posts/${post.id}/like`, { method })
+      if (!res.ok && res.status !== 409) {
+        setIsLiked(prev.liked)
+        setLikeCount(prev.count)
+      }
+    } catch {
+      setIsLiked(prev.liked)
+      setLikeCount(prev.count)
+    }
+  }
+
+  const handleSave = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!(session as any)?.user?.id) return
+    const method = isSaved ? 'DELETE' : 'POST'
+    const prev = isSaved
+    setIsSaved((v) => !v)
+    try {
+      const res = await fetch(`/api/posts/${post.id}/save`, { method })
+      if (!res.ok && res.status !== 409) {
+        setIsSaved(prev)
+      }
+    } catch {
+      setIsSaved(prev)
+    }
+  }
+
+  const goToPost = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    router.push(`/posts/${post.id}`)
+  }
 
   return (
     <motion.div
@@ -101,11 +184,18 @@ function PostCard({ post }: { post: Post }) {
       exit={{ opacity: 0, y: -20 }}
       whileHover={{ y: -2 }}
     >
-      <Card className="dream-card border-border/50 overflow-hidden hover:border-primary/30 transition-all duration-300 group">
+      <Card
+        className="dream-card border-border/50 overflow-hidden hover:border-primary/30 transition-all duration-300 group cursor-pointer"
+        onClick={goToPost}
+      >
         <CardContent className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <Link href={`/profile/${post.author?.id}`} className="flex items-center gap-3 group/author">
+            <Link
+              href={`/profile/${post.author?.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-3 group/author"
+            >
               <Avatar className="h-10 w-10 border border-border/50 group-hover/author:border-primary transition-colors">
                 <AvatarImage src={post.author?.avatar} alt={post.author?.name} />
                 <AvatarFallback>{post.author?.name?.charAt(0)}</AvatarFallback>
@@ -142,7 +232,7 @@ function PostCard({ post }: { post: Post }) {
           {/* Engagement */}
           <div className="flex items-center justify-between text-sm text-muted-foreground mb-4 pb-4 border-b border-border/30">
             <div className="flex gap-4">
-              <span>{post.likes?.length || 0} Likes</span>
+              <span>{likeCount} Likes</span>
               <span>{post.comments?.length || 0} Comments</span>
             </div>
           </div>
@@ -152,31 +242,39 @@ function PostCard({ post }: { post: Post }) {
             <Button
               variant="ghost"
               size="sm"
-              className="flex-1 text-muted-foreground hover:text-primary group/btn"
-              onClick={() => setIsLiked(!isLiked)}
+              className={cn(
+                'flex-1 text-muted-foreground group/btn transition-colors',
+                isLiked ? 'text-destructive hover:text-destructive' : 'hover:text-primary'
+              )}
+              onClick={handleLike}
             >
-              <Heart className={cn('h-4 w-4', isLiked && 'fill-destructive text-destructive')} />
-              Like
+              <Heart className={cn('h-4 w-4 transition-all', isLiked && 'fill-destructive text-destructive scale-110')} />
+              {likeCount > 0 ? likeCount : 'Like'}
             </Button>
             <Button
               variant="ghost"
               size="sm"
               className="flex-1 text-muted-foreground hover:text-primary"
+              onClick={goToPost}
             >
               <MessageCircle className="h-4 w-4" />
               Comment
             </Button>
-            <Button variant="ghost" size="sm" className="flex-1 text-muted-foreground hover:text-primary">
+            <Button variant="ghost" size="sm" className="flex-1 text-muted-foreground hover:text-primary" onClick={goToPost}>
               <Share2 className="h-4 w-4" />
               Share
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              className="flex-1 text-muted-foreground hover:text-primary"
-              onClick={() => setIsSaved(!isSaved)}
+              className={cn(
+                'flex-1 text-muted-foreground transition-colors',
+                isSaved ? 'text-primary hover:text-primary' : 'hover:text-primary'
+              )}
+              onClick={handleSave}
+              title={isSaved ? 'Unsave' : 'Save'}
             >
-              <Bookmark className={cn('h-4 w-4', isSaved && 'fill-primary text-primary')} />
+              <Bookmark className={cn('h-4 w-4 transition-all', isSaved && 'fill-primary text-primary scale-110')} />
             </Button>
           </div>
         </CardContent>
@@ -363,8 +461,9 @@ export default function FeedPage() {
       Array.from(files).forEach((file) => {
         const reader = new FileReader()
         reader.onload = (event) => {
-          if (event.target?.result) {
-            setPostImages((prev) => [...prev, event.target.result as string])
+          const result = event.target?.result
+          if (result) {
+            setPostImages((prev) => [...prev, result as string])
           }
         }
         reader.readAsDataURL(file)
@@ -381,8 +480,9 @@ export default function FeedPage() {
           if (file) {
             const reader = new FileReader()
             reader.onload = (event) => {
-              if (event.target?.result) {
-                setPostImages((prev) => [...prev, event.target.result as string])
+              const result = event.target?.result
+              if (result) {
+                setPostImages((prev) => [...prev, result as string])
               }
             }
             reader.readAsDataURL(file)

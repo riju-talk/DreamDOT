@@ -10,7 +10,7 @@ import {
   ArrowDownRight,
   BarChart3
 } from "lucide-react"
-import { AuthenticatedLayout } from "../../../components/authenticated-layout"
+import { AuthenticatedLayout } from "@/components/authenticated-layout"
 import { MOCK_ANALYTICS, generateSparkline } from "@/lib/mock-analytics"
 import { cn } from "@/lib/utils"
 

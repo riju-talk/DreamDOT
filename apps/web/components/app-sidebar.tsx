@@ -187,7 +187,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup className="py-0">
-          <SidebarGroupLabel className="text-[10px] font-mono uppercase tracking-[0.3em] px-4 mb-3 text-primary/40">System</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] font-mono uppercase tracking-[0.3em] px-4 mb-3 text-primary/40">Profile</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
               <SidebarMenuItem>
@@ -195,9 +195,31 @@ export function AppSidebar() {
                   asChild 
                   className="h-10 rounded-xl transition-all duration-300 active:scale-95 hover:bg-foreground/5 text-foreground/60 hover:text-primary"
                 >
-                  <Link href="/settings">
+                  <Link href="/profile/gallery">
+                    <Compass className="transition-colors" />
+                    <span className="font-medium transition-colors">Gallery</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  asChild 
+                  className="h-10 rounded-xl transition-all duration-300 active:scale-95 hover:bg-foreground/5 text-foreground/60 hover:text-primary"
+                >
+                  <Link href="/vault">
+                    <ShoppingBag className="transition-colors" />
+                    <span className="font-medium transition-colors">Vault</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  asChild 
+                  className="h-10 rounded-xl transition-all duration-300 active:scale-95 hover:bg-foreground/5 text-foreground/60 hover:text-primary"
+                >
+                  <Link href="/profile/settings">
                     <Settings className="transition-colors" />
-                    <span className="font-medium transition-colors">Preferences</span>
+                    <span className="font-medium transition-colors">Settings</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -212,7 +234,7 @@ export function AppSidebar() {
           onClick={() => router.push("/create")}
         >
           <PlusSquare className="mr-2 h-4 w-4" />
-          Create New Art
+          Create Something New
         </Button>
       </SidebarFooter>
     </Sidebar>

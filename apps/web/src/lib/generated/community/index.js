@@ -192,7 +192,7 @@ const config = {
   },
   "relativeEnvPaths": {
     "rootEnvPath": "../../../../.env",
-    "schemaEnvPath": "../../../../.env"
+    "schemaEnvPath": "../../../../../../.env"
   },
   "relativePath": "../../prisma",
   "clientVersion": "4.16.2",
@@ -201,15 +201,14 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "dataProxy": false,
-  "postinstall": false
+  "dataProxy": false
 }
 
 const fs = require('fs')
 
 config.dirname = __dirname
 if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
-  config.dirname = path.join(process.cwd(), "src/lib/generated/community")
+  config.dirname = path.join(process.cwd(), "apps/web/src/lib/generated/community")
   config.isBundled = true
 }
 
@@ -233,9 +232,9 @@ exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
 
 path.join(__dirname, "query_engine-windows.dll.node");
-path.join(process.cwd(), "src/lib/generated/community/query_engine-windows.dll.node")
+path.join(process.cwd(), "apps/web/src/lib/generated/community/query_engine-windows.dll.node")
 
 path.join(__dirname, "libquery_engine-debian-openssl-3.0.x.so.node");
-path.join(process.cwd(), "src/lib/generated/community/libquery_engine-debian-openssl-3.0.x.so.node")
+path.join(process.cwd(), "apps/web/src/lib/generated/community/libquery_engine-debian-openssl-3.0.x.so.node")
 path.join(__dirname, "schema.prisma");
-path.join(process.cwd(), "src/lib/generated/community/schema.prisma")
+path.join(process.cwd(), "apps/web/src/lib/generated/community/schema.prisma")

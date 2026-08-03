@@ -2,9 +2,9 @@
 
 import { ReactNode } from "react"
 import { SidebarProvider } from "@/components/ui/sidebar"
-import { AppSidebar } from "./app-sidebar"
-import { TopNav } from "./top-nav"
-import { MobileNav } from "./mobile-nav"
+import { AppSidebar } from "@/components/app-sidebar"
+import { TopNav } from "@/components/top-nav"
+import { MobileNav } from "@/components/mobile-nav"
 
 interface AuthenticatedLayoutProps {
   children: ReactNode
@@ -15,7 +15,7 @@ export function AuthenticatedLayout({ children, fullBleed = false }: Authenticat
   return (
     <SidebarProvider defaultOpen>
       <div className="flex min-h-screen w-full bg-background">
-        {/* Sidebar - Fixed left side - Increased width to 320px */}
+        {/* Sidebar - Fixed left side */}
         <div className="fixed inset-y-0 left-0 z-40 w-80 border-r border-border/50">
           <AppSidebar />
         </div>
