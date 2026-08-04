@@ -3,7 +3,7 @@ import { fetchPosts } from '@/lib/mongoose/posts'
 import { fetchItems } from '@/lib/mongoose/items'
 import { prismaUser } from '@/lib/prisma/user'
 
-const FALLBACK_IMAGE = 'https://cloudinary-marketing-res.cloudinary.com/images/w_1000,c_scale/v1699909962/fallback_image_header/fallback_image_header-png?_i=AA'
+const FALLBACK_IMAGE = 'https://i0.wp.com/www.innovationyourself.com/wp-content/uploads/2020/08/simplifying-controllers-action-fallback.png?fit=700%2C400&ssl=1'
 
 /**
  * GET /api/posts/feed
@@ -85,6 +85,7 @@ export async function GET(request) {
 
         enrichedItems = enrichedItems.map(item => ({
           ...item,
+          id: item.sqlId || String(item._id),
           creator: {
             name: userMap.get(item.userId)?.user_profile?.display_name || 'Creator',
             avatar: userMap.get(item.userId)?.user_profile?.avatar_url || FALLBACK_IMAGE,
@@ -95,17 +96,11 @@ export async function GET(request) {
       }
     }
 
-    // Merge posts and items into single feed
+    // Merge posts and items into single feed, newest first
     const feed = [
       ...enrichedPosts.map(p => ({ ...p, type: 'post' })),
       ...enrichedItems.map(i => ({ ...i, type: 'item' })),
-    ]
-
-    // Randomize (shuffle) the feed
-    for (let i = feed.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [feed[i], feed[j]] = [feed[j], feed[i]]
-    }
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     return NextResponse.json(
       {

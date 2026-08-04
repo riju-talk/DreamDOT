@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import { Item } from '@repo/database-mongo'
 import { connectToDatabase } from '@/lib/mongoose/connection'
-import { prismaSocial } from '@/lib/prisma/social'
+import { prismaItems } from '@/lib/prisma/items'
 
 export async function GET(request, { params }) {
   try {
-    const itemId = params.id
+    const { id: itemId } = await params
     if (!itemId) {
       return NextResponse.json({ error: 'Item ID required' }, { status: 400 })
     }
@@ -14,7 +14,11 @@ export async function GET(request, { params }) {
     await connectToDatabase()
 
     // 2. Get the item
-    const item = await Item.findById(itemId).lean()
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(itemId)
+    let item = await Item.findOne({ sqlId: itemId }).lean()
+    if (!item && isObjectId) {
+      item = await Item.findById(itemId).lean()
+    }
     if (!item) {
       return NextResponse.json({ error: 'Item not found' }, { status: 404 })
     }
@@ -23,7 +27,7 @@ export async function GET(request, { params }) {
     // Related by: category, similar price range, and rating
     const priceRange = item.price * 0.5 // 50% tolerance
     let relatedItems = await Item.find({
-      _id: { $ne: itemId },
+      _id: { $ne: item._id },
       visibility: 'public',
       category: item.category,
       price: {
@@ -38,7 +42,7 @@ export async function GET(request, { params }) {
     // If not enough items found, expand search to same category only
     if (relatedItems.length < 4) {
       relatedItems = await Item.find({
-        _id: { $ne: itemId },
+        _id: { $ne: item._id },
         visibility: 'public',
         category: item.category
       })
@@ -50,7 +54,7 @@ export async function GET(request, { params }) {
     // If still not enough, search all public items
     if (relatedItems.length < 4) {
       relatedItems = await Item.find({
-        _id: { $ne: itemId },
+        _id: { $ne: item._id },
         visibility: 'public'
       })
         .sort({ rating: -1, sales: -1 })
@@ -59,45 +63,42 @@ export async function GET(request, { params }) {
     }
 
     // 4. Enrich with creator info
-    const enrichedItems = await Promise.all(
-      relatedItems.map(async (relItem) => {
-        const creator = await prismaSocial.users.findMany({
-          where: {
-            user_profile: {
-              some: {}
-            }
-          },
-          take: 1,
+    const userIds = [...new Set(relatedItems.map((relItem) => relItem.userId).filter(Boolean))]
+    const users = await prismaItems.users.findMany({
+      where: { id: { in: userIds } },
+      select: {
+        id: true,
+        user_profile: {
           select: {
-            user_profile: {
-              select: {
-                display_name: true,
-                avatar_url: true,
-                username: true
-              }
-            }
-          }
-        })
-
-        return {
-          id: relItem._id.toString(),
-          title: relItem.title,
-          description: relItem.description,
-          category: relItem.category,
-          price: relItem.price,
-          image: relItem.media?.[0]?.url || null,
-          rating: relItem.rating,
-          reviews: relItem.reviews,
-          sales: relItem.sales,
-          creator: {
-            id: relItem.userId,
-            name: creator[0]?.user_profile?.[0]?.display_name || 'Unknown',
-            username: creator[0]?.user_profile?.[0]?.username || 'user',
-            avatar: creator[0]?.user_profile?.[0]?.avatar_url || null
+            display_name: true,
+            avatar_url: true,
+            username: true
           }
         }
-      })
-    )
+      }
+    })
+    const userMap = new Map(users.map((u) => [u.id, u]))
+
+    const enrichedItems = relatedItems.map((relItem) => {
+      const creator = userMap.get(relItem.userId)
+      return {
+        id: relItem.sqlId || relItem._id.toString(),
+        title: relItem.title,
+        description: relItem.description,
+        category: relItem.category,
+        price: relItem.price,
+        image: relItem.media?.[0]?.url || null,
+        rating: relItem.rating,
+        reviews: relItem.reviews,
+        sales: relItem.sales,
+        creator: {
+          id: relItem.userId,
+          name: creator?.user_profile?.display_name || 'Unknown',
+          username: creator?.user_profile?.username || 'user',
+          avatar: creator?.user_profile?.avatar_url || null
+        }
+      }
+    })
 
     return NextResponse.json(
       {

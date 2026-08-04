@@ -29,11 +29,14 @@ import {
   Image as ImageIcon,
   X,
   Plus,
+  Copy,
+  Link2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
+import { toast } from 'sonner'
 
 type FeedItemType = 'post' | 'item'
 
@@ -73,6 +76,8 @@ interface FeedItem {
 
 type FeedContent = Post | FeedItem
 
+const FALLBACK_IMAGE = 'https://i0.wp.com/www.innovationyourself.com/wp-content/uploads/2020/08/simplifying-controllers-action-fallback.png?fit=700%2C400&ssl=1'
+
 function FeedItemSkeleton() {
   return (
     <Card className="dream-card border-border/50">
@@ -100,6 +105,8 @@ function PostCard({ post }: { post: Post }) {
   const [isLiked, setIsLiked] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [likeCount, setLikeCount] = useState(post.analytics?.likes_count ?? post.likes?.length ?? 0)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [shareUrl, setShareUrl] = useState('')
 
   // Hydrate real like/save state from the server
   useEffect(() => {
@@ -175,6 +182,31 @@ function PostCard({ post }: { post: Post }) {
     e.preventDefault()
     e.stopPropagation()
     router.push(`/posts/${post.id}`)
+  }
+
+  const copyToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('Post URL copied to clipboard')
+      return true
+    } catch (error) {
+      console.error('Error copying to clipboard:', error)
+      toast.error('Failed to copy post URL')
+      return false
+    }
+  }
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const url = `${window.location.origin}/posts/${post.id}`
+    setShareUrl(url)
+    await copyToClipboard(url)
+    setShareOpen(true)
+  }
+
+  const handleCopyLink = async () => {
+    await copyToClipboard(shareUrl)
   }
 
   return (
@@ -260,7 +292,7 @@ function PostCard({ post }: { post: Post }) {
               <MessageCircle className="h-4 w-4" />
               Comment
             </Button>
-            <Button variant="ghost" size="sm" className="flex-1 text-muted-foreground hover:text-primary" onClick={goToPost}>
+            <Button variant="ghost" size="sm" className="flex-1 text-muted-foreground hover:text-primary" onClick={handleShare}>
               <Share2 className="h-4 w-4" />
               Share
             </Button>
@@ -279,6 +311,56 @@ function PostCard({ post }: { post: Post }) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Share Post Modal */}
+      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+        <DialogContent className="bg-card border border-border rounded-2xl max-w-xl w-[calc(100vw-2rem)]">
+          <DialogHeader className="space-y-2">
+            <DialogTitle className="text-xl font-bold text-foreground">Share this post</DialogTitle>
+            <p className="text-sm text-muted-foreground">Share this post with others</p>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            {/* Copy Link Section */}
+            <div className="flex items-center gap-2 min-w-0 rounded-xl border border-border/50 bg-muted/30 p-3 hover:bg-muted/50 transition-colors">
+              <Link2 className="h-5 w-5 text-primary flex-shrink-0" />
+              <p className="text-sm text-foreground truncate flex-1 min-w-0 font-mono">{shareUrl}</p>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10 flex-shrink-0"
+                onClick={handleCopyLink}
+                title="Copy link"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Hidden Input for Selection */}
+            <Input
+              readOnly
+              value={shareUrl}
+              onFocus={(e) => e.target.select()}
+              className="hidden"
+            />
+          </div>
+          <DialogFooter className="flex gap-3 sm:justify-between">
+            <DialogClose asChild>
+              <Button variant="outline" className="flex-1 rounded-lg">
+                Close
+              </Button>
+            </DialogClose>
+            <Button
+              className="flex-1 bg-gradient-to-r from-[#5a8c5a] to-[#4a7c4a] dark:from-primary dark:to-primary/80 text-white rounded-lg hover:shadow-lg transition-shadow"
+              onClick={() => {
+                handleCopyLink()
+                setTimeout(() => setShareOpen(false), 1000)
+              }}
+            >
+              Copy & Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   )
 }
@@ -297,14 +379,11 @@ function ItemCard({ item }: { item: FeedItem }) {
         <Card className="dream-card border-border/50 overflow-hidden hover:border-primary/30 transition-all duration-300 group cursor-pointer h-full">
           {/* Image */}
           <div className="relative w-full h-64 bg-black/30 overflow-hidden">
-            <Image
-              src={item.image || item.media?.[0]?.url || 'https://cloudinary-marketing-res.cloudinary.com/images/w_1000,c_scale/v1699909962/fallback_image_header/fallback_image_header-png?_i=AA'}
+            <img
+              src={item.image || item.media?.[0]?.url || FALLBACK_IMAGE}
               alt={item.title || 'Item'}
-              fill
-              className="object-cover group-hover:scale-110 transition-transform duration-300"
-              onError={() => {
-                // Fallback handled by Next.js Image component
-              }}
+              loading="lazy"
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
             />
 
             {/* Type Badge */}
@@ -513,17 +592,22 @@ export default function FeedPage() {
         }),
       })
 
-      if (response.ok) {
-        setCreatePostOpen(false)
-        setPostDescription('')
-        setPostImages([])
-        // Refresh feed
-        setPage(1)
-        setFeedContent([])
-        fetchFeed(1, true)
+      const data = await response.json()
+      if (!response.ok) {
+        setError(data.message || 'Failed to create post')
+        return
       }
+
+      setCreatePostOpen(false)
+      setPostDescription('')
+      setPostImages([])
+      // Refresh feed
+      setPage(1)
+      setFeedContent([])
+      fetchFeed(1, true)
     } catch (err) {
       console.error('Error creating post:', err)
+      setError(err instanceof Error ? err.message : 'Failed to create post')
     } finally {
       setSubmittingPost(false)
     }

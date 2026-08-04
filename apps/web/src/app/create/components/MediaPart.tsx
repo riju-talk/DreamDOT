@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Upload, X, GripVertical, Music, FileText, Image as ImageIcon, Film } from 'lucide-react'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { PricingPart } from './PricingPart'
 
 export function MediaPart() {
   const { draft, updateDraft } = useCreatorStudioStore()
@@ -252,6 +253,9 @@ export function MediaPart() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Pricing Model */}
+      <PricingPart />
     </div>
   )
 }

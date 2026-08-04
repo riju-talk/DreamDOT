@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prismaSocial } from '@/lib/prisma/social'
 import { prismaUser } from '@/lib/prisma/user'
 import { connectToDatabase } from '@/lib/mongoose/connection'
@@ -116,6 +118,91 @@ export async function GET(_request, { params }) {
     )
   } catch (error) {
     console.error('Error fetching post:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+async function getUser() {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.email) return null
+  return prismaUser.users.findUnique({
+    where: { email: session.user.email },
+    select: { id: true },
+  })
+}
+
+export async function PATCH(request, { params }) {
+  try {
+    const { postId } = await params
+    const user = await getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { content } = await request.json()
+
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      return NextResponse.json({ error: 'Content is required' }, { status: 400 })
+    }
+    if (content.length > 5000) {
+      return NextResponse.json({ error: 'Content cannot exceed 5000 characters' }, { status: 400 })
+    }
+
+    const post = await prismaSocial.posts.findUnique({ where: { id: postId } })
+    if (!post) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
+    }
+    if (post.user_id !== user.id) {
+      return NextResponse.json({ error: 'You can only edit your own posts' }, { status: 403 })
+    }
+
+    await prismaSocial.posts.update({
+      where: { id: postId },
+      data: { content: content.trim(), updated_at: new Date() },
+    })
+
+    await connectToDatabase()
+    await Post.updateOne(
+      { sqlId: postId },
+      { $set: { content: content.trim(), updatedAt: new Date() } }
+    ).catch(() => {})
+
+    return NextResponse.json({ success: true, message: 'Post updated successfully' }, { status: 200 })
+  } catch (error) {
+    console.error('Error updating post:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(_request, { params }) {
+  try {
+    const { postId } = await params
+    const user = await getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const post = await prismaSocial.posts.findUnique({ where: { id: postId } })
+    if (!post) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
+    }
+    if (post.user_id !== user.id) {
+      return NextResponse.json({ error: 'You can only delete your own posts' }, { status: 403 })
+    }
+
+    await connectToDatabase()
+    await Post.deleteOne({ sqlId: postId }).catch(() => {})
+
+    await prismaSocial.posts_analytics.deleteMany({ where: { post_id: postId } }).catch(() => {})
+    await prismaSocial.likes.deleteMany({ where: { post_id: postId } }).catch(() => {})
+    await prismaSocial.comments.deleteMany({ where: { post_id: postId } }).catch(() => {})
+    await prismaSocial.saves.deleteMany({ where: { post_id: postId } }).catch(() => {})
+    await prismaSocial.shares.deleteMany({ where: { post_id: postId } }).catch(() => {})
+    await prismaSocial.posts.delete({ where: { id: postId } })
+
+    return NextResponse.json({ success: true, message: 'Post deleted successfully' }, { status: 200 })
+  } catch (error) {
+    console.error('Error deleting post:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

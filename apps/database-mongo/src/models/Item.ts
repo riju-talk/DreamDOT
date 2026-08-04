@@ -3,11 +3,15 @@ import mongoose from 'mongoose';
 const ItemSchema = new mongoose.Schema(
   {
     userId: { type: String, required: true, index: true },
+    sqlId: { type: String, index: true }, // PostgreSQL UUID for direct lookup
     title: { type: String, required: true, trim: true, maxlength: 140, index: true },
     description: { type: String, trim: true, maxlength: 5000 },
     category: {
       type: String,
-      enum: ['writing', 'illustration', 'audio', 'video', 'research', 'design', 'code', 'template', 'other'],
+      enum: [
+        'writing', 'illustration', 'audio', 'video', 'research', 'design', 'code', 'template', 'other',
+        'art', 'photography', 'animation', 'music', '3d', 'education',
+      ],
       default: 'other',
       index: true,
     },

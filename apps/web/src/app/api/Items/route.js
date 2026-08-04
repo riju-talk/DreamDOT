@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { prismaSocial } from '@/lib/prisma/social'
+import { authOptions } from '@/lib/auth'
+import { prismaItems } from '@/lib/prisma/items'
 import { Item } from '@repo/database-mongo'
 import { connectToDatabase } from '@/lib/mongoose/connection'
 
 export async function GET(request) {
   try {
     // 1. Authenticate user (optional for reading)
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     const userId = session?.user?.email ? (
-      await prismaSocial.users.findUnique({
+      await prismaItems.users.findUnique({
         where: { email: session.user.email },
         select: { id: true }
       })
@@ -66,63 +67,66 @@ export async function GET(request) {
       .lean()
 
     // 8. Enrich items with creator info from PostgreSQL
-    const enrichedItems = await Promise.all(
-      items.map(async (item) => {
-        // Get creator profile
-        const creator = await prismaSocial.users.findMany({
-          where: {
-            user_profile: {
-              some: {}
-            }
-          },
-          take: 1,
+    const userIds = [...new Set(items.map((item) => item.userId).filter(Boolean))]
+    const users = await prismaItems.users.findMany({
+      where: { id: { in: userIds } },
+      select: {
+        id: true,
+        is_verified: true,
+        user_profile: {
           select: {
-            user_profile: {
-              select: {
-                display_name: true,
-                avatar_url: true,
-                username: true
-              }
-            }
+            display_name: true,
+            avatar_url: true,
+            username: true
           }
+        }
+      }
+    })
+    const userMap = new Map(users.map((u) => [u.id, u]))
+
+    // Check favorites in bulk (if authenticated)
+    let favoriteItemIds = new Set()
+    if (userId) {
+      const sqlIds = items.map((item) => item.sqlId).filter(Boolean)
+      if (sqlIds.length > 0) {
+        const saved = await prismaItems.favorites.findMany({
+          where: {
+            user_id: userId,
+            item_id: { in: sqlIds }
+          },
+          select: { item_id: true }
         })
+        favoriteItemIds = new Set(saved.map((s) => s.item_id))
+      }
+    }
 
-        // Check if user saved this item (if authenticated)
-        let isSaved = false
-        if (userId) {
-          const saved = await prismaSocial.favorites.findFirst({
-            where: {
-              user_id: userId,
-              item_id: item._id.toString()
-            }
-          })
-          isSaved = !!saved
-        }
-
-        return {
-          id: item._id.toString(),
-          title: item.title,
-          description: item.description,
-          category: item.category,
-          price: item.price,
-          image: item.media?.[0]?.url || null,
-          rating: item.rating,
-          reviews: item.reviews,
-          sales: item.sales,
-          creator: {
-            id: item.userId,
-            name: creator[0]?.user_profile?.[0]?.display_name || 'Unknown',
-            username: creator[0]?.user_profile?.[0]?.username || 'user',
-            avatar: creator[0]?.user_profile?.[0]?.avatar_url || null
-          },
-          userInteraction: {
-            isSaved,
-            isPurchased: false // TODO: check if user owns this
-          },
-          createdAt: item.createdAt
-        }
-      })
-    )
+    const enrichedItems = items.map((item) => {
+      const creator = userMap.get(item.userId)
+      const publicId = item.sqlId || item._id.toString()
+      return {
+        id: publicId,
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        price: item.price,
+        image: item.media?.[0]?.url || null,
+        rating: item.rating,
+        reviews: item.reviews,
+        sales: item.sales,
+        creator: {
+          id: item.userId,
+          name: creator?.user_profile?.display_name || 'Unknown',
+          username: creator?.user_profile?.username || 'user',
+          avatar: creator?.user_profile?.avatar_url || null,
+          verified: creator?.is_verified || false
+        },
+        userInteraction: {
+          isSaved: favoriteItemIds.has(item.sqlId),
+          isPurchased: false // TODO: check if user owns this
+        },
+        createdAt: item.createdAt
+      }
+    })
 
     // 9. Return response
     return NextResponse.json(

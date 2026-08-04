@@ -33,11 +33,10 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [userPosts, setUserPosts] = useState<Post[]>([])
+  const [portfolioItems, setPortfolioItems] = useState<any[]>([])
   const [likedPosts, setLikedPosts] = useState<Post[]>([])
   const [savedPosts, setSavedPosts] = useState<Post[]>([])
-  const [activeTab, setActiveTab] = useState<'posts' | 'likes' | 'saves'>('posts')
-
-  const isOwnProfile = true // This is the user's own profile page
+  const [activeTab, setActiveTab] = useState<'posts' | 'portfolio' | 'likes' | 'saves'>('posts')
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -66,6 +65,13 @@ export default function ProfilePage() {
           setUserPosts(postsData.posts || [])
         }
 
+        // Fetch portfolio items (marketplace items)
+        const itemsRes = await fetch(`/api/users/${session?.user?.id}/portfolio`)
+        if (itemsRes.ok) {
+          const itemsData = await itemsRes.json()
+          setPortfolioItems(itemsData.items || [])
+        }
+
         // Fetch liked posts
         const likesRes = await fetch(`/api/users/${session?.user?.id}/likes`)
         if (likesRes.ok) {
@@ -85,11 +91,6 @@ export default function ProfilePage() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleFollow = async () => {
-    // No follow action on own profile
-    return
   }
 
   if (status === 'loading' || isLoading) {
@@ -169,7 +170,7 @@ export default function ProfilePage() {
                 </h1>
                 <p className="text-sm text-muted-foreground">@{profile?.username}</p>
                 {profile?.bio && (
-                  <p className="text-sm text-foreground/80 mt-2 max-w-lg">{profile.bio}</p>
+                  <p className="text-sm text-foreground/80 mt-1">{profile.bio}</p>
                 )}
 
                 <div className="flex gap-8 mt-4">
@@ -180,14 +181,6 @@ export default function ProfilePage() {
                   <div>
                     <p className="font-black text-[#5a8c5a] dark:text-primary">{profile?.following}</p>
                     <p className="text-xs text-muted-foreground">Following</p>
-                  </div>
-                  <div>
-                    <p className="font-black text-[#5a8c5a] dark:text-primary">{likedPosts.length}</p>
-                    <p className="text-xs text-muted-foreground">Likes</p>
-                  </div>
-                  <div>
-                    <p className="font-black text-[#5a8c5a] dark:text-primary">{savedPosts.length}</p>
-                    <p className="text-xs text-muted-foreground">Saves</p>
                   </div>
                 </div>
               </div>
@@ -219,9 +212,9 @@ export default function ProfilePage() {
               Posts
             </button>
             <button
-              onClick={() => setActiveTab('posts')}
+              onClick={() => setActiveTab('portfolio')}
               className={`pb-4 font-bold uppercase text-sm tracking-wider transition-colors ${
-                activeTab === 'posts'
+                activeTab === 'portfolio'
                   ? 'text-[#5a8c5a] dark:text-primary border-b-2 border-[#5a8c5a] dark:border-primary'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
@@ -253,7 +246,7 @@ export default function ProfilePage() {
           {/* Posts Tab - Feed Style */}
           {activeTab === 'posts' && (
             <div className="space-y-6 pb-16 flex justify-center">
-              <div className="w-full max-w-xl space-y-6">
+              <div className="w-full max-w-2xl space-y-6">
                 {userPosts.length > 0 ? (
                   userPosts.map(post => (
                     <motion.div
@@ -263,9 +256,9 @@ export default function ProfilePage() {
                       className="bg-card border border-border rounded-lg overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
                       onClick={() => router.push(`/posts/${post.id}`)}
                     >
-                      {/* Post Image if available - reduced size */}
+                      {/* Post Image if available */}
                       {post.media?.[0]?.url && (
-                        <div className="relative h-48 overflow-hidden bg-muted">
+                        <div className="relative h-64 overflow-hidden bg-muted">
                           <Image
                             src={post.media[0].url}
                             alt={post.content}
@@ -277,10 +270,10 @@ export default function ProfilePage() {
 
                       {/* Post Content */}
                       <div className="p-4">
-                        <p className="text-foreground text-base leading-relaxed">{post.content}</p>
-                        <div className="flex gap-6 mt-4 text-muted-foreground text-sm">
-                          <span className="flex items-center gap-1"><Heart className="w-4 h-4" /> {post.analytics.likes_count}</span>
-                          <span className="flex items-center gap-1"><MessageSquare className="w-4 h-4" /> {post.analytics.comments_count}</span>
+                        <p className="text-foreground text-sm leading-relaxed mb-4">{post.content}</p>
+                        <div className="flex gap-6 text-muted-foreground text-sm pt-2 border-t border-border/50">
+                          <span className="flex items-center gap-2 hover:text-foreground cursor-pointer"><Heart className="w-4 h-4" /> {post.analytics.likes_count}</span>
+                          <span className="flex items-center gap-2 hover:text-foreground cursor-pointer"><MessageSquare className="w-4 h-4" /> {post.analytics.comments_count}</span>
                         </div>
                       </div>
                     </motion.div>
@@ -292,7 +285,35 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Liked Posts Tab - 2 Column with Content */}
+          {/* Portfolio Tab - 3 Column Grid of Digital Assets */}
+          {activeTab === 'portfolio' && (
+            <div className="pb-16">
+              {portfolioItems.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {portfolioItems.map(item => (
+                    <motion.div
+                      key={item.id || item.item_id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="group relative rounded-2xl overflow-hidden bg-muted cursor-pointer border border-border"
+                      onClick={() => router.push(`/items/${item.id || item.item_id}`)}
+                    >
+                      <div className="relative aspect-square flex items-center justify-center p-4">
+                        <div className="text-center">
+                          <p className="font-bold text-foreground text-lg">{item.title}</p>
+                          {item.price && <p className="text-sm text-muted-foreground mt-2">${item.price}</p>}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16 text-muted-foreground">No portfolio items yet</div>
+              )}
+            </div>
+          )}
+
+          {/* Liked Posts Tab - 2 Column Grid */}
           {activeTab === 'likes' && (
             <div className="pb-16">
               {likedPosts.length > 0 ? (
@@ -319,31 +340,8 @@ export default function ProfilePage() {
 
                       {/* Post Content */}
                       <div className="p-3">
-                        {/* Author info */}
-                        {post.user && (
-                          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border">
-                            <div className="relative w-6 h-6 rounded-full overflow-hidden bg-muted flex-shrink-0">
-                              {post.user.avatar_url ? (
-                                <Image
-                                  src={post.user.avatar_url}
-                                  alt={post.user.display_name || post.user.username}
-                                  fill
-                                  className="object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-primary/50 flex items-center justify-center text-xs font-bold text-white">
-                                  {post.user.display_name?.charAt(0) || post.user.username?.charAt(0) || 'U'}
-                                </div>
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-semibold text-xs">{post.user.display_name || post.user.username}</p>
-                            </div>
-                          </div>
-                        )}
-                        
-                        <p className="text-foreground text-xs leading-relaxed line-clamp-2">{post.content}</p>
-                        <div className="flex gap-4 mt-2 text-muted-foreground text-xs">
+                        <p className="text-foreground text-xs leading-relaxed mb-2 line-clamp-2">{post.content}</p>
+                        <div className="flex gap-4 text-muted-foreground text-xs pt-2 border-t border-border/50">
                           <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> {post.analytics.likes_count}</span>
                           <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3" /> {post.analytics.comments_count}</span>
                         </div>
@@ -352,12 +350,12 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-16 text-muted-foreground">No liked posts yet</div>
+                <div className="text-center py-12 text-muted-foreground">No liked posts yet</div>
               )}
             </div>
           )}
 
-          {/* Saved Posts Tab - 2 Column with Content */}
+          {/* Saved Posts Tab - 2 Column Grid */}
           {activeTab === 'saves' && (
             <div className="pb-16">
               {savedPosts.length > 0 ? (
@@ -384,31 +382,8 @@ export default function ProfilePage() {
 
                       {/* Post Content */}
                       <div className="p-3">
-                        {/* Author info */}
-                        {post.user && (
-                          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border">
-                            <div className="relative w-6 h-6 rounded-full overflow-hidden bg-muted flex-shrink-0">
-                              {post.user.avatar_url ? (
-                                <Image
-                                  src={post.user.avatar_url}
-                                  alt={post.user.display_name || post.user.username}
-                                  fill
-                                  className="object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-primary/50 flex items-center justify-center text-xs font-bold text-white">
-                                  {post.user.display_name?.charAt(0) || post.user.username?.charAt(0) || 'U'}
-                                </div>
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-semibold text-xs">{post.user.display_name || post.user.username}</p>
-                            </div>
-                          </div>
-                        )}
-                        
-                        <p className="text-foreground text-xs leading-relaxed line-clamp-2">{post.content}</p>
-                        <div className="flex gap-4 mt-2 text-muted-foreground text-xs">
+                        <p className="text-foreground text-xs leading-relaxed mb-2 line-clamp-2">{post.content}</p>
+                        <div className="flex gap-4 text-muted-foreground text-xs pt-2 border-t border-border/50">
                           <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> {post.analytics.likes_count}</span>
                           <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3" /> {post.analytics.comments_count}</span>
                         </div>
@@ -417,7 +392,7 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-16 text-muted-foreground">No saved posts yet</div>
+                <div className="text-center py-12 text-muted-foreground">No saved posts yet</div>
               )}
             </div>
           )}

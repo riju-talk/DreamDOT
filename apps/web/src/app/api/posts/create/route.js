@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { prismaSocial } from "@/lib/prisma/social"
 import { prismaUser } from "@/lib/prisma/user"
 import { connectToDatabase } from "@/lib/mongoose/connection"
+import { Post } from "@repo/database-mongo"
 
 // Helper function to validate user authentication
 async function validateUser(request) {
@@ -49,12 +50,32 @@ function validateInput(data) {
     errors.push("Content cannot exceed 5000 characters")
   }
 
-  if (data.visibility && ![true, false].includes(data.visibility)) {
+  if (data.visibility !== undefined && typeof data.visibility !== "boolean") {
     errors.push("Invalid visibility setting")
   }
 
-  if (data.mediaType && !["text", "image", "video", "audio"].includes(data.mediaType)) {
-    errors.push("Invalid media type")
+  let media = []
+  if (data.media !== undefined && data.media !== null) {
+    if (!Array.isArray(data.media)) {
+      errors.push("Invalid media format")
+    } else {
+      if (data.media.length > 5) {
+        errors.push("Cannot attach more than 5 images")
+      }
+      for (const item of data.media) {
+        if (!item || typeof item !== "object" || !item.type || !item.url) {
+          errors.push("Each media item must have a type and url")
+          break
+        }
+        if (!["text", "image", "video", "audio"].includes(item.type)) {
+          errors.push(`Invalid media type: ${item.type}`)
+          break
+        }
+      }
+      media = data.media.map(({ type, url, alt }) => ({ type, url, alt }))
+    }
+  } else if (data.mediaUrl) {
+    media = [{ type: data.mediaType || "image", url: data.mediaUrl }]
   }
 
   if (errors.length > 0) {
@@ -66,9 +87,8 @@ function validateInput(data) {
     errors: [],
     cleanData: {
       content: data.content.trim(),
-      mediaUrl: data.mediaUrl,
-      visibility: data.visibility || "public",
-      mediaType: data.mediaType || "text"
+      media,
+      visibility: data.visibility ?? true
     }
   }
 }
@@ -166,7 +186,7 @@ export async function POST(request) {
       )
     }
 
-    const { content, mediaUrl, visibility, mediaType } = validation.cleanData
+    const { content, media, visibility } = validation.cleanData
 
     const dbUser = await prismaUser.users.findUnique({
       where: { email: user.email },
@@ -184,18 +204,53 @@ export async function POST(request) {
       )
     }
 
+    // STEP 1: Create PostgreSQL metadata first (id + sql_id must match the Mongo link)
+    const postId = crypto.randomUUID()
+
     const postMetadata = await prismaSocial.posts.create({
       data: {
+        id: postId,
         user_id: dbUser.id,
-        sql_id: `post_${Date.now()}`,
-        description: content.substring(0, 500),
+        sql_id: postId,
+        content: content,
+        visibility: visibility,
         created_at: new Date(),
         updated_at: new Date()
       }
     })
 
-    const sqlId = postMetadata.id
-    console.log(`✅ SQL metadata created - ID: ${sqlId}`)
+    console.log(`✅ SQL metadata created - ID: ${postMetadata.id}`)
+
+    // STEP 2: Create MongoDB post (actual content + media), linked via sqlId
+    try {
+      await connectToDatabase()
+
+      const newPost = new Post({
+        userId: dbUser.id,
+        sqlId: postId,
+        content: content,
+        media: media,
+        visibility: visibility,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        likes: [],
+        comments: [],
+        shares: 0,
+        saves: [],
+        category: "general",
+        tags: [],
+        engagementScore: 0,
+        isSponsored: false,
+        isFeatured: false
+      })
+
+      await newPost.save()
+      console.log(`✅ MongoDB post created - sqlId: ${postId}`)
+    } catch (mongoError) {
+      console.error("MongoDB post creation failed, rolling back SQL metadata:", mongoError)
+      await prismaSocial.posts.delete({ where: { id: postId } }).catch(() => {})
+      throw mongoError
+    }
 
     createPostAnalytics(postMetadata.id)
     updateUserAnalytics(dbUser.id)
@@ -205,8 +260,9 @@ export async function POST(request) {
       message: "Post created successfully",
       data: {
         postId: postMetadata.id,
-        content: postMetadata.description,
+        content: content,
         visibility: visibility,
+        media: media,
         createdAt: postMetadata.created_at,
         user: {
           id: dbUser.id,

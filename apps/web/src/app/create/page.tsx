@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
+import { getVisibleTextLength } from '@/lib/utils'
 
 export default function CreatePage() {
   const router = useRouter()
@@ -53,6 +54,16 @@ export default function CreatePage() {
     setPublishing(false)
 
     if (result.success) {
+      if (!result.itemId) {
+        console.error('❌ BUG: Success but no itemId returned:', result)
+        setPublishError('Published successfully but no item ID returned. Redirecting to profile...')
+        setTimeout(() => {
+          router.push('/profile')
+        }, 2000)
+        return
+      }
+      
+      console.log('✅ Publishing successful! Redirecting to:', `/items/${result.itemId}`)
       setPublishSuccess(true)
       setTimeout(() => {
         router.push(`/items/${result.itemId}`)
@@ -151,17 +162,17 @@ export default function CreatePage() {
             </label>
             <textarea
               placeholder="Describe your asset in detail. What makes it unique? Who is it for? Include relevant details about the content..."
-              value={draft.script || ''}
+              value={draft.description || ''}
               onChange={(e) => {
                 // Update store
                 const store = useCreatorStudioStore.getState()
-                store.updateDraft({ script: e.target.value })
+                store.updateDraft({ description: e.target.value })
               }}
               maxLength={500}
               rows={4}
               className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none transition-colors resize-none"
             />
-            <p className="text-xs text-muted-foreground">{(draft.script || '').length}/500 characters</p>
+            <p className="text-xs text-muted-foreground">{(draft.description || '').length}/500 characters</p>
           </div>
         </motion.div>
 
@@ -270,12 +281,22 @@ export default function CreatePage() {
                     </div>
                   )}
 
+                  {draft.pricingModel === 'subscription' && (
+                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                      <p className="text-xs font-semibold text-primary uppercase tracking-wide">Subscription</p>
+                      <p className="text-primary font-bold text-lg mt-1 capitalize">
+                        {draft.subscriptionBillingCycle === 'monthly' ? 'Monthly' : 'Annually'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">Price set in Settings</p>
+                    </div>
+                  )}
+
                   <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Media Files</p>
                     <p className="text-foreground font-semibold mt-1">{draft.mediaFiles.length}</p>
                   </div>
 
-                  {draft.pricingModel === 'bundle' && (
+                  {step === 'bundle' && (
                     <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Bundle Items</p>
                       <p className="text-foreground font-semibold mt-1">{draft.bundleItemIds.length}</p>
@@ -313,10 +334,10 @@ export default function CreatePage() {
                       </span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className={`text-lg ${draft.script.length >= 10 ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {draft.script.length >= 10 ? '✓' : '○'}
+                      <span className={`text-lg ${getVisibleTextLength(draft.script || draft.description || '') >= 10 ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {getVisibleTextLength(draft.script || draft.description || '') >= 10 ? '✓' : '○'}
                       </span>
-                      <span className={draft.script.length >= 10 ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                      <span className={getVisibleTextLength(draft.script || draft.description || '') >= 10 ? 'text-foreground font-medium' : 'text-muted-foreground'}>
                         Content
                       </span>
                     </li>

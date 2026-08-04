@@ -6,6 +6,21 @@ import { useSession } from 'next-auth/react'
 import { AuthenticatedLayout } from '@/components/authenticated-layout'
 import { Button } from '@/components/ui/button'
 import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog'
+import {
   Loader2,
   MessageSquare,
   Share2,
@@ -16,11 +31,15 @@ import {
   MoreHorizontal,
   ArrowLeft,
   Bookmark,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useTheme } from 'next-themes'
+import { RelativeTime } from '@/components/relative-time'
+import { toast } from 'sonner'
 
 interface PostData {
   id: string
@@ -73,6 +92,11 @@ export default function PostDetailPage() {
   const [isCommentingSubmit, setIsCommentingSubmit] = useState(false)
   const [comments, setComments] = useState<any[]>([])
   const [mounted, setMounted] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editContent, setEditContent] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -172,13 +196,74 @@ export default function PostDetailPage() {
 
       if (res.ok) {
         const data = await res.json()
-        setComments([...comments, data.comment])
+        setComments([data.comment, ...comments])
         setCommentText('')
       }
     } catch (error) {
       console.error('[Post] Error adding comment:', error)
     } finally {
       setIsCommentingSubmit(false)
+    }
+  }
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/posts/${postId}`
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch (error) {
+      console.error('[Post] Error copying to clipboard:', error)
+      toast.error('Failed to copy post URL')
+      return
+    }
+    toast.success('Post URL copied to clipboard')
+  }
+
+  const isOwner = !!post && session?.user?.id === post.user.id
+
+  const handleEditPost = async () => {
+    if (!editContent.trim()) return
+
+    try {
+      setIsEditing(true)
+      const res = await fetch(`/api/posts/${postId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: editContent }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        console.error('[Post] Error editing post:', data.error)
+        return
+      }
+
+      setPost((prev) => (prev ? { ...prev, content: editContent.trim() } : prev))
+      setEditOpen(false)
+    } catch (error) {
+      console.error('[Post] Error editing post:', error)
+    } finally {
+      setIsEditing(false)
+    }
+  }
+
+  const handleDeletePost = async () => {
+    try {
+      setIsDeleting(true)
+      const res = await fetch(`/api/posts/${postId}`, {
+        method: 'DELETE',
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        console.error('[Post] Error deleting post:', data.error)
+        return
+      }
+
+      router.push('/feed')
+    } catch (error) {
+      console.error('[Post] Error deleting post:', error)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -215,10 +300,10 @@ export default function PostDetailPage() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="border-r border-border/50 flex flex-col"
+            className="border-r border-border/50 flex flex-col min-h-screen lg:min-h-auto"
           >
             {/* Post Card */}
-            <div className="bg-card border-b border-border/50">
+            <div className="bg-card border-b border-border/50 min-h-96">
               {/* Post Header */}
               <div className="flex items-start justify-between p-6 border-b border-border/50">
                 <Link href={`/profile/${post.user.id}`} className="flex items-center gap-4 flex-1">
@@ -245,17 +330,47 @@ export default function PostDetailPage() {
                     </div>
                     <p className="text-sm text-muted-foreground">@{post.user.username}</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {new Date(post.createdAt).toLocaleString()}
+                      <RelativeTime date={post.createdAt} />
                     </p>
                   </div>
                 </Link>
-                <Button variant="ghost" size="icon" className="text-muted-foreground">
-                  <MoreHorizontal className="w-5 h-5" />
-                </Button>
+                {isOwner ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="text-muted-foreground">
+                        <MoreHorizontal className="w-5 h-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-44">
+                      <DropdownMenuItem
+                        className="gap-2 cursor-pointer"
+                        onSelect={() => {
+                          setEditContent(post.content)
+                          setEditOpen(true)
+                        }}
+                      >
+                        <Pencil className="w-4 h-4" />
+                        Edit Post
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                        onSelect={() => setDeleteOpen(true)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete Post
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Button variant="ghost" size="icon" className="text-muted-foreground">
+                    <MoreHorizontal className="w-5 h-5" />
+                  </Button>
+                )}
               </div>
 
               {/* Post Content */}
-              <div className="p-6 border-b border-border/50">
+              <div className="p-6 border-b border-border/50 min-h-40">
                 {post.content && (
                   <p className="text-base leading-relaxed text-foreground/90 mb-4 whitespace-pre-wrap">
                     {post.content}
@@ -289,10 +404,10 @@ export default function PostDetailPage() {
                   <MessageCircle className="w-4 h-4" />
                   {comments.length} {comments.length === 1 ? 'Comment' : 'Comments'}
                 </span>
-                <span className="flex items-center gap-1.5">
+                <button onClick={handleShare} className="flex items-center gap-1.5 hover:text-[#5a8c5a] dark:hover:text-primary transition-colors">
                   <Share className="w-4 h-4" />
                   {post.analytics.shares_count} {post.analytics.shares_count === 1 ? 'Share' : 'Shares'}
-                </span>
+                </button>
               </div>
 
               {/* Action Buttons */}
@@ -309,10 +424,6 @@ export default function PostDetailPage() {
                   )}
                   {isLiked ? 'Liked' : 'Like'}
                 </button>
-                <button className="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-muted-foreground hover:text-[#5a8c5a] dark:hover:text-primary hover:bg-muted/50 transition-colors">
-                  <MessageCircle className="w-5 h-5" />
-                  Reply
-                </button>
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
@@ -324,6 +435,13 @@ export default function PostDetailPage() {
                     <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-[#5a8c5a] text-[#5a8c5a] dark:fill-primary dark:text-primary' : ''}`} />
                   )}
                   {isSaved ? 'Saved' : 'Save'}
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-muted-foreground hover:text-[#5a8c5a] dark:hover:text-primary hover:bg-muted/50 transition-colors"
+                >
+                  <Share className="w-5 h-5" />
+                  Share
                 </button>
               </div>
             </div>
@@ -411,7 +529,7 @@ export default function PostDetailPage() {
                               {comment.user?.display_name || comment.user?.username}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {new Date(comment.createdAt).toLocaleString()}
+                              <RelativeTime date={comment.createdAt} />
                             </p>
                           </div>
                         </Link>
@@ -425,6 +543,61 @@ export default function PostDetailPage() {
           </motion.div>
         </div>
       </div>
+
+      {/* Edit Post Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="bg-card border border-border max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Edit Post</DialogTitle>
+          </DialogHeader>
+          <textarea
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            placeholder="Edit your post..."
+            className="w-full bg-background border border-border/50 rounded-lg text-foreground placeholder:text-muted-foreground outline-none resize-none text-base p-4 min-h-40 focus-visible:ring-primary focus-visible:border-primary"
+          />
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isEditing}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              onClick={handleEditPost}
+              disabled={!editContent.trim() || isEditing}
+              className="bg-[#5a8c5a] dark:bg-primary text-white hover:bg-[#4a7c4a] dark:hover:bg-primary/90"
+            >
+              {isEditing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Post Dialog */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="bg-card border border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Delete Post</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete this post? This action cannot be undone.
+          </p>
+          <DialogFooter className="gap-2">
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isDeleting}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              onClick={handleDeletePost}
+              disabled={isDeleting}
+            >
+              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AuthenticatedLayout>
   )
 }

@@ -75,6 +75,12 @@ const userSchema = new mongoose.Schema(
       metaAccounts: [{ type: String }],
       web3Wallets: [{ type: String }],
     },
+
+    // Monetization defaults
+    monetization: {
+      defaultMonthlyCredits: { type: Number, default: 500 },
+      defaultAnnualCredits: { type: Number, default: 5000 },
+    },
     
     // Account status
     accountStatus: { type: String, enum: ['active', 'suspended', 'deleted'], default: 'active' },

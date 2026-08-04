@@ -48,9 +48,15 @@ export async function POST(request, { params }) {
     })
 
     // Update analytics
-    await prismaSocial.posts_analytics.update({
+    await prismaSocial.posts_analytics.upsert({
       where: { post_id: postId },
-      data: { comments_count: { increment: 1 } },
+      update: { comments_count: { increment: 1 } },
+      create: {
+        post_id: postId,
+        comments_count: 1,
+        views_count: 0,
+        likes_count: 0,
+      },
     })
 
     // Get comment user data

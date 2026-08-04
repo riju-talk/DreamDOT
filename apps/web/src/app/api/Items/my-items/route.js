@@ -66,7 +66,7 @@ export async function GET(request) {
 
     // 7. Fetch items from MongoDB
     const items = await Item.find(query)
-      .select('_id title description category price createdAt')
+      .select('_id sqlId title description category price createdAt')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
@@ -74,7 +74,7 @@ export async function GET(request) {
 
     // 8. Transform MongoDB documents
     const transformedItems = items.map(item => ({
-      id: item._id.toString(),
+      id: item.sqlId || item._id.toString(),
       title: item.title,
       description: item.description || '',
       category: item.category || 'other',

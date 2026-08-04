@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useSession } from "next-auth/react"
-import { Settings, Lock, Bell, Eye, Link2, Shield } from "lucide-react"
+import { Settings, Lock, Bell, Eye, Link2, Shield, BadgeDollarSign } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AuthenticatedLayout } from "@/components/authenticated-layout"
 import { AccountSettingsTab } from "@/components/settings/account-tab"
@@ -10,6 +10,7 @@ import { SecuritySettingsTab } from "@/components/settings/security-tab"
 import { PrivacySettingsTab } from "@/components/settings/privacy-tab"
 import { NotificationsSettingsTab } from "@/components/settings/notifications-tab"
 import { IntegrationsSettingsTab } from "@/components/settings/integrations-tab"
+import { MonetizationSettingsTab } from "@/components/settings/monetization-tab"
 import { Toaster } from "sonner"
 
 const tabs = [
@@ -18,6 +19,7 @@ const tabs = [
   { value: "privacy", label: "Privacy", icon: Eye },
   { value: "notifications", label: "Notifications", icon: Bell },
   { value: "integrations", label: "Integrations", icon: Link2 },
+  { value: "monetization", label: "Monetization", icon: BadgeDollarSign },
 ]
 
 export default function SettingsPage() {
@@ -61,7 +63,7 @@ export default function SettingsPage() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full grid-cols-5 rounded-lg border border-[#5a8c5a]/15 dark:border-primary/15 bg-white/50 dark:bg-muted/20 p-1 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-6 rounded-lg border border-[#5a8c5a]/15 dark:border-primary/15 bg-white/50 dark:bg-muted/20 p-1 backdrop-blur-sm">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
@@ -100,6 +102,11 @@ export default function SettingsPage() {
           {/* Integrations Tab */}
           <TabsContent value="integrations">
             <IntegrationsSettingsTab user={session?.user} />
+          </TabsContent>
+
+          {/* Monetization Tab */}
+          <TabsContent value="monetization">
+            <MonetizationSettingsTab />
           </TabsContent>
         </Tabs>
       </div>

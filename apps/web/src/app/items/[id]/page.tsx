@@ -1,7 +1,8 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
+import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { AuthenticatedLayout } from '@/components/authenticated-layout'
@@ -24,7 +25,31 @@ import {
   ChevronRight,
   Sparkles,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, isHtmlContent } from '@/lib/utils'
+
+const FALLBACK_IMAGE =
+  'https://i0.wp.com/www.innovationyourself.com/wp-content/uploads/2020/08/simplifying-controllers-action-fallback.png?fit=700%2C400&ssl=1'
+
+// Helper to strip HTML tags from text
+const stripHtmlTags = (html: string): string => {
+  if (!html) return ''
+  return html
+    .replace(/<[^>]*>/g, '') // Remove all HTML tags
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .trim()
+}
+
+function mimeToType(mimeType: string): 'image' | 'video' | 'audio' | '3d' {
+  if (!mimeType) return 'image'
+  if (mimeType.startsWith('image/')) return 'image'
+  if (mimeType.startsWith('video/')) return 'video'
+  if (mimeType.startsWith('audio/')) return 'audio'
+  if (mimeType.includes('model') || mimeType === 'application/octet-stream') return '3d'
+  return 'image'
+}
 
 interface ItemDetails {
   id: string
@@ -37,6 +62,7 @@ interface ItemDetails {
   creator: {
     id: string
     name: string
+    username: string
     avatar: string
     verified: boolean
     followers: number
@@ -65,61 +91,6 @@ interface ItemDetails {
   isSaved: boolean
 }
 
-const placeholderItem: ItemDetails = {
-  id: '1',
-  title: 'The Architect of Silences',
-  description: 'Digital narrative experience exploring silence in a noisy world',
-  fullDescription: `In the void between pixels, the artist finds the resonance of a world that hasn't been coded yet. Every stroke of light captures the spaces between sound and silence, weaving a rich tapestry of ethereal geometry and digital storytelling. Based on the Digital Atelier, Elena's work focuses on the weightless transition of light across virtual canvases. As she explores the webtextless transition into the ephemeral, she illuminates the boundary between the physical and human intuition. The boundaries of the Topics help to articulate a world of endless expression.`,
-  category: 'Digital Art',
-  price: 29.99,
-  image: 'https://images.unsplash.com/photo-1579783902614-e3fb5141b0cb?w=800&q=80',
-  creator: {
-    id: 'creator-1',
-    name: 'Elena Vane',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80',
-    verified: true,
-    followers: 12400,
-  },
-  stats: {
-    views: 4230,
-    downloads: 842,
-    sales: 56,
-    rating: 4.8,
-    reviews: 124,
-  },
-  media: [
-    {
-      type: 'image',
-      url: 'https://images.unsplash.com/photo-1579783902614-e3fb5141b0cb?w=800&q=80',
-      alt: 'Main visual',
-    },
-    {
-      type: 'image',
-      url: 'https://images.unsplash.com/photo-1579783902614-e3fb5141b0cb?w=800&q=80',
-      alt: 'Detail shot',
-    },
-  ],
-  tags: ['digital', 'experimental', 'narrative', '3d', 'audio-reactive'],
-  companionAssets: [
-    {
-      id: 'asset-1',
-      title: 'Brush Pack',
-      image: 'https://images.unsplash.com/photo-1534531173927-aeb928d54385?w=400&q=80',
-      type: 'Brushes',
-      price: 12.99,
-    },
-    {
-      id: 'asset-2',
-      title: 'Visual Source Files',
-      image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&q=80',
-      type: 'Source Files',
-      price: 19.99,
-    },
-  ],
-  isLiked: false,
-  isSaved: false,
-}
-
 function ItemDetailsSkeleton() {
   return (
     <div className="space-y-8">
@@ -136,7 +107,9 @@ function ItemDetailsSkeleton() {
   )
 }
 
-export default function ItemDetailsPage({ params }: { params: { id: string } }) {
+export default function ItemDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const { data: session } = useSession()
   const [item, setItem] = useState<ItemDetails | null>(null)
   const [isLiked, setIsLiked] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
@@ -144,14 +117,72 @@ export default function ItemDetailsPage({ params }: { params: { id: string } }) 
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Simulate fetch - replace with actual API call
-    setTimeout(() => {
-      setItem(placeholderItem)
-      setIsLiked(placeholderItem.isLiked)
-      setIsSaved(placeholderItem.isSaved)
+    let cancelled = false
+    setLoading(true)
+    setSelectedMediaIndex(0)
+
+    const loadItem = async () => {
+      try {
+        const response = await fetch(`/api/Items/${id}`)
+        if (!response.ok) {
+          throw new Error('Item not found')
+        }
+        const data = await response.json()
+        if (cancelled) return
+
+        const media = (data.images || []).map((m: any) => ({
+          type: mimeToType(m.mimeType),
+          url: m.url,
+          alt: m.alt || data.title || 'Item media',
+        }))
+
+        setItem({
+          id: data.id,
+          title: data.title,
+          description: data.description || '',
+          fullDescription: data.metadata?.script || '',
+          category: data.category,
+          price: data.price || 0,
+          image: media[0]?.url || FALLBACK_IMAGE,
+          creator: {
+            id: data.creator?.id || '',
+            name: data.creator?.name || 'Unknown',
+            username: data.creator?.username || '',
+            avatar: data.creator?.avatar || FALLBACK_IMAGE,
+            verified: data.creator?.verified || false,
+            followers: 0,
+          },
+          stats: {
+            views: 0,
+            downloads: 0,
+            sales: data.sales || 0,
+            rating: data.rating || 0,
+            reviews: data.reviews || 0,
+          },
+          media,
+          tags: data.tags || [],
+          isLiked: false,
+          isSaved: data.userInteraction?.isSaved || false,
+        })
+      } catch (error) {
+        console.error('Failed to load item:', error)
+        if (!cancelled) setItem(null)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    if (id && id !== 'undefined') {
+      loadItem()
+    } else {
       setLoading(false)
-    }, 500)
-  }, [params.id])
+      setItem(null)
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   if (loading) return <ItemDetailsSkeleton />
   if (!item) return <div>Item not found</div>
@@ -181,18 +212,16 @@ export default function ItemDetailsPage({ params }: { params: { id: string } }) 
                   transition={{ duration: 0.3 }}
                   className="relative w-full h-full"
                 >
-                  <Image
-                    src={item.media[selectedMediaIndex].url}
-                    alt={item.media[selectedMediaIndex].alt}
-                    fill
-                    className="object-cover"
-                    priority
+                  <img
+                    src={item.media[selectedMediaIndex]?.url || item.image}
+                    alt={item.media[selectedMediaIndex]?.alt || item.title}
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </motion.div>
 
                 {/* Media Type Badge */}
-                {item.media[selectedMediaIndex].type !== 'image' && (
+                {item.media[selectedMediaIndex]?.type && item.media[selectedMediaIndex].type !== 'image' && (
                   <Badge className="absolute top-4 left-4 bg-primary/80 backdrop-blur-sm">
                     {item.media[selectedMediaIndex].type.toUpperCase()}
                   </Badge>
@@ -221,11 +250,10 @@ export default function ItemDetailsPage({ params }: { params: { id: string } }) 
                           : 'border-border hover:border-primary/50'
                       )}
                     >
-                      <Image
+                      <img
                         src={media.url}
                         alt={media.alt}
-                        fill
-                        className="object-cover"
+                        className="absolute inset-0 w-full h-full object-cover"
                       />
                     </motion.button>
                   ))}
@@ -236,7 +264,14 @@ export default function ItemDetailsPage({ params }: { params: { id: string } }) 
               <Card className="dream-card border-border/50">
                 <CardContent className="p-6 space-y-4">
                   <h2 className="text-xl font-semibold text-foreground">About this asset</h2>
-                  <p className="text-muted-foreground leading-relaxed">{item.fullDescription}</p>
+                  {item.category === 'writing' || isHtmlContent(item.fullDescription) ? (
+                    <div
+                      className="text-muted-foreground leading-relaxed [&_p]:mb-3 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-foreground [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_a]:text-primary [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:italic [&_strong]:font-semibold [&_strong]:text-foreground [&_br]:mb-2"
+                      dangerouslySetInnerHTML={{ __html: item.fullDescription }}
+                    />
+                  ) : (
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{item.fullDescription}</p>
+                  )}
 
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2 pt-2">
@@ -331,7 +366,11 @@ export default function ItemDetailsPage({ params }: { params: { id: string } }) 
                           {item.creator.verified && <Sparkles className="h-4 w-4 text-primary" />}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {(item.creator.followers / 1000).toFixed(1)}k followers
+                          {item.creator.followers > 0
+                            ? `${(item.creator.followers / 1000).toFixed(1)}k followers`
+                            : item.creator.username
+                              ? `@${item.creator.username}`
+                              : 'Creator'}
                         </p>
                       </div>
                     </Link>
@@ -368,6 +407,15 @@ export default function ItemDetailsPage({ params }: { params: { id: string } }) 
 
               {/* Action Buttons */}
               <div className="space-y-3">
+                {session?.user?.id && item.creator.id === (session as any).user.id && (
+                  <Link href={`/items/${id}/edit`} className="block">
+                    <Button variant="outline" className="w-full h-11 border-primary/50 hover:bg-primary/10">
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      Edit Item
+                    </Button>
+                  </Link>
+                )}
+
                 <Button className="w-full h-12 text-base bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20">
                   <ShoppingCart className="h-5 w-5" />
                   Purchase
@@ -414,10 +462,10 @@ export default function ItemDetailsPage({ params }: { params: { id: string } }) 
                     Includes
                   </div>
                   <ul className="space-y-1 text-sm text-muted-foreground">
-                    <li>✓ High-res assets (4K+)</li>
-                    <li>✓ Source files included</li>
-                    <li>✓ Commercial license</li>
-                    <li>✓ Lifetime updates</li>
+                    <li>âœ“ High-res assets (4K+)</li>
+                    <li>âœ“ Source files included</li>
+                    <li>âœ“ Commercial license</li>
+                    <li>âœ“ Lifetime updates</li>
                   </ul>
                 </div>
               </Card>
@@ -443,7 +491,7 @@ export default function ItemDetailsPage({ params }: { params: { id: string } }) 
                   <Card className="dream-card overflow-hidden hover:border-primary/50 transition-colors duration-200 h-full">
                     <div className="relative w-full h-48 overflow-hidden bg-black/20">
                       <div className="w-full h-full bg-gradient-to-br from-primary/20 to-transparent flex items-center justify-center">
-                        <div className="text-4xl opacity-20">✨</div>
+                        <div className="text-4xl opacity-20">âœ¨</div>
                       </div>
                     </div>
                     <CardContent className="p-4">
@@ -460,3 +508,4 @@ export default function ItemDetailsPage({ params }: { params: { id: string } }) 
     </AuthenticatedLayout>
   )
 }
+

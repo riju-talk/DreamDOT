@@ -183,7 +183,7 @@ function MarketplaceContent() {
               {filteredItems.map((item) => (
                 <Link
                   key={item._id || item.id}
-                  href={`/items/${item._id || item.id}`}
+                  href={`/items/${item.sqlId || item._id || item.id}`}
                 >
                   <motion.div
                     variants={{
