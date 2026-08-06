@@ -82,14 +82,21 @@ export async function POST(request) {
       }
     }
 
-    // Sanitize media (uploaded via ImageKit, URLs only)
+    // Sanitize media (uploaded via Cloudinary, URLs only). Items may only carry image/video assets.
     const cleanMedia = Array.isArray(media)
       ? media
-          .filter((m) => m && typeof m.url === 'string' && m.url.length > 0)
+          .filter(
+            (m) =>
+              m &&
+              typeof m.url === 'string' &&
+              m.url.length > 0 &&
+              typeof m.mimeType === 'string' &&
+              (m.mimeType.startsWith('image/') || m.mimeType.startsWith('video/'))
+          )
           .slice(0, MAX_MEDIA)
           .map((m) => ({
             url: m.url,
-            mimeType: typeof m.mimeType === 'string' ? m.mimeType : '',
+            mimeType: m.mimeType,
             size: typeof m.size === 'number' ? m.size : 0,
           }))
       : []
@@ -100,6 +107,11 @@ export async function POST(request) {
       typeof thumbnailUrl === 'string' && thumbnailUrl.length > 0
         ? thumbnailUrl
         : cleanMedia[0]?.url || ''
+
+    // A thumbnail (derived from at least one image/video asset) is mandatory for every item
+    if (!cleanThumbnail) {
+      return NextResponse.json({ error: 'At least one image or video asset is required for the thumbnail' }, { status: 400 })
+    }
 
     // Helper function to strip HTML tags
     const stripHtmlTags = (html) => {
@@ -163,7 +175,6 @@ export async function POST(request) {
         purchases: [],
         tags: [],
         featured: false,
-        isFeatured: false,
         drm: {
           enabled: true,
           watermark: true,

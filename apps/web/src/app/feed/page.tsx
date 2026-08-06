@@ -37,6 +37,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
+import { uploadMultipleMediaFiles } from '@/lib/utils/media-upload'
 
 type FeedItemType = 'post' | 'item'
 
@@ -467,6 +468,7 @@ export default function FeedPage() {
   const [error, setError] = useState<string | null>(null)
   const [createPostOpen, setCreatePostOpen] = useState(false)
   const [postDescription, setPostDescription] = useState('')
+  const [postImageFiles, setPostImageFiles] = useState<File[]>([])
   const [postImages, setPostImages] = useState<string[]>([])
   const [submittingPost, setSubmittingPost] = useState(false)
   const { ref: loadMoreRef, inView } = useInView()
@@ -534,19 +536,22 @@ export default function FeedPage() {
     setFeedContent([])
   }
 
+  const addImageFile = (file: File) => {
+    setPostImageFiles((prev) => [...prev, file])
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const result = event.target?.result
+      if (result) {
+        setPostImages((prev) => [...prev, result as string])
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files) {
-      Array.from(files).forEach((file) => {
-        const reader = new FileReader()
-        reader.onload = (event) => {
-          const result = event.target?.result
-          if (result) {
-            setPostImages((prev) => [...prev, result as string])
-          }
-        }
-        reader.readAsDataURL(file)
-      })
+      Array.from(files).forEach(addImageFile)
     }
   }
 
@@ -556,16 +561,7 @@ export default function FeedPage() {
       Array.from(items).forEach((item) => {
         if (item.type.startsWith('image/')) {
           const file = item.getAsFile()
-          if (file) {
-            const reader = new FileReader()
-            reader.onload = (event) => {
-              const result = event.target?.result
-              if (result) {
-                setPostImages((prev) => [...prev, result as string])
-              }
-            }
-            reader.readAsDataURL(file)
-          }
+          if (file) addImageFile(file)
         }
       })
     }
@@ -573,6 +569,7 @@ export default function FeedPage() {
 
   const removeImage = (index: number) => {
     setPostImages((prev) => prev.filter((_, i) => i !== index))
+    setPostImageFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
   const handleCreatePost = async () => {
@@ -580,15 +577,23 @@ export default function FeedPage() {
 
     setSubmittingPost(true)
     try {
+      let media: Array<{ type: string; url: string }> = []
+      if (postImageFiles.length > 0) {
+        const results = await uploadMultipleMediaFiles(postImageFiles, 'posts')
+        const failed = results.find((r) => !r.success)
+        if (failed) {
+          setError(failed.error || 'Failed to upload image')
+          return
+        }
+        media = results.map((r) => ({ type: r.type || 'image', url: r.url! }))
+      }
+
       const response = await fetch('/api/posts/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: postDescription,
-          media: postImages.map((img) => ({
-            type: 'image',
-            url: img,
-          })),
+          media,
         }),
       })
 
@@ -601,6 +606,7 @@ export default function FeedPage() {
       setCreatePostOpen(false)
       setPostDescription('')
       setPostImages([])
+      setPostImageFiles([])
       // Refresh feed
       setPage(1)
       setFeedContent([])

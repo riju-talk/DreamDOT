@@ -2,7 +2,6 @@
 
 import { Collection } from "mongoose";
 import { connectToDatabase } from "./connection";
-// import { Item } from "./types/Item";
 import { Item } from "@repo/database-mongo";
 import { prismaItems } from "../prisma/items";
 
@@ -80,7 +79,7 @@ export async function fetchItems(
     const sqlItems = await prismaItems.items.findMany({
       where: { sql_id: { in: sqlIds } },
       select: {
-        item_id: true,
+        sql_id: true,
         price: true,
         category: true,
         monetization_type: true,
@@ -103,7 +102,7 @@ export async function fetchItems(
         : null;
 
       // Use sql_id as key to match MongoDB sqlId
-      sqlMap.set(s.item_id, {
+      sqlMap.set(s.sql_id, {
         price: parseFloat(s.price?.toString() ?? "0"),
         rating: avgRating,
         sales: s.transactions?.length ?? 0,

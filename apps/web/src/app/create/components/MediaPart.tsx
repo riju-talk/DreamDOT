@@ -3,7 +3,7 @@
 import { useCreatorStudioStore } from '@/lib/store/useCreatorStudioStore'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Upload, X, GripVertical, Music, FileText, Image as ImageIcon, Film } from 'lucide-react'
+import { Upload, X, GripVertical, FileText, Image as ImageIcon, Film } from 'lucide-react'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PricingPart } from './PricingPart'
@@ -13,7 +13,7 @@ export function MediaPart() {
   const [isDragging, setIsDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
 
-  const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/webm', 'audio/mpeg', 'audio/wav', 'application/pdf']
+  const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm']
   const MAX_SIZE = 50 * 1024 * 1024 // 50MB
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -42,8 +42,6 @@ export function MediaPart() {
   const getFileIcon = (file: File) => {
     if (file.type.startsWith('image/')) return <ImageIcon className="h-4 w-4" />
     if (file.type.startsWith('video/')) return <Film className="h-4 w-4" />
-    if (file.type.startsWith('audio/')) return <Music className="h-4 w-4" />
-    if (file.type.includes('pdf')) return <FileText className="h-4 w-4" />
     return <FileText className="h-4 w-4" />
   }
 
@@ -116,7 +114,7 @@ export function MediaPart() {
             </motion.div>
             <div>
               <p className="text-foreground font-bold text-lg mb-2">Drop files or click to upload</p>
-              <p className="text-sm text-muted-foreground">Images, video, audio, PDF • Max 50MB each</p>
+              <p className="text-sm text-muted-foreground">Images or video • Max 50MB each</p>
             </div>
             <label>
               <input type="file" multiple onChange={handleFileInput} className="hidden" />
@@ -245,9 +243,9 @@ export function MediaPart() {
               <span className="text-primary">💡</span> Upload Tips
             </p>
             <ul className="space-y-1 text-muted-foreground text-xs">
-              <li>• First file will be used as the thumbnail</li>
+              <li>• At least one image or video is required — the first file is used as the thumbnail</li>
               <li>• Reorder files by clicking the move buttons</li>
-              <li>• Supported formats: JPG, PNG, GIF, MP4, WebM, MP3, WAV, PDF</li>
+              <li>• Supported formats: JPG, PNG, GIF, WebP, MP4, WebM</li>
               <li>• Maximum file size: 50MB each</li>
             </ul>
           </div>

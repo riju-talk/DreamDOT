@@ -73,16 +73,23 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       if (account?.provider === "google" || account?.provider === "github" || account?.provider === "discord") {
         if (!user.email) return false;
-        
+
+        // Normalize casing to match /api/auth/signup — GitHub/Discord emails
+        // (unlike Gmail addresses) are frequently mixed-case, so an exact-case
+        // lookup can miss an existing account and then crash on the `email`
+        // unique constraint when trying to "create" a duplicate.
+        const normalizedEmail = user.email.trim().toLowerCase();
+        user.email = normalizedEmail;
+
         try {
           let dbUser = await prismaUser.users.findUnique({
-            where: { email: user.email },
+            where: { email: normalizedEmail },
             include: { user_profile: true }
           });
 
           if (!dbUser) {
             // Generate unique username
-            const baseUsername = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_-]/g, '');
+            const baseUsername = normalizedEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_-]/g, '');
             let username = baseUsername;
             let counter = 1;
             
@@ -111,12 +118,27 @@ export const authOptions: NextAuthOptions = {
               include: { user_profile: true }
             });
           } else {
-            // Update existing user if OAuth provider is new or profile incomplete
+            // Update existing user if OAuth provider is new or profile incomplete.
+            // Use upsert (not update) since a user row can exist without a
+            // user_profile row — a plain update would throw in that case.
             if (!dbUser.user_profile?.avatar_url && user.image) {
-              await prismaUser.user_profile.update({
+              const baseUsername = normalizedEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_-]/g, '')
+              await prismaUser.user_profile.upsert({
                 where: { user_id: dbUser.id },
-                data: { avatar_url: user.image }
+                update: { avatar_url: user.image },
+                create: {
+                  user_id: dbUser.id,
+                  username: `${baseUsername}_${dbUser.id.slice(0, 8)}`,
+                  display_name: user.name || baseUsername,
+                  avatar_url: user.image,
+                  bio: "",
+                  banner_url: "https://www.mcentre.lk/frontend/assets/images/default-banner.png",
+                },
               });
+              dbUser = await prismaUser.users.findUnique({
+                where: { id: dbUser.id },
+                include: { user_profile: true },
+              }) ?? dbUser;
             }
           }
 

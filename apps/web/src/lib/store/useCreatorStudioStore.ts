@@ -55,7 +55,9 @@ const validateDraftFunc = (draft: Draft, step: 'writer' | 'media' | 'bundle'): {
     errors.category = 'Category is required'
   }
 
-  if (draft.mediaFiles.length > 0 && !draft.thumbnailUrl) {
+  if (draft.mediaFiles.length === 0) {
+    errors.thumbnailUrl = 'At least one image or video asset is required'
+  } else if (!draft.thumbnailUrl) {
     errors.thumbnailUrl = 'Thumbnail is required'
   }
 

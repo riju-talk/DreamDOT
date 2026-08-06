@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { v2 as cloudinary } from 'cloudinary'
 import crypto from 'crypto'
 
@@ -21,7 +22,7 @@ cloudinary.config({
 export async function POST(request) {
   try {
     // Check authentication
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Unauthorized' },

@@ -83,7 +83,7 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: `Content cannot exceed ${MAX_CONTENT} characters` }, { status: 400 })
     }
 
-    const cleanDescription = newDescription ?? item.description || ''
+    const cleanDescription = newDescription ?? (item.description || '')
 
     const cleanTitle = typeof title === 'string' && title.trim() ? title.trim().substring(0, MAX_TITLE) : item.title
     const cleanCategory = typeof category === 'string' && category.trim() ? category.trim() : item.category
@@ -93,11 +93,18 @@ export async function PUT(request, { params }) {
       : item.tags || []
     const cleanMedia = Array.isArray(media)
       ? media
-          .filter((m) => m && typeof m.url === 'string' && m.url.length > 0)
+          .filter(
+            (m) =>
+              m &&
+              typeof m.url === 'string' &&
+              m.url.length > 0 &&
+              typeof m.mimeType === 'string' &&
+              (m.mimeType.startsWith('image/') || m.mimeType.startsWith('video/'))
+          )
           .slice(0, MAX_MEDIA)
           .map((m) => ({
             url: m.url,
-            mimeType: typeof m.mimeType === 'string' ? m.mimeType : '',
+            mimeType: m.mimeType,
             size: typeof m.size === 'number' ? m.size : 0,
           }))
       : item.media || []

@@ -7,30 +7,16 @@ import { connectToDatabase } from "@/lib/mongoose/connection"
 import { Post } from "@repo/database-mongo"
 
 // Helper function to validate user authentication
-async function validateUser(request) {
+async function validateUser() {
   try {
     const session = await getServerSession(authOptions)
-    if (session?.user?.name) {
-      return {
-        email: session.user.email || "",
-        name: session.user.name || ""
-      }
-    }
-
-    const authorization = request.headers.get("Authorization")
-    if (!authorization?.startsWith("Bearer ")) {
-      return null
-    }
-
-    const decoded = { email: session?.user?.email || "", name: session?.user?.name || "" }
-
-    if (!decoded) {
+    if (!session?.user?.name) {
       return null
     }
 
     return {
-      email: decoded.email,
-      name: decoded.name
+      email: session.user.email || "",
+      name: session.user.name || ""
     }
   } catch (error) {
     console.error("Error validating user:", error)
@@ -145,7 +131,7 @@ async function updateUserAnalytics(userId) {
 
 export async function POST(request) {
   try {
-    const user = await validateUser(request)
+    const user = await validateUser()
     if (!user) {
       return NextResponse.json(
         {
@@ -240,8 +226,7 @@ export async function POST(request) {
         category: "general",
         tags: [],
         engagementScore: 0,
-        isSponsored: false,
-        isFeatured: false
+        isSponsored: false
       })
 
       await newPost.save()
@@ -296,63 +281,6 @@ export async function POST(request) {
         message: "Internal server error occurred while creating post",
         code: "INTERNAL_ERROR"
       },
-      { status: 500 }
-    )
-  }
-}
-
-export async function GET(request) {
-  try {
-    const user = await validateUser(request)
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: "Authentication required" },
-        { status: 401 }
-      )
-    }
-
-    const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get("page") || "1")
-    const limit = Math.min(parseInt(searchParams.get("limit") || "10"), 50)
-    
-    const dbUser = await prismaUser.users.findUnique({
-      where: { email: user.email },
-      select: { id: true }
-    })
-
-    if (!dbUser) {
-      return NextResponse.json(
-        { success: false, message: "User not found" },
-        { status: 404 }
-      )
-    }
-
-    const posts = await prismaSocial.posts.findMany({
-      where: { user_id: dbUser.id },
-      orderBy: { created_at: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit
-    })
-
-    const total = await prismaSocial.posts.count({ where: { user_id: dbUser.id } })
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        posts,
-        pagination: {
-          page,
-          limit,
-          total,
-          hasMore: (page * limit) < total
-        }
-      }
-    })
-
-  } catch (error) {
-    console.error("Error fetching posts:", error)
-    return NextResponse.json(
-      { success: false, message: "Failed to fetch posts" },
       { status: 500 }
     )
   }
