@@ -14,6 +14,7 @@ model servers {
   name        String   @db.VarChar(100)
   description String?
   owner_id    String   @db.Uuid
+  is_public   Boolean  @default(true)
   created_at  DateTime @default(now()) @db.Timestamp(6)
   updated_at  DateTime @default(now()) @db.Timestamp(6)
   channels    channels[]
@@ -29,7 +30,6 @@ model channels {
   position   Int?      @default(0)
   created_at DateTime  @default(now()) @db.Timestamp(6)
   servers    servers   @relation(fields: [server_id], references: [server_id], onDelete: Cascade, onUpdate: NoAction)
-  messages   messages[]
 
   @@unique([server_id, name])
 }
@@ -45,19 +45,15 @@ model members {
   @@unique([server_id, user_id])
 }
 
-model messages {
-  message_id String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  channel_id String   @db.Uuid
-  user_id    String   @db.Uuid
-  content    String
-  created_at DateTime @default(now()) @db.Timestamp(6)
-  updated_at DateTime @default(now()) @db.Timestamp(6)
-  channels   channels @relation(fields: [channel_id], references: [channel_id], onDelete: Cascade, onUpdate: NoAction)
-}
+// Channel message CONTENT lives in MongoDB (apps/database-mongo Message model, channelId
+// field), matching the same "structure in Postgres, content in Mongo" split used for DMs
+// and posts everywhere else in this app. This Postgres `messages` model was defined but
+// never used by any route — removed 2026-08-09 rather than left as a third, dead system.
+// See docs/DATA_SCHEMA.md §2.4.
 
 model presence {
   presence_id String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id     String    @db.Uuid
+  user_id     String    @unique @db.Uuid
   status      String    @default("offline")
   last_seen   DateTime? @db.Timestamp(6)
   created_at  DateTime  @default(now()) @db.Timestamp(6)

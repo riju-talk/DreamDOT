@@ -1,9 +1,11 @@
 # DreamDOT UI/UX Design System
 ## Agent Implementation Guide — Single Source of Truth
 
-**Version:** 1.0  
-**Last Updated:** 2026-08-01  
+**Version:** 1.1  
+**Last Updated:** 2026-08-09  
 **Status:** Canonical — all agents must follow this document exactly.
+
+> **v1.1 note:** The token system, typography, and component specs below were already accurate and are unchanged. What's new is Appendix C — an honest accounting of which real pages currently comply with this system and which are still stubs waiting on the features they belong to (Ad Studio, Notifications, DRM Vault).
 
 ---
 
@@ -610,6 +612,20 @@ module.exports = {
   --color-glass: rgba(255, 255, 255, 0.70);
 }
 ```
+
+---
+
+## Appendix C: Implementation Status (added v1.1, 2026-08-09)
+
+This system is applied consistently across the built product (feed, marketplace, create, library, messages, profile, settings). Three pages are exceptions worth naming explicitly so nobody mistakes a stub for a design bug:
+
+| Page/Component | Status | Note |
+|---|---|---|
+| `/ad-studio` | Placeholder | Literal "Coming Soon" content, disabled CTA. Tokens/typography are already correctly applied to the stub itself — when Ad Studio ships (see PRD.md), build the real campaign builder against this same system, not a new one. |
+| `/notifications` | ✅ Live (as of 2026-08-09) | Was a static empty-state shell; now fetches and renders a real feed from `apps/notifications` with a Socket.IO live-update subscription and mark-as-read. Empty state still correctly styled for the zero-notifications case. |
+| `library/DRMViewer.tsx` | 🚧 Partial (as of 2026-08-09) | The watermark grid, "DRM Protected" badge, and usage-rights list are real UI and correctly styled, and now backed by real enforcement: contextmenu/selectstart blocking, a live per-second watermark (user ID + timestamp, not a static string), DevTools-open detection with a blur overlay, and PrintScreen detection. Video EME is the one piece still not implemented — see PRD.md's DRM Vault section. |
+
+No other page currently violates the anti-pattern checklist in §8 — the known "home feed blue tint" bug from §9 is the only tracked visual regression as of this update.
 
 ---
 

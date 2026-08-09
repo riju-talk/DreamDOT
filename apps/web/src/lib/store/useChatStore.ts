@@ -33,6 +33,11 @@ export interface Conversation {
   lastMessage?: Message
   unreadCount: number
   createdAt: Date
+  // A community channel is represented as a Conversation with type: 'channel' and
+  // serverId set, sharing the same activeConversationId/messages-map machinery DMs
+  // already use rather than forking a parallel "active channel" concept.
+  type?: 'dm' | 'channel'
+  serverId?: string
 }
 
 export interface PaginationState {
@@ -62,8 +67,10 @@ export interface ChatState {
   removeTypingUser: (conversationId: string, userId: string) => void
   setOnlineUser: (userId: string) => void
   removeOnlineUser: (userId: string) => void
+  hydratePresence: (communityId: string) => Promise<void>
   setUnreadCount: (conversationId: string, count: number) => void
   setConversations: (conversations: Conversation[]) => void
+  upsertConversation: (conversation: Conversation) => void
   setMessages: (conversationId: string, messages: Message[]) => void
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
@@ -139,6 +146,27 @@ export const useChatStore = create<ChatState>((set, get) => ({
       onlineUsers: state.onlineUsers.filter((u) => u !== userId),
     })),
 
+  /**
+   * Load the persisted presence snapshot for a community so members who were
+   * already online before this client connected still show as online — live
+   * presence:join/leave socket events only cover state changes after connect.
+   */
+  hydratePresence: async (communityId: string) => {
+    try {
+      const response = await fetch(`/api/communities/${communityId}/presence`)
+      if (!response.ok) return
+      const data = await response.json()
+      const presence = data.presence || {}
+      Object.entries(presence).forEach(([userId, info]: [string, any]) => {
+        if (info?.status === 'online') {
+          get().setOnlineUser(userId)
+        }
+      })
+    } catch (error) {
+      console.error('[useChatStore] Failed to hydrate presence:', error)
+    }
+  },
+
   setUnreadCount: (conversationId, count) =>
     set((state) => ({
       unreadCounts: {
@@ -148,6 +176,22 @@ export const useChatStore = create<ChatState>((set, get) => ({
     })),
 
   setConversations: (conversations) => set({ conversations }),
+
+  /**
+   * Add or update a single conversation by id. This is the fix for both DMs and
+   * channels never appearing in `state.conversations` — MessageList keys off
+   * activeConversationId, and ConversationHeader looks up conversations by id;
+   * neither works if nothing ever populated this array for the selected thread.
+   */
+  upsertConversation: (conversation) =>
+    set((state) => {
+      const exists = state.conversations.some((c) => c.id === conversation.id)
+      return {
+        conversations: exists
+          ? state.conversations.map((c) => (c.id === conversation.id ? conversation : c))
+          : [...state.conversations, conversation],
+      }
+    }),
 
   setMessages: (conversationId, messages) =>
     set((state) => ({
@@ -271,17 +315,52 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return
     }
 
-    // Listen for new messages
-    socket.on('message:receive', (data: any) => {
-      const { conversationId, message } = data
-      if (conversationId && message) {
-        set((state) => ({
-          messages: {
-            ...state.messages,
-            [conversationId]: [...(state.messages[conversationId] || []), message],
-          },
-        }))
+    // Listen for new DM/group messages. apps/chat/server.js broadcasts the raw
+    // Mongo Message document (plus senderName/senderAvatar) as 'message:new' —
+    // not a { conversationId, message } wrapper, and not 'message:receive' (which
+    // nothing on the server emits).
+    socket.on('message:new', (data: any) => {
+      const conversationId = data?.conversationId
+      if (!conversationId) return
+      const message: Message = {
+        id: data.id || data._id,
+        conversationId,
+        userId: data.senderId,
+        userName: data.senderName || 'Unknown',
+        text: data.content || '',
+        attachment: data.attachments?.[0],
+        createdAt: new Date(data.timestamp || Date.now()),
+        readBy: data.readBy || [],
       }
+      set((state) => ({
+        messages: {
+          ...state.messages,
+          [conversationId]: [...(state.messages[conversationId] || []), message],
+        },
+      }))
+    })
+
+    // Listen for new community channel messages, keyed the same way as DMs —
+    // a channel's id is used as the "conversationId" key throughout the store.
+    socket.on('channel:message:new', (data: any) => {
+      const channelId = data?.channelId
+      if (!channelId) return
+      const message: Message = {
+        id: data.id || data._id,
+        conversationId: channelId,
+        userId: data.senderId,
+        userName: data.senderName || 'Unknown',
+        text: data.content || '',
+        attachment: data.attachments?.[0],
+        createdAt: new Date(data.timestamp || Date.now()),
+        readBy: data.readBy || [],
+      }
+      set((state) => ({
+        messages: {
+          ...state.messages,
+          [channelId]: [...(state.messages[channelId] || []), message],
+        },
+      }))
     })
 
     // Listen for typing indicators
@@ -334,7 +413,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return
     }
 
-    socket.off('message:receive')
+    socket.off('message:new')
+    socket.off('channel:message:new')
     socket.off('typing:start')
     socket.off('typing:stop')
     socket.off('presence:join')

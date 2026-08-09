@@ -2,9 +2,20 @@ import mongoose from 'mongoose';
 
 const messageSchema = new mongoose.Schema(
   {
+    // A message belongs to exactly one of a DM/group conversation or a community
+    // channel, never both — enforced below via the pre('validate') hook.
     conversationId: {
       type: String,
-      required: true,
+      required: function (this: { channelId?: string }) {
+        return !this.channelId;
+      },
+      index: true,
+    },
+    channelId: {
+      type: String,
+      required: function (this: { conversationId?: string }) {
+        return !this.conversationId;
+      },
       index: true,
     },
     senderId: {
@@ -74,11 +85,22 @@ const messageSchema = new mongoose.Schema(
 );
 
 messageSchema.index({ conversationId: 1, timestamp: -1 });
+messageSchema.index({ channelId: 1, timestamp: -1 });
 messageSchema.index({ senderId: 1, timestamp: -1 });
 messageSchema.index({ readBy: 1 });
 
 messageSchema.virtual('isRead').get(function () {
   return this.readBy.length > 0;
+});
+
+messageSchema.pre('validate', function (next) {
+  if (this.conversationId && this.channelId) {
+    return next(new Error('Message cannot have both conversationId and channelId'));
+  }
+  if (!this.conversationId && !this.channelId) {
+    return next(new Error('Message must have either conversationId or channelId'));
+  }
+  next();
 });
 
 export const Message = mongoose.models.Message || mongoose.model('Message', messageSchema);

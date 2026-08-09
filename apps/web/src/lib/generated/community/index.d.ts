@@ -23,6 +23,7 @@ export type serversPayload<ExtArgs extends $Extensions.Args = $Extensions.Defaul
     name: string
     description: string | null
     owner_id: string
+    is_public: boolean
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["servers"]>
@@ -38,7 +39,6 @@ export type channelsPayload<ExtArgs extends $Extensions.Args = $Extensions.Defau
   name: "channels"
   objects: {
     servers: serversPayload<ExtArgs>
-    messages: messagesPayload<ExtArgs>[]
   }
   scalars: $Extensions.GetResult<{
     channel_id: string
@@ -77,27 +77,6 @@ export type membersPayload<ExtArgs extends $Extensions.Args = $Extensions.Defaul
  * 
  */
 export type members = runtime.Types.DefaultSelection<membersPayload>
-export type messagesPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-  name: "messages"
-  objects: {
-    channels: channelsPayload<ExtArgs>
-  }
-  scalars: $Extensions.GetResult<{
-    message_id: string
-    channel_id: string
-    user_id: string
-    content: string
-    created_at: Date
-    updated_at: Date
-  }, ExtArgs["result"]["messages"]>
-  composites: {}
-}
-
-/**
- * Model messages
- * 
- */
-export type messages = runtime.Types.DefaultSelection<messagesPayload>
 export type presencePayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   name: "presence"
   objects: {}
@@ -271,16 +250,6 @@ export class PrismaClient<
     * ```
     */
   get members(): Prisma.membersDelegate<GlobalReject, ExtArgs>;
-
-  /**
-   * `prisma.messages`: Exposes CRUD operations for the **messages** model.
-    * Example usage:
-    * ```ts
-    * // Fetch zero or more Messages
-    * const messages = await prisma.messages.findMany()
-    * ```
-    */
-  get messages(): Prisma.messagesDelegate<GlobalReject, ExtArgs>;
 
   /**
    * `prisma.presence`: Exposes CRUD operations for the **presence** model.
@@ -777,7 +746,6 @@ export namespace Prisma {
     servers: 'servers',
     channels: 'channels',
     members: 'members',
-    messages: 'messages',
     presence: 'presence'
   };
 
@@ -795,7 +763,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     meta: {
-      modelProps: 'servers' | 'channels' | 'members' | 'messages' | 'presence'
+      modelProps: 'servers' | 'channels' | 'members' | 'presence'
       txIsolationLevel: Prisma.TransactionIsolationLevel
     },
     model: {
@@ -991,71 +959,6 @@ export namespace Prisma {
           count: {
             args: Prisma.membersCountArgs<ExtArgs>,
             result: $Utils.Optional<MembersCountAggregateOutputType> | number
-          }
-        }
-      }
-      messages: {
-        payload: messagesPayload<ExtArgs>
-        operations: {
-          findUnique: {
-            args: Prisma.messagesFindUniqueArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<messagesPayload> | null
-          }
-          findUniqueOrThrow: {
-            args: Prisma.messagesFindUniqueOrThrowArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<messagesPayload>
-          }
-          findFirst: {
-            args: Prisma.messagesFindFirstArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<messagesPayload> | null
-          }
-          findFirstOrThrow: {
-            args: Prisma.messagesFindFirstOrThrowArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<messagesPayload>
-          }
-          findMany: {
-            args: Prisma.messagesFindManyArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<messagesPayload>[]
-          }
-          create: {
-            args: Prisma.messagesCreateArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<messagesPayload>
-          }
-          createMany: {
-            args: Prisma.messagesCreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
-          }
-          delete: {
-            args: Prisma.messagesDeleteArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<messagesPayload>
-          }
-          update: {
-            args: Prisma.messagesUpdateArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<messagesPayload>
-          }
-          deleteMany: {
-            args: Prisma.messagesDeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
-          }
-          updateMany: {
-            args: Prisma.messagesUpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
-          }
-          upsert: {
-            args: Prisma.messagesUpsertArgs<ExtArgs>,
-            result: $Utils.PayloadToResult<messagesPayload>
-          }
-          aggregate: {
-            args: Prisma.MessagesAggregateArgs<ExtArgs>,
-            result: $Utils.Optional<AggregateMessages>
-          }
-          groupBy: {
-            args: Prisma.MessagesGroupByArgs<ExtArgs>,
-            result: $Utils.Optional<MessagesGroupByOutputType>[]
-          }
-          count: {
-            args: Prisma.messagesCountArgs<ExtArgs>,
-            result: $Utils.Optional<MessagesCountAggregateOutputType> | number
           }
         }
       }
@@ -1346,41 +1249,6 @@ export namespace Prisma {
 
 
   /**
-   * Count Type ChannelsCountOutputType
-   */
-
-
-  export type ChannelsCountOutputType = {
-    messages: number
-  }
-
-  export type ChannelsCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    messages?: boolean | ChannelsCountOutputTypeCountMessagesArgs
-  }
-
-  // Custom InputTypes
-
-  /**
-   * ChannelsCountOutputType without action
-   */
-  export type ChannelsCountOutputTypeArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ChannelsCountOutputType
-     */
-    select?: ChannelsCountOutputTypeSelect<ExtArgs> | null
-  }
-
-
-  /**
-   * ChannelsCountOutputType without action
-   */
-  export type ChannelsCountOutputTypeCountMessagesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    where?: messagesWhereInput
-  }
-
-
-
-  /**
    * Models
    */
 
@@ -1400,6 +1268,7 @@ export namespace Prisma {
     name: string | null
     description: string | null
     owner_id: string | null
+    is_public: boolean | null
     created_at: Date | null
     updated_at: Date | null
   }
@@ -1409,6 +1278,7 @@ export namespace Prisma {
     name: string | null
     description: string | null
     owner_id: string | null
+    is_public: boolean | null
     created_at: Date | null
     updated_at: Date | null
   }
@@ -1418,6 +1288,7 @@ export namespace Prisma {
     name: number
     description: number
     owner_id: number
+    is_public: number
     created_at: number
     updated_at: number
     _all: number
@@ -1429,6 +1300,7 @@ export namespace Prisma {
     name?: true
     description?: true
     owner_id?: true
+    is_public?: true
     created_at?: true
     updated_at?: true
   }
@@ -1438,6 +1310,7 @@ export namespace Prisma {
     name?: true
     description?: true
     owner_id?: true
+    is_public?: true
     created_at?: true
     updated_at?: true
   }
@@ -1447,6 +1320,7 @@ export namespace Prisma {
     name?: true
     description?: true
     owner_id?: true
+    is_public?: true
     created_at?: true
     updated_at?: true
     _all?: true
@@ -1530,6 +1404,7 @@ export namespace Prisma {
     name: string
     description: string | null
     owner_id: string
+    is_public: boolean
     created_at: Date
     updated_at: Date
     _count: ServersCountAggregateOutputType | null
@@ -1556,6 +1431,7 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     owner_id?: boolean
+    is_public?: boolean
     created_at?: boolean
     updated_at?: boolean
     channels?: boolean | servers$channelsArgs<ExtArgs>
@@ -1568,6 +1444,7 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     owner_id?: boolean
+    is_public?: boolean
     created_at?: boolean
     updated_at?: boolean
   }
@@ -2582,8 +2459,6 @@ export namespace Prisma {
     position?: boolean
     created_at?: boolean
     servers?: boolean | serversArgs<ExtArgs>
-    messages?: boolean | channels$messagesArgs<ExtArgs>
-    _count?: boolean | ChannelsCountOutputTypeArgs<ExtArgs>
   }, ExtArgs["result"]["channels"]>
 
   export type channelsSelectScalar = {
@@ -2598,8 +2473,6 @@ export namespace Prisma {
 
   export type channelsInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     servers?: boolean | serversArgs<ExtArgs>
-    messages?: boolean | channels$messagesArgs<ExtArgs>
-    _count?: boolean | ChannelsCountOutputTypeArgs<ExtArgs>
   }
 
 
@@ -2974,8 +2847,6 @@ export namespace Prisma {
 
     servers<T extends serversArgs<ExtArgs> = {}>(args?: Subset<T, serversArgs<ExtArgs>>): Prisma__serversClient<$Types.GetResult<serversPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
-    messages<T extends channels$messagesArgs<ExtArgs> = {}>(args?: Subset<T, channels$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Types.GetResult<messagesPayload<ExtArgs>, T, 'findMany', never>| Null>;
-
     private get _document();
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -3328,27 +3199,6 @@ export namespace Prisma {
      * Filter which channels to delete
      */
     where?: channelsWhereInput
-  }
-
-
-  /**
-   * channels.messages
-   */
-  export type channels$messagesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the messages
-     */
-    select?: messagesSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     */
-    include?: messagesInclude<ExtArgs> | null
-    where?: messagesWhereInput
-    orderBy?: Enumerable<messagesOrderByWithRelationInput>
-    cursor?: messagesWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: Enumerable<MessagesScalarFieldEnum>
   }
 
 
@@ -4293,939 +4143,6 @@ export namespace Prisma {
 
 
   /**
-   * Model messages
-   */
-
-
-  export type AggregateMessages = {
-    _count: MessagesCountAggregateOutputType | null
-    _min: MessagesMinAggregateOutputType | null
-    _max: MessagesMaxAggregateOutputType | null
-  }
-
-  export type MessagesMinAggregateOutputType = {
-    message_id: string | null
-    channel_id: string | null
-    user_id: string | null
-    content: string | null
-    created_at: Date | null
-    updated_at: Date | null
-  }
-
-  export type MessagesMaxAggregateOutputType = {
-    message_id: string | null
-    channel_id: string | null
-    user_id: string | null
-    content: string | null
-    created_at: Date | null
-    updated_at: Date | null
-  }
-
-  export type MessagesCountAggregateOutputType = {
-    message_id: number
-    channel_id: number
-    user_id: number
-    content: number
-    created_at: number
-    updated_at: number
-    _all: number
-  }
-
-
-  export type MessagesMinAggregateInputType = {
-    message_id?: true
-    channel_id?: true
-    user_id?: true
-    content?: true
-    created_at?: true
-    updated_at?: true
-  }
-
-  export type MessagesMaxAggregateInputType = {
-    message_id?: true
-    channel_id?: true
-    user_id?: true
-    content?: true
-    created_at?: true
-    updated_at?: true
-  }
-
-  export type MessagesCountAggregateInputType = {
-    message_id?: true
-    channel_id?: true
-    user_id?: true
-    content?: true
-    created_at?: true
-    updated_at?: true
-    _all?: true
-  }
-
-  export type MessagesAggregateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which messages to aggregate.
-     */
-    where?: messagesWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of messages to fetch.
-     */
-    orderBy?: Enumerable<messagesOrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the start position
-     */
-    cursor?: messagesWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` messages from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` messages.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Count returned messages
-    **/
-    _count?: true | MessagesCountAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the minimum value
-    **/
-    _min?: MessagesMinAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the maximum value
-    **/
-    _max?: MessagesMaxAggregateInputType
-  }
-
-  export type GetMessagesAggregateType<T extends MessagesAggregateArgs> = {
-        [P in keyof T & keyof AggregateMessages]: P extends '_count' | 'count'
-      ? T[P] extends true
-        ? number
-        : GetScalarType<T[P], AggregateMessages[P]>
-      : GetScalarType<T[P], AggregateMessages[P]>
-  }
-
-
-
-
-  export type MessagesGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    where?: messagesWhereInput
-    orderBy?: Enumerable<messagesOrderByWithAggregationInput>
-    by: MessagesScalarFieldEnum[]
-    having?: messagesScalarWhereWithAggregatesInput
-    take?: number
-    skip?: number
-    _count?: MessagesCountAggregateInputType | true
-    _min?: MessagesMinAggregateInputType
-    _max?: MessagesMaxAggregateInputType
-  }
-
-
-  export type MessagesGroupByOutputType = {
-    message_id: string
-    channel_id: string
-    user_id: string
-    content: string
-    created_at: Date
-    updated_at: Date
-    _count: MessagesCountAggregateOutputType | null
-    _min: MessagesMinAggregateOutputType | null
-    _max: MessagesMaxAggregateOutputType | null
-  }
-
-  type GetMessagesGroupByPayload<T extends MessagesGroupByArgs> = Prisma.PrismaPromise<
-    Array<
-      PickArray<MessagesGroupByOutputType, T['by']> &
-        {
-          [P in ((keyof T) & (keyof MessagesGroupByOutputType))]: P extends '_count'
-            ? T[P] extends boolean
-              ? number
-              : GetScalarType<T[P], MessagesGroupByOutputType[P]>
-            : GetScalarType<T[P], MessagesGroupByOutputType[P]>
-        }
-      >
-    >
-
-
-  export type messagesSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    message_id?: boolean
-    channel_id?: boolean
-    user_id?: boolean
-    content?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-    channels?: boolean | channelsArgs<ExtArgs>
-  }, ExtArgs["result"]["messages"]>
-
-  export type messagesSelectScalar = {
-    message_id?: boolean
-    channel_id?: boolean
-    user_id?: boolean
-    content?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-  }
-
-  export type messagesInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    channels?: boolean | channelsArgs<ExtArgs>
-  }
-
-
-  type messagesGetPayload<S extends boolean | null | undefined | messagesArgs> = $Types.GetResult<messagesPayload, S>
-
-  type messagesCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
-    Omit<messagesFindManyArgs, 'select' | 'include'> & {
-      select?: MessagesCountAggregateInputType | true
-    }
-
-  export interface messagesDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['messages'], meta: { name: 'messages' } }
-    /**
-     * Find zero or one Messages that matches the filter.
-     * @param {messagesFindUniqueArgs} args - Arguments to find a Messages
-     * @example
-     * // Get one Messages
-     * const messages = await prisma.messages.findUnique({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUnique<T extends messagesFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
-      args: SelectSubset<T, messagesFindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'messages'> extends True ? Prisma__messagesClient<$Types.GetResult<messagesPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__messagesClient<$Types.GetResult<messagesPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
-
-    /**
-     * Find one Messages that matches the filter or throw an error  with `error.code='P2025'` 
-     *     if no matches were found.
-     * @param {messagesFindUniqueOrThrowArgs} args - Arguments to find a Messages
-     * @example
-     * // Get one Messages
-     * const messages = await prisma.messages.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends messagesFindUniqueOrThrowArgs<ExtArgs>>(
-      args?: SelectSubset<T, messagesFindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__messagesClient<$Types.GetResult<messagesPayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
-
-    /**
-     * Find the first Messages that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {messagesFindFirstArgs} args - Arguments to find a Messages
-     * @example
-     * // Get one Messages
-     * const messages = await prisma.messages.findFirst({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirst<T extends messagesFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
-      args?: SelectSubset<T, messagesFindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'messages'> extends True ? Prisma__messagesClient<$Types.GetResult<messagesPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__messagesClient<$Types.GetResult<messagesPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
-
-    /**
-     * Find the first Messages that matches the filter or
-     * throw `NotFoundError` if no matches were found.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {messagesFindFirstOrThrowArgs} args - Arguments to find a Messages
-     * @example
-     * // Get one Messages
-     * const messages = await prisma.messages.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends messagesFindFirstOrThrowArgs<ExtArgs>>(
-      args?: SelectSubset<T, messagesFindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__messagesClient<$Types.GetResult<messagesPayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
-
-    /**
-     * Find zero or more Messages that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {messagesFindManyArgs=} args - Arguments to filter and select certain fields only.
-     * @example
-     * // Get all Messages
-     * const messages = await prisma.messages.findMany()
-     * 
-     * // Get first 10 Messages
-     * const messages = await prisma.messages.findMany({ take: 10 })
-     * 
-     * // Only select the `message_id`
-     * const messagesWithMessage_idOnly = await prisma.messages.findMany({ select: { message_id: true } })
-     * 
-    **/
-    findMany<T extends messagesFindManyArgs<ExtArgs>>(
-      args?: SelectSubset<T, messagesFindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<$Types.GetResult<messagesPayload<ExtArgs>, T, 'findMany', never>>
-
-    /**
-     * Create a Messages.
-     * @param {messagesCreateArgs} args - Arguments to create a Messages.
-     * @example
-     * // Create one Messages
-     * const Messages = await prisma.messages.create({
-     *   data: {
-     *     // ... data to create a Messages
-     *   }
-     * })
-     * 
-    **/
-    create<T extends messagesCreateArgs<ExtArgs>>(
-      args: SelectSubset<T, messagesCreateArgs<ExtArgs>>
-    ): Prisma__messagesClient<$Types.GetResult<messagesPayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
-
-    /**
-     * Create many Messages.
-     *     @param {messagesCreateManyArgs} args - Arguments to create many Messages.
-     *     @example
-     *     // Create many Messages
-     *     const messages = await prisma.messages.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
-     *     
-    **/
-    createMany<T extends messagesCreateManyArgs<ExtArgs>>(
-      args?: SelectSubset<T, messagesCreateManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Delete a Messages.
-     * @param {messagesDeleteArgs} args - Arguments to delete one Messages.
-     * @example
-     * // Delete one Messages
-     * const Messages = await prisma.messages.delete({
-     *   where: {
-     *     // ... filter to delete one Messages
-     *   }
-     * })
-     * 
-    **/
-    delete<T extends messagesDeleteArgs<ExtArgs>>(
-      args: SelectSubset<T, messagesDeleteArgs<ExtArgs>>
-    ): Prisma__messagesClient<$Types.GetResult<messagesPayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
-
-    /**
-     * Update one Messages.
-     * @param {messagesUpdateArgs} args - Arguments to update one Messages.
-     * @example
-     * // Update one Messages
-     * const messages = await prisma.messages.update({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-    **/
-    update<T extends messagesUpdateArgs<ExtArgs>>(
-      args: SelectSubset<T, messagesUpdateArgs<ExtArgs>>
-    ): Prisma__messagesClient<$Types.GetResult<messagesPayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
-
-    /**
-     * Delete zero or more Messages.
-     * @param {messagesDeleteManyArgs} args - Arguments to filter Messages to delete.
-     * @example
-     * // Delete a few Messages
-     * const { count } = await prisma.messages.deleteMany({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     * 
-    **/
-    deleteMany<T extends messagesDeleteManyArgs<ExtArgs>>(
-      args?: SelectSubset<T, messagesDeleteManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more Messages.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {messagesUpdateManyArgs} args - Arguments to update one or more rows.
-     * @example
-     * // Update many Messages
-     * const messages = await prisma.messages.updateMany({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-    **/
-    updateMany<T extends messagesUpdateManyArgs<ExtArgs>>(
-      args: SelectSubset<T, messagesUpdateManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Create or update one Messages.
-     * @param {messagesUpsertArgs} args - Arguments to update or create a Messages.
-     * @example
-     * // Update or create a Messages
-     * const messages = await prisma.messages.upsert({
-     *   create: {
-     *     // ... data to create a Messages
-     *   },
-     *   update: {
-     *     // ... in case it already exists, update
-     *   },
-     *   where: {
-     *     // ... the filter for the Messages we want to update
-     *   }
-     * })
-    **/
-    upsert<T extends messagesUpsertArgs<ExtArgs>>(
-      args: SelectSubset<T, messagesUpsertArgs<ExtArgs>>
-    ): Prisma__messagesClient<$Types.GetResult<messagesPayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
-
-    /**
-     * Count the number of Messages.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {messagesCountArgs} args - Arguments to filter Messages to count.
-     * @example
-     * // Count the number of Messages
-     * const count = await prisma.messages.count({
-     *   where: {
-     *     // ... the filter for the Messages we want to count
-     *   }
-     * })
-    **/
-    count<T extends messagesCountArgs>(
-      args?: Subset<T, messagesCountArgs>,
-    ): Prisma.PrismaPromise<
-      T extends $Utils.Record<'select', any>
-        ? T['select'] extends true
-          ? number
-          : GetScalarType<T['select'], MessagesCountAggregateOutputType>
-        : number
-    >
-
-    /**
-     * Allows you to perform aggregations operations on a Messages.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {MessagesAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
-     * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
-     * const aggregations = await prisma.user.aggregate({
-     *   _avg: {
-     *     age: true,
-     *   },
-     *   where: {
-     *     email: {
-     *       contains: "prisma.io",
-     *     },
-     *   },
-     *   orderBy: {
-     *     age: "asc",
-     *   },
-     *   take: 10,
-     * })
-    **/
-    aggregate<T extends MessagesAggregateArgs>(args: Subset<T, MessagesAggregateArgs>): Prisma.PrismaPromise<GetMessagesAggregateType<T>>
-
-    /**
-     * Group by Messages.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {MessagesGroupByArgs} args - Group by arguments.
-     * @example
-     * // Group by city, order by createdAt, get count
-     * const result = await prisma.user.groupBy({
-     *   by: ['city', 'createdAt'],
-     *   orderBy: {
-     *     createdAt: true
-     *   },
-     *   _count: {
-     *     _all: true
-     *   },
-     * })
-     * 
-    **/
-    groupBy<
-      T extends MessagesGroupByArgs,
-      HasSelectOrTake extends Or<
-        Extends<'skip', Keys<T>>,
-        Extends<'take', Keys<T>>
-      >,
-      OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: MessagesGroupByArgs['orderBy'] }
-        : { orderBy?: MessagesGroupByArgs['orderBy'] },
-      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
-      ByValid extends Has<ByFields, OrderFields>,
-      HavingFields extends GetHavingFields<T['having']>,
-      HavingValid extends Has<ByFields, HavingFields>,
-      ByEmpty extends T['by'] extends never[] ? True : False,
-      InputErrors extends ByEmpty extends True
-      ? `Error: "by" must not be empty.`
-      : HavingValid extends False
-      ? {
-          [P in HavingFields]: P extends ByFields
-            ? never
-            : P extends string
-            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
-            : [
-                Error,
-                'Field ',
-                P,
-                ` in "having" needs to be provided in "by"`,
-              ]
-        }[HavingFields]
-      : 'take' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "take", you also need to provide "orderBy"'
-      : 'skip' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "skip", you also need to provide "orderBy"'
-      : ByValid extends True
-      ? {}
-      : {
-          [P in OrderFields]: P extends ByFields
-            ? never
-            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-        }[OrderFields]
-    >(args: SubsetIntersection<T, MessagesGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMessagesGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
-  }
-
-  /**
-   * The delegate class that acts as a "Promise-like" for messages.
-   * Why is this prefixed with `Prisma__`?
-   * Because we want to prevent naming conflicts as mentioned in
-   * https://github.com/prisma/prisma-client-js/issues/707
-   */
-  export class Prisma__messagesClient<T, Null = never, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> implements Prisma.PrismaPromise<T> {
-    private readonly _dmmf;
-    private readonly _queryType;
-    private readonly _rootField;
-    private readonly _clientMethod;
-    private readonly _args;
-    private readonly _dataPath;
-    private readonly _errorFormat;
-    private readonly _measurePerformance?;
-    private _isList;
-    private _callsite;
-    private _requestPromise?;
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-    constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
-
-    channels<T extends channelsArgs<ExtArgs> = {}>(args?: Subset<T, channelsArgs<ExtArgs>>): Prisma__channelsClient<$Types.GetResult<channelsPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
-
-    private get _document();
-    /**
-     * Attaches callbacks for the resolution and/or rejection of the Promise.
-     * @param onfulfilled The callback to execute when the Promise is resolved.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of which ever callback is executed.
-     */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
-    /**
-     * Attaches a callback for only the rejection of the Promise.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of the callback.
-     */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
-    /**
-     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
-     * resolved value cannot be modified from the callback.
-     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
-     * @returns A Promise for the completion of the callback.
-     */
-    finally(onfinally?: (() => void) | undefined | null): Promise<T>;
-  }
-
-
-
-  // Custom InputTypes
-
-  /**
-   * messages base type for findUnique actions
-   */
-  export type messagesFindUniqueArgsBase<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the messages
-     */
-    select?: messagesSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     */
-    include?: messagesInclude<ExtArgs> | null
-    /**
-     * Filter, which messages to fetch.
-     */
-    where: messagesWhereUniqueInput
-  }
-
-  /**
-   * messages findUnique
-   */
-  export interface messagesFindUniqueArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> extends messagesFindUniqueArgsBase<ExtArgs> {
-   /**
-    * Throw an Error if query returns no results
-    * @deprecated since 4.0.0: use `findUniqueOrThrow` method instead
-    */
-    rejectOnNotFound?: RejectOnNotFound
-  }
-      
-
-  /**
-   * messages findUniqueOrThrow
-   */
-  export type messagesFindUniqueOrThrowArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the messages
-     */
-    select?: messagesSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     */
-    include?: messagesInclude<ExtArgs> | null
-    /**
-     * Filter, which messages to fetch.
-     */
-    where: messagesWhereUniqueInput
-  }
-
-
-  /**
-   * messages base type for findFirst actions
-   */
-  export type messagesFindFirstArgsBase<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the messages
-     */
-    select?: messagesSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     */
-    include?: messagesInclude<ExtArgs> | null
-    /**
-     * Filter, which messages to fetch.
-     */
-    where?: messagesWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of messages to fetch.
-     */
-    orderBy?: Enumerable<messagesOrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for messages.
-     */
-    cursor?: messagesWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` messages from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` messages.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of messages.
-     */
-    distinct?: Enumerable<MessagesScalarFieldEnum>
-  }
-
-  /**
-   * messages findFirst
-   */
-  export interface messagesFindFirstArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> extends messagesFindFirstArgsBase<ExtArgs> {
-   /**
-    * Throw an Error if query returns no results
-    * @deprecated since 4.0.0: use `findFirstOrThrow` method instead
-    */
-    rejectOnNotFound?: RejectOnNotFound
-  }
-      
-
-  /**
-   * messages findFirstOrThrow
-   */
-  export type messagesFindFirstOrThrowArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the messages
-     */
-    select?: messagesSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     */
-    include?: messagesInclude<ExtArgs> | null
-    /**
-     * Filter, which messages to fetch.
-     */
-    where?: messagesWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of messages to fetch.
-     */
-    orderBy?: Enumerable<messagesOrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for messages.
-     */
-    cursor?: messagesWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` messages from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` messages.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of messages.
-     */
-    distinct?: Enumerable<MessagesScalarFieldEnum>
-  }
-
-
-  /**
-   * messages findMany
-   */
-  export type messagesFindManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the messages
-     */
-    select?: messagesSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     */
-    include?: messagesInclude<ExtArgs> | null
-    /**
-     * Filter, which messages to fetch.
-     */
-    where?: messagesWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of messages to fetch.
-     */
-    orderBy?: Enumerable<messagesOrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for listing messages.
-     */
-    cursor?: messagesWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` messages from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` messages.
-     */
-    skip?: number
-    distinct?: Enumerable<MessagesScalarFieldEnum>
-  }
-
-
-  /**
-   * messages create
-   */
-  export type messagesCreateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the messages
-     */
-    select?: messagesSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     */
-    include?: messagesInclude<ExtArgs> | null
-    /**
-     * The data needed to create a messages.
-     */
-    data: XOR<messagesCreateInput, messagesUncheckedCreateInput>
-  }
-
-
-  /**
-   * messages createMany
-   */
-  export type messagesCreateManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to create many messages.
-     */
-    data: Enumerable<messagesCreateManyInput>
-    skipDuplicates?: boolean
-  }
-
-
-  /**
-   * messages update
-   */
-  export type messagesUpdateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the messages
-     */
-    select?: messagesSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     */
-    include?: messagesInclude<ExtArgs> | null
-    /**
-     * The data needed to update a messages.
-     */
-    data: XOR<messagesUpdateInput, messagesUncheckedUpdateInput>
-    /**
-     * Choose, which messages to update.
-     */
-    where: messagesWhereUniqueInput
-  }
-
-
-  /**
-   * messages updateMany
-   */
-  export type messagesUpdateManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to update messages.
-     */
-    data: XOR<messagesUpdateManyMutationInput, messagesUncheckedUpdateManyInput>
-    /**
-     * Filter which messages to update
-     */
-    where?: messagesWhereInput
-  }
-
-
-  /**
-   * messages upsert
-   */
-  export type messagesUpsertArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the messages
-     */
-    select?: messagesSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     */
-    include?: messagesInclude<ExtArgs> | null
-    /**
-     * The filter to search for the messages to update in case it exists.
-     */
-    where: messagesWhereUniqueInput
-    /**
-     * In case the messages found by the `where` argument doesn't exist, create a new messages with this data.
-     */
-    create: XOR<messagesCreateInput, messagesUncheckedCreateInput>
-    /**
-     * In case the messages was found with the provided `where` argument, update it with this data.
-     */
-    update: XOR<messagesUpdateInput, messagesUncheckedUpdateInput>
-  }
-
-
-  /**
-   * messages delete
-   */
-  export type messagesDeleteArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the messages
-     */
-    select?: messagesSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     */
-    include?: messagesInclude<ExtArgs> | null
-    /**
-     * Filter which messages to delete.
-     */
-    where: messagesWhereUniqueInput
-  }
-
-
-  /**
-   * messages deleteMany
-   */
-  export type messagesDeleteManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which messages to delete
-     */
-    where?: messagesWhereInput
-  }
-
-
-  /**
-   * messages without action
-   */
-  export type messagesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the messages
-     */
-    select?: messagesSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     */
-    include?: messagesInclude<ExtArgs> | null
-  }
-
-
-
-  /**
    * Model presence
    */
 
@@ -6122,6 +5039,7 @@ export namespace Prisma {
     name: 'name',
     description: 'description',
     owner_id: 'owner_id',
+    is_public: 'is_public',
     created_at: 'created_at',
     updated_at: 'updated_at'
   };
@@ -6151,18 +5069,6 @@ export namespace Prisma {
   };
 
   export type MembersScalarFieldEnum = (typeof MembersScalarFieldEnum)[keyof typeof MembersScalarFieldEnum]
-
-
-  export const MessagesScalarFieldEnum: {
-    message_id: 'message_id',
-    channel_id: 'channel_id',
-    user_id: 'user_id',
-    content: 'content',
-    created_at: 'created_at',
-    updated_at: 'updated_at'
-  };
-
-  export type MessagesScalarFieldEnum = (typeof MessagesScalarFieldEnum)[keyof typeof MessagesScalarFieldEnum]
 
 
   export const PresenceScalarFieldEnum: {
@@ -6213,6 +5119,7 @@ export namespace Prisma {
     name?: StringFilter | string
     description?: StringNullableFilter | string | null
     owner_id?: UuidFilter | string
+    is_public?: BoolFilter | boolean
     created_at?: DateTimeFilter | Date | string
     updated_at?: DateTimeFilter | Date | string
     channels?: ChannelsListRelationFilter
@@ -6224,6 +5131,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     owner_id?: SortOrder
+    is_public?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
     channels?: channelsOrderByRelationAggregateInput
@@ -6239,6 +5147,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     owner_id?: SortOrder
+    is_public?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
     _count?: serversCountOrderByAggregateInput
@@ -6254,6 +5163,7 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter | string
     description?: StringNullableWithAggregatesFilter | string | null
     owner_id?: UuidWithAggregatesFilter | string
+    is_public?: BoolWithAggregatesFilter | boolean
     created_at?: DateTimeWithAggregatesFilter | Date | string
     updated_at?: DateTimeWithAggregatesFilter | Date | string
   }
@@ -6270,7 +5180,6 @@ export namespace Prisma {
     position?: IntNullableFilter | number | null
     created_at?: DateTimeFilter | Date | string
     servers?: XOR<ServersRelationFilter, serversWhereInput>
-    messages?: MessagesListRelationFilter
   }
 
   export type channelsOrderByWithRelationInput = {
@@ -6282,7 +5191,6 @@ export namespace Prisma {
     position?: SortOrderInput | SortOrder
     created_at?: SortOrder
     servers?: serversOrderByWithRelationInput
-    messages?: messagesOrderByRelationAggregateInput
   }
 
   export type channelsWhereUniqueInput = {
@@ -6366,57 +5274,6 @@ export namespace Prisma {
     joined_at?: DateTimeWithAggregatesFilter | Date | string
   }
 
-  export type messagesWhereInput = {
-    AND?: Enumerable<messagesWhereInput>
-    OR?: Enumerable<messagesWhereInput>
-    NOT?: Enumerable<messagesWhereInput>
-    message_id?: UuidFilter | string
-    channel_id?: UuidFilter | string
-    user_id?: UuidFilter | string
-    content?: StringFilter | string
-    created_at?: DateTimeFilter | Date | string
-    updated_at?: DateTimeFilter | Date | string
-    channels?: XOR<ChannelsRelationFilter, channelsWhereInput>
-  }
-
-  export type messagesOrderByWithRelationInput = {
-    message_id?: SortOrder
-    channel_id?: SortOrder
-    user_id?: SortOrder
-    content?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-    channels?: channelsOrderByWithRelationInput
-  }
-
-  export type messagesWhereUniqueInput = {
-    message_id?: string
-  }
-
-  export type messagesOrderByWithAggregationInput = {
-    message_id?: SortOrder
-    channel_id?: SortOrder
-    user_id?: SortOrder
-    content?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-    _count?: messagesCountOrderByAggregateInput
-    _max?: messagesMaxOrderByAggregateInput
-    _min?: messagesMinOrderByAggregateInput
-  }
-
-  export type messagesScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<messagesScalarWhereWithAggregatesInput>
-    OR?: Enumerable<messagesScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<messagesScalarWhereWithAggregatesInput>
-    message_id?: UuidWithAggregatesFilter | string
-    channel_id?: UuidWithAggregatesFilter | string
-    user_id?: UuidWithAggregatesFilter | string
-    content?: StringWithAggregatesFilter | string
-    created_at?: DateTimeWithAggregatesFilter | Date | string
-    updated_at?: DateTimeWithAggregatesFilter | Date | string
-  }
-
   export type presenceWhereInput = {
     AND?: Enumerable<presenceWhereInput>
     OR?: Enumerable<presenceWhereInput>
@@ -6438,6 +5295,7 @@ export namespace Prisma {
 
   export type presenceWhereUniqueInput = {
     presence_id?: string
+    user_id?: string
   }
 
   export type presenceOrderByWithAggregationInput = {
@@ -6467,6 +5325,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     owner_id: string
+    is_public?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     channels?: channelsCreateNestedManyWithoutServersInput
@@ -6478,6 +5337,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     owner_id: string
+    is_public?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     channels?: channelsUncheckedCreateNestedManyWithoutServersInput
@@ -6489,6 +5349,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     owner_id?: StringFieldUpdateOperationsInput | string
+    is_public?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     channels?: channelsUpdateManyWithoutServersNestedInput
@@ -6500,6 +5361,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     owner_id?: StringFieldUpdateOperationsInput | string
+    is_public?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     channels?: channelsUncheckedUpdateManyWithoutServersNestedInput
@@ -6511,6 +5373,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     owner_id: string
+    is_public?: boolean
     created_at?: Date | string
     updated_at?: Date | string
   }
@@ -6520,6 +5383,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     owner_id?: StringFieldUpdateOperationsInput | string
+    is_public?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -6529,6 +5393,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     owner_id?: StringFieldUpdateOperationsInput | string
+    is_public?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -6541,7 +5406,6 @@ export namespace Prisma {
     position?: number | null
     created_at?: Date | string
     servers: serversCreateNestedOneWithoutChannelsInput
-    messages?: messagesCreateNestedManyWithoutChannelsInput
   }
 
   export type channelsUncheckedCreateInput = {
@@ -6552,7 +5416,6 @@ export namespace Prisma {
     topic?: string | null
     position?: number | null
     created_at?: Date | string
-    messages?: messagesUncheckedCreateNestedManyWithoutChannelsInput
   }
 
   export type channelsUpdateInput = {
@@ -6563,7 +5426,6 @@ export namespace Prisma {
     position?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     servers?: serversUpdateOneRequiredWithoutChannelsNestedInput
-    messages?: messagesUpdateManyWithoutChannelsNestedInput
   }
 
   export type channelsUncheckedUpdateInput = {
@@ -6574,7 +5436,6 @@ export namespace Prisma {
     topic?: NullableStringFieldUpdateOperationsInput | string | null
     position?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    messages?: messagesUncheckedUpdateManyWithoutChannelsNestedInput
   }
 
   export type channelsCreateManyInput = {
@@ -6659,68 +5520,6 @@ export namespace Prisma {
     user_id?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     joined_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type messagesCreateInput = {
-    message_id?: string
-    user_id: string
-    content: string
-    created_at?: Date | string
-    updated_at?: Date | string
-    channels: channelsCreateNestedOneWithoutMessagesInput
-  }
-
-  export type messagesUncheckedCreateInput = {
-    message_id?: string
-    channel_id: string
-    user_id: string
-    content: string
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type messagesUpdateInput = {
-    message_id?: StringFieldUpdateOperationsInput | string
-    user_id?: StringFieldUpdateOperationsInput | string
-    content?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    channels?: channelsUpdateOneRequiredWithoutMessagesNestedInput
-  }
-
-  export type messagesUncheckedUpdateInput = {
-    message_id?: StringFieldUpdateOperationsInput | string
-    channel_id?: StringFieldUpdateOperationsInput | string
-    user_id?: StringFieldUpdateOperationsInput | string
-    content?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type messagesCreateManyInput = {
-    message_id?: string
-    channel_id: string
-    user_id: string
-    content: string
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type messagesUpdateManyMutationInput = {
-    message_id?: StringFieldUpdateOperationsInput | string
-    user_id?: StringFieldUpdateOperationsInput | string
-    content?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type messagesUncheckedUpdateManyInput = {
-    message_id?: StringFieldUpdateOperationsInput | string
-    channel_id?: StringFieldUpdateOperationsInput | string
-    user_id?: StringFieldUpdateOperationsInput | string
-    content?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type presenceCreateInput = {
@@ -6821,6 +5620,11 @@ export namespace Prisma {
     not?: NestedStringNullableFilter | string | null
   }
 
+  export type BoolFilter = {
+    equals?: boolean
+    not?: NestedBoolFilter | boolean
+  }
+
   export type DateTimeFilter = {
     equals?: Date | string
     in?: Enumerable<Date> | Enumerable<string> | Date | string
@@ -6862,6 +5666,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrder
     owner_id?: SortOrder
+    is_public?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
   }
@@ -6871,6 +5676,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrder
     owner_id?: SortOrder
+    is_public?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
   }
@@ -6880,6 +5686,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrder
     owner_id?: SortOrder
+    is_public?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
   }
@@ -6935,6 +5742,14 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter
   }
 
+  export type BoolWithAggregatesFilter = {
+    equals?: boolean
+    not?: NestedBoolWithAggregatesFilter | boolean
+    _count?: NestedIntFilter
+    _min?: NestedBoolFilter
+    _max?: NestedBoolFilter
+  }
+
   export type DateTimeWithAggregatesFilter = {
     equals?: Date | string
     in?: Enumerable<Date> | Enumerable<string> | Date | string
@@ -6963,16 +5778,6 @@ export namespace Prisma {
   export type ServersRelationFilter = {
     is?: serversWhereInput | null
     isNot?: serversWhereInput | null
-  }
-
-  export type MessagesListRelationFilter = {
-    every?: messagesWhereInput
-    some?: messagesWhereInput
-    none?: messagesWhereInput
-  }
-
-  export type messagesOrderByRelationAggregateInput = {
-    _count?: SortOrder
   }
 
   export type channelsServer_idNameCompoundUniqueInput = {
@@ -7063,38 +5868,6 @@ export namespace Prisma {
     joined_at?: SortOrder
   }
 
-  export type ChannelsRelationFilter = {
-    is?: channelsWhereInput | null
-    isNot?: channelsWhereInput | null
-  }
-
-  export type messagesCountOrderByAggregateInput = {
-    message_id?: SortOrder
-    channel_id?: SortOrder
-    user_id?: SortOrder
-    content?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-  }
-
-  export type messagesMaxOrderByAggregateInput = {
-    message_id?: SortOrder
-    channel_id?: SortOrder
-    user_id?: SortOrder
-    content?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-  }
-
-  export type messagesMinOrderByAggregateInput = {
-    message_id?: SortOrder
-    channel_id?: SortOrder
-    user_id?: SortOrder
-    content?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-  }
-
   export type DateTimeNullableFilter = {
     equals?: Date | string | null
     in?: Enumerable<Date> | Enumerable<string> | Date | string | null
@@ -7180,6 +5953,10 @@ export namespace Prisma {
     set?: string | null
   }
 
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
+  }
+
   export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string
   }
@@ -7246,20 +6023,6 @@ export namespace Prisma {
     connect?: serversWhereUniqueInput
   }
 
-  export type messagesCreateNestedManyWithoutChannelsInput = {
-    create?: XOR<Enumerable<messagesCreateWithoutChannelsInput>, Enumerable<messagesUncheckedCreateWithoutChannelsInput>>
-    connectOrCreate?: Enumerable<messagesCreateOrConnectWithoutChannelsInput>
-    createMany?: messagesCreateManyChannelsInputEnvelope
-    connect?: Enumerable<messagesWhereUniqueInput>
-  }
-
-  export type messagesUncheckedCreateNestedManyWithoutChannelsInput = {
-    create?: XOR<Enumerable<messagesCreateWithoutChannelsInput>, Enumerable<messagesUncheckedCreateWithoutChannelsInput>>
-    connectOrCreate?: Enumerable<messagesCreateOrConnectWithoutChannelsInput>
-    createMany?: messagesCreateManyChannelsInputEnvelope
-    connect?: Enumerable<messagesWhereUniqueInput>
-  }
-
   export type NullableIntFieldUpdateOperationsInput = {
     set?: number | null
     increment?: number
@@ -7276,34 +6039,6 @@ export namespace Prisma {
     update?: XOR<serversUpdateWithoutChannelsInput, serversUncheckedUpdateWithoutChannelsInput>
   }
 
-  export type messagesUpdateManyWithoutChannelsNestedInput = {
-    create?: XOR<Enumerable<messagesCreateWithoutChannelsInput>, Enumerable<messagesUncheckedCreateWithoutChannelsInput>>
-    connectOrCreate?: Enumerable<messagesCreateOrConnectWithoutChannelsInput>
-    upsert?: Enumerable<messagesUpsertWithWhereUniqueWithoutChannelsInput>
-    createMany?: messagesCreateManyChannelsInputEnvelope
-    set?: Enumerable<messagesWhereUniqueInput>
-    disconnect?: Enumerable<messagesWhereUniqueInput>
-    delete?: Enumerable<messagesWhereUniqueInput>
-    connect?: Enumerable<messagesWhereUniqueInput>
-    update?: Enumerable<messagesUpdateWithWhereUniqueWithoutChannelsInput>
-    updateMany?: Enumerable<messagesUpdateManyWithWhereWithoutChannelsInput>
-    deleteMany?: Enumerable<messagesScalarWhereInput>
-  }
-
-  export type messagesUncheckedUpdateManyWithoutChannelsNestedInput = {
-    create?: XOR<Enumerable<messagesCreateWithoutChannelsInput>, Enumerable<messagesUncheckedCreateWithoutChannelsInput>>
-    connectOrCreate?: Enumerable<messagesCreateOrConnectWithoutChannelsInput>
-    upsert?: Enumerable<messagesUpsertWithWhereUniqueWithoutChannelsInput>
-    createMany?: messagesCreateManyChannelsInputEnvelope
-    set?: Enumerable<messagesWhereUniqueInput>
-    disconnect?: Enumerable<messagesWhereUniqueInput>
-    delete?: Enumerable<messagesWhereUniqueInput>
-    connect?: Enumerable<messagesWhereUniqueInput>
-    update?: Enumerable<messagesUpdateWithWhereUniqueWithoutChannelsInput>
-    updateMany?: Enumerable<messagesUpdateManyWithWhereWithoutChannelsInput>
-    deleteMany?: Enumerable<messagesScalarWhereInput>
-  }
-
   export type serversCreateNestedOneWithoutMembersInput = {
     create?: XOR<serversCreateWithoutMembersInput, serversUncheckedCreateWithoutMembersInput>
     connectOrCreate?: serversCreateOrConnectWithoutMembersInput
@@ -7316,20 +6051,6 @@ export namespace Prisma {
     upsert?: serversUpsertWithoutMembersInput
     connect?: serversWhereUniqueInput
     update?: XOR<serversUpdateWithoutMembersInput, serversUncheckedUpdateWithoutMembersInput>
-  }
-
-  export type channelsCreateNestedOneWithoutMessagesInput = {
-    create?: XOR<channelsCreateWithoutMessagesInput, channelsUncheckedCreateWithoutMessagesInput>
-    connectOrCreate?: channelsCreateOrConnectWithoutMessagesInput
-    connect?: channelsWhereUniqueInput
-  }
-
-  export type channelsUpdateOneRequiredWithoutMessagesNestedInput = {
-    create?: XOR<channelsCreateWithoutMessagesInput, channelsUncheckedCreateWithoutMessagesInput>
-    connectOrCreate?: channelsCreateOrConnectWithoutMessagesInput
-    upsert?: channelsUpsertWithoutMessagesInput
-    connect?: channelsWhereUniqueInput
-    update?: XOR<channelsUpdateWithoutMessagesInput, channelsUncheckedUpdateWithoutMessagesInput>
   }
 
   export type NullableDateTimeFieldUpdateOperationsInput = {
@@ -7373,6 +6094,11 @@ export namespace Prisma {
     startsWith?: string
     endsWith?: string
     not?: NestedStringNullableFilter | string | null
+  }
+
+  export type NestedBoolFilter = {
+    equals?: boolean
+    not?: NestedBoolFilter | boolean
   }
 
   export type NestedDateTimeFilter = {
@@ -7456,6 +6182,14 @@ export namespace Prisma {
     not?: NestedIntNullableFilter | number | null
   }
 
+  export type NestedBoolWithAggregatesFilter = {
+    equals?: boolean
+    not?: NestedBoolWithAggregatesFilter | boolean
+    _count?: NestedIntFilter
+    _min?: NestedBoolFilter
+    _max?: NestedBoolFilter
+  }
+
   export type NestedDateTimeWithAggregatesFilter = {
     equals?: Date | string
     in?: Enumerable<Date> | Enumerable<string> | Date | string
@@ -7529,7 +6263,6 @@ export namespace Prisma {
     topic?: string | null
     position?: number | null
     created_at?: Date | string
-    messages?: messagesCreateNestedManyWithoutChannelsInput
   }
 
   export type channelsUncheckedCreateWithoutServersInput = {
@@ -7539,7 +6272,6 @@ export namespace Prisma {
     topic?: string | null
     position?: number | null
     created_at?: Date | string
-    messages?: messagesUncheckedCreateNestedManyWithoutChannelsInput
   }
 
   export type channelsCreateOrConnectWithoutServersInput = {
@@ -7637,6 +6369,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     owner_id: string
+    is_public?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     members?: membersCreateNestedManyWithoutServersInput
@@ -7647,6 +6380,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     owner_id: string
+    is_public?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     members?: membersUncheckedCreateNestedManyWithoutServersInput
@@ -7655,32 +6389,6 @@ export namespace Prisma {
   export type serversCreateOrConnectWithoutChannelsInput = {
     where: serversWhereUniqueInput
     create: XOR<serversCreateWithoutChannelsInput, serversUncheckedCreateWithoutChannelsInput>
-  }
-
-  export type messagesCreateWithoutChannelsInput = {
-    message_id?: string
-    user_id: string
-    content: string
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type messagesUncheckedCreateWithoutChannelsInput = {
-    message_id?: string
-    user_id: string
-    content: string
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type messagesCreateOrConnectWithoutChannelsInput = {
-    where: messagesWhereUniqueInput
-    create: XOR<messagesCreateWithoutChannelsInput, messagesUncheckedCreateWithoutChannelsInput>
-  }
-
-  export type messagesCreateManyChannelsInputEnvelope = {
-    data: Enumerable<messagesCreateManyChannelsInput>
-    skipDuplicates?: boolean
   }
 
   export type serversUpsertWithoutChannelsInput = {
@@ -7693,6 +6401,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     owner_id?: StringFieldUpdateOperationsInput | string
+    is_public?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: membersUpdateManyWithoutServersNestedInput
@@ -7703,37 +6412,10 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     owner_id?: StringFieldUpdateOperationsInput | string
+    is_public?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: membersUncheckedUpdateManyWithoutServersNestedInput
-  }
-
-  export type messagesUpsertWithWhereUniqueWithoutChannelsInput = {
-    where: messagesWhereUniqueInput
-    update: XOR<messagesUpdateWithoutChannelsInput, messagesUncheckedUpdateWithoutChannelsInput>
-    create: XOR<messagesCreateWithoutChannelsInput, messagesUncheckedCreateWithoutChannelsInput>
-  }
-
-  export type messagesUpdateWithWhereUniqueWithoutChannelsInput = {
-    where: messagesWhereUniqueInput
-    data: XOR<messagesUpdateWithoutChannelsInput, messagesUncheckedUpdateWithoutChannelsInput>
-  }
-
-  export type messagesUpdateManyWithWhereWithoutChannelsInput = {
-    where: messagesScalarWhereInput
-    data: XOR<messagesUpdateManyMutationInput, messagesUncheckedUpdateManyWithoutMessagesInput>
-  }
-
-  export type messagesScalarWhereInput = {
-    AND?: Enumerable<messagesScalarWhereInput>
-    OR?: Enumerable<messagesScalarWhereInput>
-    NOT?: Enumerable<messagesScalarWhereInput>
-    message_id?: UuidFilter | string
-    channel_id?: UuidFilter | string
-    user_id?: UuidFilter | string
-    content?: StringFilter | string
-    created_at?: DateTimeFilter | Date | string
-    updated_at?: DateTimeFilter | Date | string
   }
 
   export type serversCreateWithoutMembersInput = {
@@ -7741,6 +6423,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     owner_id: string
+    is_public?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     channels?: channelsCreateNestedManyWithoutServersInput
@@ -7751,6 +6434,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     owner_id: string
+    is_public?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     channels?: channelsUncheckedCreateNestedManyWithoutServersInput
@@ -7771,6 +6455,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     owner_id?: StringFieldUpdateOperationsInput | string
+    is_public?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     channels?: channelsUpdateManyWithoutServersNestedInput
@@ -7781,59 +6466,10 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     owner_id?: StringFieldUpdateOperationsInput | string
+    is_public?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     channels?: channelsUncheckedUpdateManyWithoutServersNestedInput
-  }
-
-  export type channelsCreateWithoutMessagesInput = {
-    channel_id?: string
-    name: string
-    type?: string
-    topic?: string | null
-    position?: number | null
-    created_at?: Date | string
-    servers: serversCreateNestedOneWithoutChannelsInput
-  }
-
-  export type channelsUncheckedCreateWithoutMessagesInput = {
-    channel_id?: string
-    server_id: string
-    name: string
-    type?: string
-    topic?: string | null
-    position?: number | null
-    created_at?: Date | string
-  }
-
-  export type channelsCreateOrConnectWithoutMessagesInput = {
-    where: channelsWhereUniqueInput
-    create: XOR<channelsCreateWithoutMessagesInput, channelsUncheckedCreateWithoutMessagesInput>
-  }
-
-  export type channelsUpsertWithoutMessagesInput = {
-    update: XOR<channelsUpdateWithoutMessagesInput, channelsUncheckedUpdateWithoutMessagesInput>
-    create: XOR<channelsCreateWithoutMessagesInput, channelsUncheckedCreateWithoutMessagesInput>
-  }
-
-  export type channelsUpdateWithoutMessagesInput = {
-    channel_id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    type?: StringFieldUpdateOperationsInput | string
-    topic?: NullableStringFieldUpdateOperationsInput | string | null
-    position?: NullableIntFieldUpdateOperationsInput | number | null
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    servers?: serversUpdateOneRequiredWithoutChannelsNestedInput
-  }
-
-  export type channelsUncheckedUpdateWithoutMessagesInput = {
-    channel_id?: StringFieldUpdateOperationsInput | string
-    server_id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    type?: StringFieldUpdateOperationsInput | string
-    topic?: NullableStringFieldUpdateOperationsInput | string | null
-    position?: NullableIntFieldUpdateOperationsInput | number | null
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type channelsCreateManyServersInput = {
@@ -7859,7 +6495,6 @@ export namespace Prisma {
     topic?: NullableStringFieldUpdateOperationsInput | string | null
     position?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    messages?: messagesUpdateManyWithoutChannelsNestedInput
   }
 
   export type channelsUncheckedUpdateWithoutServersInput = {
@@ -7869,7 +6504,6 @@ export namespace Prisma {
     topic?: NullableStringFieldUpdateOperationsInput | string | null
     position?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    messages?: messagesUncheckedUpdateManyWithoutChannelsNestedInput
   }
 
   export type channelsUncheckedUpdateManyWithoutChannelsInput = {
@@ -7900,38 +6534,6 @@ export namespace Prisma {
     user_id?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     joined_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type messagesCreateManyChannelsInput = {
-    message_id?: string
-    user_id: string
-    content: string
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type messagesUpdateWithoutChannelsInput = {
-    message_id?: StringFieldUpdateOperationsInput | string
-    user_id?: StringFieldUpdateOperationsInput | string
-    content?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type messagesUncheckedUpdateWithoutChannelsInput = {
-    message_id?: StringFieldUpdateOperationsInput | string
-    user_id?: StringFieldUpdateOperationsInput | string
-    content?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type messagesUncheckedUpdateManyWithoutMessagesInput = {
-    message_id?: StringFieldUpdateOperationsInput | string
-    user_id?: StringFieldUpdateOperationsInput | string
-    content?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

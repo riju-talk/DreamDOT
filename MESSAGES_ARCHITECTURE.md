@@ -1,5 +1,7 @@
 # DreamDOT Messages Architecture - Hybrid DM + Community Chat
 
+**Updated 2026-08-09**: this document originally described the intended design. Everything below is now built and wired end-to-end — real-time channel chat, browse/join/leave/delete, and persisted presence all shipped this pass. See `docs/DATA_SCHEMA.md` §2.4/§1.4 for the exact schema, and `docs/PRD.md` §6.4 for feature status.
+
 ## Overview
 The Messages system combines Instagram-style DMs with Discord-style Community/Channel chats, creating a hybrid communication platform.
 
@@ -26,20 +28,21 @@ The Messages system combines Instagram-style DMs with Discord-style Community/Ch
 
 ## Database Schema
 
-### PostgreSQL Community Database
+### PostgreSQL Community Database (structure only — see below for message content)
 ```
 servers (communities)
 ├── server_id (UUID, PK)
 ├── name (VARCHAR)
 ├── description (TEXT)
 ├── owner_id (UUID, FK to users)
+├── is_public (BOOLEAN, default true) — backs Discover/join
 ├── created_at, updated_at
 
 channels
 ├── channel_id (UUID, PK)
 ├── server_id (UUID, FK to servers)
 ├── name (VARCHAR)
-├── type (text|voice)
+├── type (text — no voice; enforced at the application level, not a DB enum)
 ├── topic (TEXT)
 ├── position (INT)
 
@@ -50,19 +53,22 @@ members
 ├── role (owner|admin|member)
 ├── joined_at
 
-messages
-├── message_id (UUID, PK)
-├── channel_id (UUID, FK to channels)
-├── user_id (UUID, FK to users)
-├── content (TEXT)
-├── created_at, updated_at
-
 presence
 ├── presence_id (UUID, PK)
-├── user_id (UUID, FK to users)
-├── status (online|away|offline)
+├── user_id (UUID, UNIQUE, FK to users)
+├── status (online|offline)
 ├── last_seen
 ```
+There is no `messages` table in Postgres — it was defined but never used, and was removed. Channel message **content** lives in MongoDB instead (below), matching how DMs already worked.
+
+### MongoDB — Message Content (DMs and Channels, one collection)
+```
+Message
+├── conversationId (String) — DM/group, mutually exclusive with channelId
+├── channelId (String)      — community channel, mutually exclusive with conversationId
+├── senderId, content, type, attachments[], readBy[], timestamp
+```
+A `pre('validate')` hook enforces exactly one of `conversationId`/`channelId` per message. `apps/chat` (Express + Socket.IO) is the real-time transport for both: `message:send`/`message:new` for DMs, `channel:join`/`channel:leave`/`channel:message:send`/`channel:message:new` for channels — membership-gated via a Prisma client apps/chat holds against the same Postgres community tables (read-only for `servers`/`channels`/`members`, read-write for `presence`).
 
 ---
 
@@ -96,27 +102,31 @@ presence
 
 ---
 
-## API Endpoints
+## API Endpoints (current, 2026-08-09)
 
 ### Messages
 - `GET /api/messages/dms` - Fetch all DM conversations
-- `GET /api/messages/dms/[userId]` - Fetch specific DM
-- `POST /api/messages/dms/[userId]` - Send DM message
+- `GET/POST /api/conversations/[id]/messages` - DM message history (REST fallback; primary path is Socket.IO)
 
 ### Communities
 - `GET /api/communities` - List user's communities
+- `GET /api/communities/discover` - Browse public communities not yet joined
 - `POST /api/communities` - Create new community
 - `GET /api/communities/[communityId]` - Get community details
-- `POST /api/communities/[communityId]` - Create channel
+- `DELETE /api/communities/[communityId]` - Delete community (owner-only)
+- `POST /api/communities/[communityId]/join` - Self-serve join (idempotent)
+- `POST /api/communities/[communityId]/leave` - Self-serve leave (owner cannot leave — must delete instead)
 
-### Channel Messages
-- `GET /api/communities/[communityId]/channels/[channelId]` - Fetch messages
-- `POST /api/communities/[communityId]/channels/[channelId]` - Send message
+### Channels
+- `GET /api/communities/[communityId]/channels` - List channels
+- `POST /api/communities/[communityId]/channels` - Create channel (owner/admin only)
+- `GET/POST /api/communities/[communityId]/channels/[channelId]/messages` - Message history + REST fallback send (primary path is Socket.IO `channel:message:send`)
 
-### Members
+### Members & Presence
 - `GET /api/communities/[communityId]/members` - List members
-- `POST /api/communities/[communityId]/members` - Add member
-- `DELETE /api/communities/[communityId]/members/[userId]` - Remove member
+- `POST /api/communities/[communityId]/members` - Add member (owner/admin only)
+- `DELETE /api/communities/[communityId]/members` - Remove member (owner/admin only — distinct from self-serve `/leave`)
+- `GET /api/communities/[communityId]/presence` - Persisted online/offline snapshot
 
 ---
 
@@ -137,21 +147,23 @@ presence
 - [x] Display channels within communities
 - [x] Create new communities with default #general channel
 - [x] Track community membership and roles
+- [x] Browse and join public communities not yet joined (Discover)
+- [x] Self-serve leave; owner-only delete
 
-### 🔄 Phase 3: Real-Time Features (Future)
-- [ ] WebSocket for real-time messages
-- [ ] Typing indicators
-- [ ] Read receipts
-- [ ] Online presence
-- [ ] Notifications
+### ✅ Phase 3: Real-Time Features (closed 2026-08-09)
+- [x] WebSocket for real-time messages (DMs and channels — fixed a client/server field-name mismatch that meant DM sends were silently persisted with empty content, and an event-name mismatch that meant received messages never reached the client at all)
+- [x] Typing indicators (pre-existing, DMs only — channels not wired to typing indicators yet)
+- [ ] Read receipts (pre-existing gap, not touched this pass)
+- [x] Online presence (persisted in Postgres, multi-tab-safe, hydrated on load + live via Socket.IO)
+- [ ] Notifications (separate system — see `apps/notifications`, not integrated with chat events yet)
 
 ### 🔄 Phase 4: Advanced Features (Future)
 - [ ] Message reactions
 - [ ] Message editing/deletion
 - [ ] Thread replies
-- [ ] File sharing
-- [ ] Voice channels
-- [ ] Screen sharing
+- [ ] File sharing (attachment upload UI exists in `MessageInput`; server-side handling not audited this pass)
+- [ ] Voice channels — explicitly out of scope for this product, not planned
+- [ ] Screen sharing — explicitly out of scope for this product, not planned
 
 ---
 
@@ -167,10 +179,12 @@ presence
 7. User can immediately chat in #general
 
 ### Joining a Community
-1. User receives invite link
-2. Click link → Joins community
-3. Added to members with "member" role
-4. Community appears in their list
+1. User opens Discover (Communities page compass icon, or the Communities tab) and browses public communities they haven't joined
+2. Clicks Join → `POST /api/communities/[id]/join`
+3. Added to members with "member" role (idempotent — re-joining is a no-op, not an error)
+4. Community appears in their list immediately
+
+Invite links are not built — Discover is the only join path today.
 
 ### Sending a Message
 1. User selects conversation (DM or channel)

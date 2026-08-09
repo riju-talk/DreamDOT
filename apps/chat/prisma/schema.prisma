@@ -1,0 +1,43 @@
+// This client intentionally points at the SAME database as apps/web's `community` Prisma
+// schema (POSTGRESS_DB_COMMUNITY). It never migrates these tables — servers/channels/members
+// are owned by apps/web's community.schema.prisma. This service only READS them (channel
+// membership gating for real-time chat) and OWNS writes to `presence`, which existed unused
+// until this service activated it. Mirrors the pattern already used in apps/notifications.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "windows"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRESS_DB_COMMUNITY")
+}
+
+model servers {
+  server_id String @id @db.Uuid
+  owner_id  String @db.Uuid
+}
+
+model channels {
+  channel_id String @id @db.Uuid
+  server_id  String @db.Uuid
+  type       String
+}
+
+model members {
+  member_id String @id @db.Uuid
+  server_id String @db.Uuid
+  user_id   String @db.Uuid
+  role      String
+
+  @@unique([server_id, user_id])
+}
+
+model presence {
+  presence_id String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String    @unique @db.Uuid
+  status      String    @default("offline")
+  last_seen   DateTime? @db.Timestamp(6)
+  created_at  DateTime  @default(now()) @db.Timestamp(6)
+}

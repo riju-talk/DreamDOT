@@ -8,9 +8,10 @@ const helmet = require('helmet');
 const compression = require('compression');
 
 const { connectDb } = require('./db');
-const { authenticateToken, authenticateSocket, ensureMember } = require('./auth');
+const { authenticateToken, authenticateSocket, ensureMember, ensureChannelMember } = require('./auth');
+const { prismaCommunity } = require('./prisma-client');
 // Use shared models
-const { Message, Conversation } = require('@repo/database-mongo');
+const { Message, Conversation, User } = require('@repo/database-mongo');
 
 // Debug logging function
 function debugLog(message, data = null) {
@@ -213,8 +214,28 @@ const io = socketIo(server, {
 // Socket connection handler
 io.use(authenticateSocket);
 
-io.on('connection', (socket) => {
+// Multi-tab-safe presence: only flip online->offline when a user's LAST socket
+// disconnects, not on every tab close. Per-process only — if apps/chat is ever
+// scaled to multiple instances, this needs to move to a shared store (e.g. Redis).
+const userSocketCounts = new Map();
+
+io.on('connection', async (socket) => {
   debugLog('Socket connected:', socket.userId);
+
+  const openSockets = (userSocketCounts.get(socket.userId) || 0) + 1;
+  userSocketCounts.set(socket.userId, openSockets);
+  if (openSockets === 1) {
+    try {
+      await prismaCommunity.presence.upsert({
+        where: { user_id: socket.userId },
+        update: { status: 'online', last_seen: new Date() },
+        create: { user_id: socket.userId, status: 'online', last_seen: new Date() },
+      });
+      debugLog('Presence: user online:', socket.userId);
+    } catch (error) {
+      debugLog('ERROR: presence upsert (online) failed:', error.message);
+    }
+  }
 
   // Handle room joining
   socket.on('room:join', async (data) => {
@@ -262,20 +283,26 @@ io.on('connection', (socket) => {
   });
 
   // Handle message sending
+  // NOTE: the client (apps/web/src/lib/socket.ts emitSendMessage) sends a plaintext
+  // `content` field. `ciphertext`/`nonce`/`keyId` remain supported for a future E2E
+  // path but nothing produces them today — content is the common case.
   socket.on('message:send', async (data, ack) => {
     try {
       debugLog('Socket message send:', data.conversationId);
 
-      const { conversationId, ciphertext, nonce, keyId, attachments = [] } = data;
+      const { conversationId, content, ciphertext, nonce, keyId, attachments = [] } = data;
+
+      if (!content && !ciphertext) {
+        throw new Error('Message must include content or ciphertext');
+      }
 
       // Check membership
       await ensureMember(socket.userId, conversationId);
 
-      // Save encrypted message
       const savedMessage = await Message.create({
         conversationId,
         senderId: socket.userId,
-        sender: socket.userId,
+        content,
         ciphertext,
         nonce,
         keyId,
@@ -293,16 +320,22 @@ io.on('connection', (socket) => {
         $pull: { unreadBy: socket.userId },
       });
 
-      // Broadcast to room (excluding sender)
-      socket.to(conversationId).emit('message:new', {
+      const sender = await User.findById(socket.userId).lean();
+      const payload = {
         ...savedMessage.toObject(),
-        status: 'delivered'
-      });
+        id: savedMessage._id.toString(),
+        senderName: sender?.name || 'Unknown',
+        senderAvatar: sender?.avatar || '',
+        status: 'delivered',
+      };
+
+      // Broadcast to room (excluding sender)
+      socket.to(conversationId).emit('message:new', payload);
 
       debugLog('SUCCESS: Message sent and broadcasted:', savedMessage._id);
 
       if (ack) {
-        ack({ ok: true, id: savedMessage._id });
+        ack({ ok: true, id: savedMessage._id, message: payload });
       }
     } catch (error) {
       debugLog('ERROR: Error sending socket message:', error.message);
@@ -313,9 +346,107 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ============================================================================
+  // Community Channel Messaging (real-time)
+  // ============================================================================
+  // Channel/server/membership structure lives in Postgres (community.schema.prisma,
+  // owned by apps/web) — ensureChannelMember reads it via prisma-client.js. Message
+  // CONTENT lives in the same Mongo `Message` collection as DMs, distinguished by
+  // channelId vs conversationId (see apps/database-mongo/src/models/Message.ts).
+
+  socket.on('channel:join', async (data, ack) => {
+    try {
+      const { channelId } = data;
+      debugLog('Joining channel:', channelId);
+
+      await ensureChannelMember(socket.userId, channelId);
+      await socket.join(`channel:${channelId}`);
+
+      socket.to(`channel:${channelId}`).emit('presence:join', {
+        userId: socket.userId,
+        timestamp: new Date().toISOString(),
+      });
+
+      debugLog('SUCCESS: Joined channel:', channelId);
+      if (ack) ack({ ok: true });
+    } catch (error) {
+      debugLog('ERROR: Error joining channel:', error.message);
+      socket.emit('error', { event: 'channel:join', message: error.message });
+      if (ack) ack({ ok: false, error: error.message });
+    }
+  });
+
+  socket.on('channel:leave', (data) => {
+    const { channelId } = data;
+    debugLog('Leaving channel:', channelId);
+
+    socket.leave(`channel:${channelId}`);
+    socket.to(`channel:${channelId}`).emit('presence:leave', {
+      userId: socket.userId,
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  socket.on('channel:message:send', async (data, ack) => {
+    try {
+      const { channelId, content, attachments = [] } = data;
+      debugLog('Channel message send:', channelId);
+
+      if (!content || typeof content !== 'string' || content.length === 0 || content.length > 4000) {
+        throw new Error('Message content must be 1-4000 characters');
+      }
+
+      await ensureChannelMember(socket.userId, channelId);
+
+      const savedMessage = await Message.create({
+        channelId,
+        senderId: socket.userId,
+        content,
+        type: 'text',
+        attachments,
+        readBy: [socket.userId],
+        timestamp: new Date(),
+      });
+
+      const sender = await User.findById(socket.userId).lean();
+      const payload = {
+        ...savedMessage.toObject(),
+        id: savedMessage._id.toString(),
+        senderName: sender?.name || 'Unknown',
+        senderAvatar: sender?.avatar || '',
+      };
+
+      socket.to(`channel:${channelId}`).emit('channel:message:new', payload);
+
+      debugLog('SUCCESS: Channel message sent and broadcasted:', savedMessage._id);
+      if (ack) ack({ ok: true, id: savedMessage._id, message: payload });
+    } catch (error) {
+      debugLog('ERROR: Error sending channel message:', error.message);
+      socket.emit('error', { event: 'channel:message:send', message: error.message });
+      if (ack) ack({ ok: false, error: error.message });
+    }
+  });
+
   // Handle disconnect
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     debugLog('Socket disconnected:', socket.userId);
+
+    const remaining = (userSocketCounts.get(socket.userId) || 1) - 1;
+    if (remaining <= 0) {
+      userSocketCounts.delete(socket.userId);
+      try {
+        await prismaCommunity.presence.upsert({
+          where: { user_id: socket.userId },
+          update: { status: 'offline', last_seen: new Date() },
+          create: { user_id: socket.userId, status: 'offline', last_seen: new Date() },
+        });
+        debugLog('Presence: user offline:', socket.userId);
+      } catch (error) {
+        debugLog('ERROR: presence upsert (offline) failed:', error.message);
+      }
+    } else {
+      userSocketCounts.set(socket.userId, remaining);
+    }
   });
 });
 

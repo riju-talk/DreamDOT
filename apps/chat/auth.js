@@ -82,9 +82,38 @@ async function ensureMember(userId, conversationId) {
   return conversation;
 }
 
+// Verify if user is a member of the community server that owns this channel.
+// Channel/server/membership structure lives in Postgres (community.schema.prisma,
+// owned by apps/web) — this is a read-only client against the same tables.
+async function ensureChannelMember(userId, channelId) {
+  console.log('Checking channel membership for user:', userId, 'in channel:', channelId);
+
+  const { prismaCommunity } = require('./prisma-client');
+
+  const channel = await prismaCommunity.channels.findUnique({ where: { channel_id: channelId } });
+  if (!channel) {
+    throw new Error('Channel not found');
+  }
+
+  if (channel.type !== 'text') {
+    throw new Error(`Cannot access ${channel.type} channels through text messaging`);
+  }
+
+  const membership = await prismaCommunity.members.findUnique({
+    where: { server_id_user_id: { server_id: channel.server_id, user_id: userId } },
+  });
+  if (!membership) {
+    throw new Error('User is not a member of this community');
+  }
+
+  console.log('SUCCESS: User is member of the community that owns this channel');
+  return { channel, membership };
+}
+
 module.exports = {
   authenticateToken,
   authenticateSocket,
   generateToken,
-  ensureMember
+  ensureMember,
+  ensureChannelMember,
 };

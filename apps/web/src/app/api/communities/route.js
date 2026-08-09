@@ -42,6 +42,7 @@ export async function GET() {
       name: membership.servers.name,
       description: membership.servers.description,
       ownerId: membership.servers.owner_id,
+      isPublic: membership.servers.is_public,
       role: membership.role,
       memberCount: membership.servers._count.members,
       channels: membership.servers.channels.map((ch) => ({
@@ -76,7 +77,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const { name, description } = await request.json()
+    const { name, description, isPublic } = await request.json()
 
     if (!name?.trim()) {
       return NextResponse.json({ error: 'Community name is required' }, { status: 400 })
@@ -88,6 +89,7 @@ export async function POST(request) {
         name: name.trim(),
         description: description?.trim() || null,
         owner_id: currentUser.id,
+        is_public: isPublic ?? true,
         channels: {
           create: [
             {
@@ -120,6 +122,7 @@ export async function POST(request) {
           name: community.name,
           description: community.description,
           ownerId: community.owner_id,
+          isPublic: community.is_public,
           role: 'owner',
           memberCount: 1,
           channels: community.channels.map((ch) => ({

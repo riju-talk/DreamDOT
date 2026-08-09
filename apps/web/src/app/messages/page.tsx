@@ -12,14 +12,15 @@ import {
   Users,
   Settings,
   ChevronRight,
-  X,
-  AlertCircle,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from 'next-themes'
-import Link from 'next/link'
 import Image from 'next/image'
 import MessageList from './components/MessageList'
+import { MessageInput } from './components/MessageInput'
+import { CreateCommunityModal } from '../communities/components/CreateCommunityModal'
+import { useChatStore } from '@/lib/store/useChatStore'
+import { emitSubscribeConversation, emitLeaveRoom, emitJoinChannel, emitLeaveChannel } from '@/lib/socket'
 
 interface DMConversation {
   id: string
@@ -44,7 +45,7 @@ interface Community {
 interface Channel {
   id: string
   name: string
-  type: 'text' | 'voice'
+  type: 'text'
   topic?: string
   position: number
 }
@@ -66,11 +67,6 @@ export default function MessagesPage() {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [showCreateCommunityModal, setShowCreateCommunityModal] = useState(false)
-  const [isCreatingCommunity, setIsCreatingCommunity] = useState(false)
-  const [communityFormData, setCommunityFormData] = useState({
-    name: '',
-    description: '',
-  })
 
   const [mounted, setMounted] = useState(false)
 
@@ -119,34 +115,109 @@ export default function MessagesPage() {
     loadData()
   }, [session?.user?.id, selectedConversation, selectedCommunity])
 
-  const handleCreateCommunity = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!communityFormData.name.trim()) return
-
-    try {
-      setIsCreatingCommunity(true)
-      const res = await fetch('/api/communities', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(communityFormData),
-      })
-
-      if (res.ok) {
-        const data = await res.json()
-        setCommunities([...communities, data.community])
-        setSelectedCommunity(data.community.id)
-        if (data.community.channels.length > 0) {
-          setSelectedChannel(data.community.channels[0].id)
-        }
-        setCommunityFormData({ name: '', description: '' })
-        setShowCreateCommunityModal(false)
-      }
-    } catch (error) {
-      console.error('[Messages] Error creating community:', error)
-    } finally {
-      setIsCreatingCommunity(false)
+  const handleCommunityCreated = (community: Community) => {
+    setCommunities((prev) => [...prev, community])
+    setActiveTab('communities')
+    setSelectedCommunity(community.id)
+    if (community.channels.length > 0) {
+      setSelectedChannel(community.channels[0].id)
     }
   }
+
+  // Wire the selected DM into the chat store (root cause of MessageList/ConversationHeader
+  // rendering nothing: neither ever populated state.activeConversationId/conversations) and
+  // join its Socket.IO room, loading message history once per selection.
+  useEffect(() => {
+    if (!selectedConversation || activeTab !== 'dms') return
+
+    const dm = dms.find((d) => d.id === selectedConversation)
+    const { setActiveConversation, upsertConversation, setMessages } = useChatStore.getState()
+
+    setActiveConversation(selectedConversation)
+    upsertConversation({
+      id: selectedConversation,
+      participantIds: dm ? [dm.participantId] : [],
+      participantNames: dm ? [dm.participantName] : [],
+      isGroup: false,
+      unreadCount: dm?.unreadCount || 0,
+      createdAt: new Date(),
+      type: 'dm',
+    })
+    emitSubscribeConversation(selectedConversation)
+
+    let cancelled = false
+    fetch(`/api/conversations/${selectedConversation}/messages`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return
+        const messages = (data.messages || []).map((m: any) => ({
+          id: m.id || m._id,
+          conversationId: selectedConversation,
+          userId: m.senderId,
+          userName: m.senderName || dm?.participantName || 'Unknown',
+          userAvatar: m.senderAvatar,
+          text: m.content || '',
+          attachment: m.attachments?.[0],
+          createdAt: new Date(m.timestamp),
+          readBy: m.readBy || [],
+        }))
+        setMessages(selectedConversation, messages)
+      })
+      .catch((error) => console.error('[Messages] Failed to load DM history:', error))
+
+    return () => {
+      cancelled = true
+      emitLeaveRoom(selectedConversation)
+    }
+  }, [selectedConversation, activeTab, dms])
+
+  // Same wiring for the selected community channel.
+  useEffect(() => {
+    if (!selectedChannel || !selectedCommunity || activeTab !== 'communities') return
+
+    const community = communities.find((c) => c.id === selectedCommunity)
+    const channel = community?.channels.find((ch) => ch.id === selectedChannel)
+    const { setActiveConversation, upsertConversation, setMessages } = useChatStore.getState()
+
+    setActiveConversation(selectedChannel)
+    upsertConversation({
+      id: selectedChannel,
+      participantIds: [],
+      participantNames: [],
+      name: channel ? `# ${channel.name}` : undefined,
+      isGroup: true,
+      unreadCount: 0,
+      createdAt: new Date(),
+      type: 'channel',
+      serverId: selectedCommunity,
+    })
+    emitJoinChannel(selectedChannel)
+
+    let cancelled = false
+    fetch(`/api/communities/${selectedCommunity}/channels/${selectedChannel}/messages`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return
+        const messages = (data.messages || []).map((m: any) => ({
+          id: m.id,
+          conversationId: selectedChannel,
+          userId: m.senderId,
+          userName: m.senderName,
+          userAvatar: m.senderAvatar,
+          text: m.content,
+          attachment: m.attachments?.[0],
+          createdAt: new Date(m.timestamp),
+          readBy: [],
+        }))
+        setMessages(selectedChannel, messages)
+      })
+      .catch((error) => console.error('[Messages] Failed to load channel history:', error))
+
+    return () => {
+      cancelled = true
+      emitLeaveChannel(selectedChannel)
+    }
+  }, [selectedChannel, selectedCommunity, activeTab, communities])
 
   if (!mounted) return null
 
@@ -397,24 +468,16 @@ export default function MessagesPage() {
             {/* Messages */}
             <div className="flex-1 flex flex-col">
               <MessageList
-                conversationId={activeTab === 'dms' ? selectedConversation : selectedChannel}
+                conversationId={(activeTab === 'dms' ? selectedConversation : selectedChannel) ?? undefined}
                 isGroup={activeTab === 'communities'}
               />
 
               {/* Message Input */}
-              {(activeDM || activeChannel) && (
-                <div className="border-t border-border p-4 bg-card">
-                  <form className="flex gap-3">
-                    <input
-                      type="text"
-                      placeholder="Send a message..."
-                      className="flex-1 bg-muted rounded-full px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#5a8c5a] dark:focus:ring-primary"
-                    />
-                    <Button className="rounded-full bg-[#5a8c5a] dark:bg-primary text-white hover:bg-[#4a7c4a] dark:hover:bg-primary/90">
-                      Send
-                    </Button>
-                  </form>
-                </div>
+              {activeTab === 'dms' && activeDM && (
+                <MessageInput conversationId={selectedConversation!} type="dm" />
+              )}
+              {activeTab === 'communities' && activeChannel && (
+                <MessageInput conversationId={selectedChannel!} type="channel" />
               )}
             </div>
 
@@ -455,90 +518,11 @@ export default function MessagesPage() {
         </div>
 
         {/* Create Community Modal */}
-        <AnimatePresence>
-          {showCreateCommunityModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-card border border-border rounded-2xl p-6 max-w-md w-full mx-4"
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-black italic font-serif text-foreground">Create Community</h2>
-                  <button
-                    onClick={() => setShowCreateCommunityModal(false)}
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <form onSubmit={handleCreateCommunity} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                      Community Name
-                    </label>
-                    <input
-                      type="text"
-                      value={communityFormData.name}
-                      onChange={(e) =>
-                        setCommunityFormData({ ...communityFormData, name: e.target.value })
-                      }
-                      placeholder="e.g., Product Design Team"
-                      className="w-full bg-muted rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#5a8c5a] dark:focus:ring-primary"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      value={communityFormData.description}
-                      onChange={(e) =>
-                        setCommunityFormData({ ...communityFormData, description: e.target.value })
-                      }
-                      placeholder="What's this community about?"
-                      className="w-full bg-muted rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#5a8c5a] dark:focus:ring-primary resize-none"
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowCreateCommunityModal(false)}
-                      className="flex-1"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={isCreatingCommunity || !communityFormData.name.trim()}
-                      className="flex-1 bg-[#5a8c5a] dark:bg-primary text-white hover:bg-[#4a7c4a] dark:hover:bg-primary/90"
-                    >
-                      {isCreatingCommunity ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          Creating...
-                        </>
-                      ) : (
-                        'Create'
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <CreateCommunityModal
+          open={showCreateCommunityModal}
+          onClose={() => setShowCreateCommunityModal(false)}
+          onCreated={handleCommunityCreated}
+        />
       </div>
     </AuthenticatedLayout>
   )

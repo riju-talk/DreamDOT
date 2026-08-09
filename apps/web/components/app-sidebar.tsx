@@ -23,6 +23,7 @@ import {
   Wallet,
   Settings,
   Sparkles,
+  Users,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -35,6 +36,7 @@ export function AppSidebar() {
   const isHome = pathname === "/feed" || pathname === "/"
   const isDiscover = pathname?.startsWith("/discover")
   const isMarketplace = pathname?.startsWith("/marketplace")
+  const isCommunities = pathname?.startsWith("/communities")
   const isAnalytics = pathname?.startsWith("/analytics")
   const isCreate = pathname?.startsWith("/create")
   const isMessages = pathname?.startsWith("/messages")
@@ -109,6 +111,23 @@ export function AppSidebar() {
                   <Link href="/marketplace">
                     <ShoppingBag className="transition-colors" />
                     <span className="font-medium transition-colors">Market</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={Boolean(isCommunities)}
+                  className={cn(
+                    "h-10 rounded-xl transition-all duration-300 active:scale-95",
+                    isCommunities
+                      ? "bg-primary/10 border-l-2 border-primary shadow-md text-primary"
+                      : "hover:bg-foreground/5 text-foreground/60 hover:text-primary"
+                  )}
+                >
+                  <Link href="/communities">
+                    <Users className="transition-colors" />
+                    <span className="font-medium transition-colors">Communities</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

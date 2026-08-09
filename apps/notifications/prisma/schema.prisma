@@ -1,0 +1,27 @@
+// This client intentionally points at the SAME database as apps/web's `social` Prisma schema
+// (POSTGRESS_DB_SOCIAL) and the SAME `notifications` table already defined there. No migration,
+// no new table — this service is the first real reader/writer of a table that already existed
+// unused. See docs/DATA_SCHEMA.md §6.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+  binaryTargets   = ["native", "debian-openssl-3.0.x", "windows"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRESS_DB_SOCIAL")
+  schemas  = ["social"]
+}
+
+model notifications {
+  notification_id      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id               String   @db.Uuid
+  notification_type     String?  @db.VarChar(50)
+  notification_content  String?
+  is_read                Boolean? @default(false)
+  created_at              DateTime @default(now()) @db.Timestamp(6)
+
+  @@schema("social")
+}

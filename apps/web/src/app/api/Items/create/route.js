@@ -58,6 +58,10 @@ export async function POST(request) {
     // Short blurb is a separate field from the full content
     const cleanDescription =
       typeof description === 'string' ? description.trim().substring(0, 2000) : ''
+    // Description is mandatory on its own, independent of the script/content length check above
+    if (!cleanDescription) {
+      return NextResponse.json({ error: 'Description is required' }, { status: 400 })
+    }
     if (!category || typeof category !== 'string') {
       return NextResponse.json({ error: 'Category is required' }, { status: 400 })
     }

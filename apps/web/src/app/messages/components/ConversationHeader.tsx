@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useChatStore, selectActiveConversationTypingUsers, selectIsUserOnline } from '@/lib/store/useChatStore'
+import { useChatStore, selectActiveConversationTypingUsers } from '@/lib/store/useChatStore'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -44,9 +44,13 @@ export function ConversationHeader({
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
 
-  // Get from store
+  // Get from store. All hooks must run unconditionally before any early return,
+  // and useChatStore must not be called inside a loop/filter callback (that was
+  // calling an already-resolved selector value as if it were itself a function,
+  // and violated the rules of hooks) — subscribe to onlineUsers once here instead.
   const conversations = useChatStore((state) => state.conversations)
   const typingUsers = useChatStore(selectActiveConversationTypingUsers)
+  const onlineUsers = useChatStore((state) => state.onlineUsers)
 
   // Find active conversation
   const conversation = conversations.find((conv) => conv.id === conversationId)
@@ -67,9 +71,7 @@ export function ConversationHeader({
   const title = conversation.name || conversation.participantNames.join(', ')
 
   // Get online status
-  const onlineCount = conversation.participantIds.filter((id) =>
-    useChatStore(selectIsUserOnline(id))(useChatStore.getState())
-  ).length
+  const onlineCount = conversation.participantIds.filter((id) => onlineUsers.includes(id)).length
 
   const isGroupChat = conversation.isGroup || conversation.participantIds.length > 2
 

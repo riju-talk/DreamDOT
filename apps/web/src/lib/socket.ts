@@ -122,9 +122,16 @@ export function initializeSocket(token: string): Socket {
   // Message Event Listeners
   // ============================================================================
 
-  socketInstance.on('message:receive', (data: any) => {
+  // NOTE: apps/chat/server.js broadcasts 'message:new' (DMs) and 'channel:message:new'
+  // (community channels) — not 'message:receive', which nothing on the server ever
+  // emits. These listeners are log-only; useChatStore.setupSocketListeners() is what
+  // actually applies the data to state.
+  socketInstance.on('message:new', (data: any) => {
     console.log('[Socket] Message received:', data)
-    // Message received from server - handled by Zustand store
+  })
+
+  socketInstance.on('channel:message:new', (data: any) => {
+    console.log('[Socket] Channel message received:', data)
   })
 
   socketInstance.on('typing:start', (data: any) => {
@@ -250,9 +257,11 @@ export function emitSendMessage(
 ): void {
   if (socketInstance && connectionState.isConnected) {
     console.log('[Socket] Emitting message:send', { conversationId, message })
+    // Field name must be `content` — apps/chat/server.js's message:send handler
+    // reads `content`/`ciphertext`, never a `message` field.
     socketInstance.emit('message:send', {
       conversationId,
-      message,
+      content: message,
       attachments,
       timestamp: new Date().toISOString(),
     })
@@ -260,6 +269,47 @@ export function emitSendMessage(
     console.warn('[Socket] Cannot emit message:send - socket not connected', {
       isConnected: connectionState.isConnected,
     })
+  }
+}
+
+/**
+ * Join a community channel room (parallel to emitSubscribeConversation for DMs)
+ * @param channelId - ID of the channel to join
+ */
+export function emitJoinChannel(channelId: string): void {
+  if (socketInstance && connectionState.isConnected) {
+    console.log('[Socket] Emitting channel:join', { channelId })
+    socketInstance.emit('channel:join', { channelId })
+  } else {
+    console.warn('[Socket] Cannot emit channel:join - socket not connected')
+  }
+}
+
+/**
+ * Leave a community channel room
+ * @param channelId - ID of the channel to leave
+ */
+export function emitLeaveChannel(channelId: string): void {
+  if (socketInstance && connectionState.isConnected) {
+    console.log('[Socket] Emitting channel:leave', { channelId })
+    socketInstance.emit('channel:leave', { channelId })
+  } else {
+    console.warn('[Socket] Cannot emit channel:leave - socket not connected')
+  }
+}
+
+/**
+ * Send a message to a community channel through Socket.IO
+ * @param channelId - ID of the channel
+ * @param content - Message content
+ * @param attachments - Optional file attachments
+ */
+export function emitSendChannelMessage(channelId: string, content: string, attachments?: any[]): void {
+  if (socketInstance && connectionState.isConnected) {
+    console.log('[Socket] Emitting channel:message:send', { channelId, content })
+    socketInstance.emit('channel:message:send', { channelId, content, attachments })
+  } else {
+    console.warn('[Socket] Cannot emit channel:message:send - socket not connected')
   }
 }
 

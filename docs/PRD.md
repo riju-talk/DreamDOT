@@ -1,248 +1,226 @@
-Here is the definitive, fully polished, **"Bring It Home" Edition** of the DreamDOT Product Requirements Document. It explicitly and comprehensively locks in DreamDOT as a **Social Media + Content Monetization Platform**, integrating the exact chat, studio, and creation constraints you specified.
-
----
-
-# 📘 DreamDOT — Master Product Requirements Document (PRD) v4.0
-**"The Bring It Home Edition: Social Media + Content Monetization Platform"**
+# 📘 DreamDOT — Master Product Requirements Document (PRD) v5.0
+**"Reality-Synced Edition"**
 
 | | |
 |---|---|
-| **Document version** | 4.0 (Final Polish) |
-| **Status** | Locked & Approved for Development |
-| **Core Identity** | **Social Media Network + DRM-Protected Digital Content Marketplace** |
-| **Last updated** | 2026-08-01 |
+| **Document version** | 5.0 |
+| **Status** | Active — describes what's shipped, what's in progress, and what's still required for V1 deployment |
+| **Core Identity** | Social Media Network + DRM-Protected Digital Content Marketplace |
+| **Last updated** | 2026-08-09 |
 | **Owner** | Rijusmit |
 | **Repository** | `C:\Code\01_full_stack\DreamDot` |
+
+> **What changed in v5.0:** v4.0 described DRM Vault, Ad Studio, and Web3/blockchain as "locked & approved," with acceptance criteria implying they already worked. A direct source-code audit (2026-08-09) found zero code behind any of the three. This version doesn't cut them — **per product decision, they stay in V1 scope** — but every section below is honest about build state, using a consistent status marker: ✅ **Shipped**, 🚧 **Partial**, 🔜 **Build target (not started)**. A PRD that can't be trusted to say what's actually built stops being useful as a planning tool; that's the problem this revision fixes.
 
 ---
 
 ## 1. Overview & Core Identity
-**DreamDOT** is a unified **Social Media and Content Monetization Platform** built for the modern creator economy. It is the single destination where creators build an audience through a native social feed, collaborate in real-time text communities, and monetize their digital assets (blogs, comics, videos, courses, art) in a secure, DRM-protected marketplace.
 
-**The Core Pillars:**
-1. **Social Media Engine:** A rich, algorithmic, and chronological feed where creators post updates, stories, and content to build their personal brand and "micro-celebrity" status.
-2. **Dual-Studio Workspace:** 
-   - **Creator Studio:** A streamlined, 3-part workspace (Writer, Media, Bundle) with a minimal rich-text editor and mandatory metadata (Title, Thumbnail, Script) for all assets.
-   - **Ad Studio:** A centralized hub to customize and broadcast organic stories or paid ad campaigns directly to Instagram and Facebook.
-3. **The DRM-Protected Marketplace ("The Vault"):** Purchased digital items can *only* be viewed inside DreamDOT. Screenshots and screen recordings are forbidden via dynamic forensic watermarking and OS-level blocking to maintain absolute integrity and scarcity.
-4. **Text-Only Community Hubs:** Discord-style servers composed **entirely of text channels** (no voice channels), featuring "Live" presence indicators so users know exactly when creators or collaborators are online and available to chat.
-5. **Web3 Integrity Engine:** Backed by blockchain technology to maintain an immutable ledger of all purchases, creative ownership, and the in-app credit economy. **No censorship, pure creativity.**
+**DreamDOT** is a unified Social Media and Content Monetization Platform for the creator economy: a native social feed, real-time text communities, and a DRM-protected marketplace for digital assets (writing, illustration, audio, video, code, and more).
+
+**The Core Pillars, with real status:**
+1. **Social Media Engine** ✅ — feed, profiles, follow graph, likes/comments/saves/shares. Built and working.
+2. **Creator Studio** ✅ (with one gap closing now) — 4-part workspace (Writer / Media / Bundle / Pricing — corrected from the old "3-part" claim), mandatory-field enforcement (§5 below).
+3. **The DRM-Protected Marketplace ("The Vault")** 🚧 — purchasing, ownership, library access, real anti-piracy input blocking (contextmenu/selectstart/devtools shortcuts), a live per-session watermark, and a DevTools-open heuristic all ship as of 2026-08-09. Video EME is still not built — see §6.3.
+4. **Text-Only Community Servers** ✅ — browsable, joinable, real-time (Discord/Guilded-style), Postgres structure + Mongo message content. Rebuilt 2026-08-09 (§6.4).
+5. **Ad Studio (Meta broadcasting)** 🔜 — page exists as a "Coming Soon" placeholder. No OAuth, no `apps/meta` service, no Graph/Marketing API integration exists yet.
+6. **Web3 Integrity Engine** 🔜 — no `apps/web3` service, no blockchain dependency installed, no ledger schema. Entirely unbuilt.
+7. **Notification Service** ✅ *(new in v5.0, shipped 2026-08-09)* — `apps/notifications` (NestJS) is live: REST + Socket.IO, activates the previously-unused Postgres `notifications` table, respects per-type user preferences. First real producer (follow events) wired end-to-end. See §6.6.
 
 ---
 
 ## 2. Problem Statement
-Creators today are forced to stitch together fragmented tools: Instagram for social reach, Patreon for subscriptions, Gumroad for marketplaces, and Discord for community. 
-* **Marketing Friction:** Creators waste hours manually cross-posting stories and setting up external ad managers to promote their work.
-* **Creation Friction:** Existing tools are either too complex or lack structured workflows for packaging digital goods (scripts, media, bundles).
-* **Piracy:** Digital items are easily screenshot and redistributed, destroying value.
-* **Siloed, Noisy Communities:** Voice channels are often unused or overwhelming. Creators need focused, text-based collaboration spaces with clear "Live/Online" availability indicators.
-* **Platform Censorship:** Centralized platforms arbitrarily ban creators or demonetize content.
 
-**DreamDOT solves this** by being the single source of truth for a creator's social presence, structured creation workflow, community, and commerce.
+Creators today stitch together fragmented tools: Instagram for reach, Patreon for subscriptions, Gumroad for marketplaces, Discord for community.
+* **Marketing friction**: manual cross-posting, no way to launch ads without leaving the platform.
+* **Creation friction**: no structured workflow for packaging digital goods with consistent metadata.
+* **Piracy**: digital items are easily redistributed once downloaded.
+* **Siloed communities**: voice channels go unused; creators want focused, text-first spaces with live presence.
+* **Silence**: when something happens to your content or account, there's currently no unified place that tells you.
+
+DreamDOT solves this by being the single source of truth for a creator's social presence, structured creation workflow, community, commerce, and awareness of what's happening to their work.
 
 ---
 
 ## 3. Product Goals
-| Goal | Description |
-| :--- | :--- |
-| **G1. True Social Media Presence** | Provide a rich feed, stories, and user profiles that rival mainstream social networks, driving organic discovery. |
-| **G2. Frictionless Meta Broadcasting** | Allow creators to link IG/FB and push organic stories or launch **paid ad campaigns** directly from the DreamDOT Ad Studio. |
-| **G3. Streamlined Creator Studio** | Enforce a strict, 3-part creation workflow (Writer, Media, Bundle) with mandatory Title, Thumbnail, and Script for *every* asset, powered by a minimal, fast rich-text editor. |
-| **G4. Anti-Piracy DRM Marketplace** | Enable the sale of digital items that can *only* be viewed inside the DreamDOT "Vault" viewer, blocking screenshots and applying user-specific watermarks. |
-| **G5. Focused Text-Only Communities** | Foster collaboration via Discord-style servers with **text channels only** (no voice), augmented by "Live" presence indicators to show real-time availability. |
-| **G6. Pure Credit Economy & Web3** | Handle all marketplace transactions, subscriptions, and ad-spend using an internal Credit System, anchored by blockchain for transparent, uncensorable ownership. |
+
+| Goal | Status | Description |
+| :--- | :--- | :--- |
+| **G1. True Social Media Presence** | ✅ Shipped | Feed, profiles, social graph drive organic discovery. |
+| **G2. Structured Creator Studio** | ✅ Shipped, tightening now | Writer / Media / Bundle / Pricing workflow with a hard mandatory-field gate (§5). |
+| **G3. Anti-Piracy DRM Marketplace** | 🚧 Partial | Purchase/ownership flow + real input-blocking + live watermark shipped 2026-08-09; video EME remains (§6.3). |
+| **G4. Focused Text-Only Communities** | ✅ Shipped | Servers/channels, presence, mostly enforced text-only. |
+| **G5. Frictionless Meta Broadcasting** | 🔜 Build target | Ad Studio — blocked on a Meta developer app (§6.5). |
+| **G6. Web3 Integrity & Credit Economy** | 🔜 Build target | Blockchain minting/ledger — blocked on chain/RPC decisions (§6.7). Credits themselves (internal, non-blockchain) already work via Stripe + `Transaction`. |
+| **G7. Unified Notifications** *(new)* | ✅ Shipped 2026-08-09 | Real-time feed for cross-service events, live via `apps/notifications` (§6.6). |
 
 ---
 
-## 4. Target Audience & Personas
-* **Persona A: "The Micro-Celebrity Creator"** - Wants to build a personal brand. Posts daily stories, broadcasts ads to IG/FB to drive traffic, uses the Creator Studio to package comics/courses, and hosts text-only community servers for top fans.
-* **Persona B: "The Digital Collector / Fan"** - Follows creators on the feed, buys their assets using credits, views them securely in their Library Dashboard, and joins text channels to chat when the creator is "Live".
-* **Persona C: "The Collaborator"** - Uses the "Bundle" feature to group assets and joins text-only servers to find artists, writers, and devs to build projects with, relying on "Live" indicators to know when to reach out.
+## 4. Target Audience & Personas — unchanged
+* **Persona A: "The Micro-Celebrity Creator"** — builds a brand via feed + stories, packages assets in Creator Studio, runs text-only community servers.
+* **Persona B: "The Digital Collector / Fan"** — follows creators, buys assets with credits, views them in the Library, chats when creators are live.
+* **Persona C: "The Collaborator"** — uses Bundle to group assets, finds collaborators in text-only servers.
 
 ---
 
-## 5. User Stories
+## 5. The Mandatory-Fields Rule (locked, product decision 2026-08-09)
 
-### 5.1 Social Media & Broadcasting
-* As a creator, I have a **Profile Page** that acts as my social hub (bio, followers, feed, marketplace items).
-* As a creator, I can link my Instagram and Facebook accounts via OAuth.
-* As a creator, I can write a Story/Post on DreamDOT and click **"Broadcast to Meta"** to instantly publish it to my IG/FB Stories.
-* As a creator, I can use the **Ad Studio** to select a post, set a budget (in Credits), define an audience, and launch a native Meta Ad Campaign without leaving the app.
+**Every digital asset — regardless of category — must have a Title, a Thumbnail, a Description, and an explicit price status before it can publish. No category is exempt.**
 
-### 5.2 The Creator Studio (Strict Workflow)
-* As a creator, when I create a new digital asset, I am guided through a **3-Part Creator Studio**:
-  1. **Writer’s Part:** A minimal, fast rich-text editor for blogs, scripts, and descriptions.
-  2. **Media Part:** A dedicated zone to upload and arrange images, videos, audio, or files.
-  3. **Bundle Part:** A tool to select *existing* assets from my library and group them into a single, discounted, sellable bundle.
-* As a creator, the system **will not let me publish** unless I have provided a **Title**, a **Thumbnail**, and a **Script** (or text body), regardless of whether the asset is a video, comic, or blog.
+Price status is one of exactly three states, never left ambiguous:
+- **Free** — no charge, included with account access.
+- **Paid** — one-time purchase, priced in Credits.
+- **Included in subscription** — bundled into the creator's monthly or annual subscription tier.
 
-### 5.3 The Marketplace & DRM "Vault"
-* As a creator, I can list digital items as **Free, Paid (one-time), Subscription (tiered), or Bundled**.
-* As a fan, I can purchase an item using Credits. It immediately appears in my **Library Dashboard**.
-* As a fan, when I open a purchased item, it loads in the **Vault Viewer**. Right-clicking, text selection, and DevTools are disabled, and a dynamic watermark with my User ID is overlaid.
+| Field | Enforcement today | Gap |
+|---|---|---|
+| Title | ✅ Required, ≤140 chars, both client store and API | none |
+| Thumbnail | ✅ Required, derived from ≥1 uploaded media asset | none |
+| Description | ✅ Required, independent of script length (closed 2026-08-09) | none |
+| Price status | ✅ Required (`free`/`paid`/`subscription`), price required if paid | none |
 
-### 5.4 Community & Live Presence
-* As a user, I can join or create **Servers** (Discord-style) that contain **text channels only** (no voice channels).
-* As a user, I can see a **"Live" indicator** (e.g., a green dot or "Currently Active" badge) next to a creator's or friend's name, letting me know they are online and available to chat.
-* As a user, I can send text, image, and file messages in these channels with typing indicators and read receipts.
-
-### 5.5 Economy & Web3
-* As a user, I manage my **Wallet Dashboard**, viewing my Credit balance, transaction history, and blockchain-verified ownership receipts.
-* As a creator, I can "Mint" my item on the blockchain to generate an immutable certificate of authenticity and secure my royalty splits.
+This is a hard publish gate, not a soft recommendation — the Publish button stays disabled and the API rejects the request until all four are satisfied. All four are now independently enforced, client and server side.
 
 ---
 
 ## 6. Functional Requirements
 
-### 6.1 Dashboards & Navigation
-* **FR-1.1 Main Feed Dashboard:** Infinite scroll, stories carousel, trending creators, and algorithmic/chronological toggles.
-* **FR-1.2 Marketplace Dashboard:** E-commerce grid for digital assets. Filters for Media Type, Price (Credits), and Bundles.
-* **FR-1.3 Wallet Dashboard:** Credit balance, ledger history, Web3 wallet connection, and subscription management.
-* **FR-1.4 Library Dashboard:** The secure gateway to all purchased DRM-protected content.
+### 6.1 Dashboards & Navigation ✅ Shipped
+Feed, Marketplace, Wallet, Library dashboards all exist and function against real data.
 
-### 6.2 The Dual-Studio Workspace
-* **FR-2.1 Creator Studio - Mandatory Fields:** The publish button is disabled until `title`, `thumbnail_url`, and `script` (or main text body) are populated, regardless of the `itemType`.
-* **FR-2.2 Creator Studio - Writer’s Part:** Integrates a minimal, lightweight rich-text editor (e.g., Quill or stripped-down Tiptap) optimized for speed and clean blog/script writing.
-* **FR-2.3 Creator Studio - Media Part:** Drag-and-drop zone for uploading media, enforcing 50MB caps and MIME validation via ImageKit.
-* **FR-2.4 Creator Studio - Bundle Part:** A UI to search and select multiple previously published `Item` IDs, group them, and assign a new bundled `priceCredits`.
-* **FR-2.5 Ad Studio:** UI to connect Meta accounts, select a DreamDOT post, set a credit budget, define target demographics, and push to Meta Ads Manager via the Marketing API.
+### 6.2 Creator Studio ✅ Shipped (4-part, corrected from "3-part")
+* **FR-2.1 Mandatory fields**: Title, Thumbnail, Description, price status — see §5.
+* **FR-2.2 Writer's Part**: rich-text body (Tiptap/Quill).
+* **FR-2.3 Media Part**: drag-and-drop, 50MB cap, MIME validation, first image auto-promoted to thumbnail.
+* **FR-2.4 Bundle Part**: select ≥2 existing items, group into one sellable bundle.
+* **FR-2.5 Pricing Part**: separate step from Bundle (the old PRD conflated these) — free/paid/subscription selection, credits price, billing cycle.
 
-### 6.3 The "Vault" DRM Viewer
-* **FR-3.1 Secure Rendering:** Content is rendered inside a sandboxed `<iframe>` or `<canvas>`.
-* **FR-3.2 Anti-Piracy Hooks:** JS listeners disable `contextmenu` (right-click), `keydown` (PrintScreen), and `selectstart` (text highlighting).
-* **FR-3.3 Forensic Watermarking:** CSS/Canvas overlays a repeating, semi-transparent grid of the viewer's `User ID` and `Session Timestamp` over images and comics.
-* **FR-3.4 Video DRM:** HTML5 Encrypted Media Extensions (EME) used for video playback to prevent stream ripping.
+### 6.3 The "Vault" DRM Viewer 🚧 Partial — video DRM is the remaining piece
+What's shipped: purchase flow, `Item.drm{enabled, watermark, tracking}` flags stored correctly, Library page, and (as of 2026-08-09) real enforcement in `DRMViewer.tsx`:
+* **FR-3.1 Anti-piracy JS** ✅ — `contextmenu` and `selectstart` blocked inside the viewer; `F12`/Ctrl+Shift+I/J/C/Ctrl+U/Ctrl+S blocked; `PrintScreen` is detected (the OS capture can't be prevented, but detection now triggers a visible "logged to this account" flash and a console-level tracking event) — an honest implementation of the acknowledged limit below, not a pretend fix.
+* **FR-3.2 Dynamic watermark** ✅ — renders the live viewer's user ID and a timestamp that ticks every second, not a static string baked in at first render.
+* **DevTools heuristic** ✅ *(added, not originally scoped)* — an outer/inner window-dimension check blurs the protected image and shows a "close developer tools to continue" notice when DevTools looks open.
+* **FR-3.3 Video DRM (EME)**: still not started — needs a license server decision before it can be built, tracked as a distinct follow-up from the work above.
+* **Acknowledged limit, unchanged from prior docs**: OS-level screen recording (OBS, native capture) cannot be blocked by any browser-side technique. The mitigation is forensic traceability (watermark ties a leak to an account), not prevention.
 
-### 6.4 Community: Text-Only Servers & Live Presence
-* **FR-4.1 Server Architecture:** Servers contain channels with `type: 'text'` **only**. Voice channel creation is explicitly disabled at the schema and UI level.
-* **FR-4.2 Live Presence:** Socket.IO emits `presence:join` and `presence:leave` events. The UI displays a "Live" or "Online" indicator next to user avatars in the server member list and DM sidebar.
-* **FR-4.3 Messaging:** Supports text, images, and file attachments with typing indicators and read receipts.
+### 6.4 Community: Discord/Guilded-Style Servers ✅ Shipped, real-time, browsable (rebuilt 2026-08-09)
+Structure (servers/channels/members/presence) in Postgres, channel message content in MongoDB alongside DMs — real-time via `apps/chat` Socket.IO for both. Was previously three disconnected half-built systems (a working Postgres CRUD nothing browsed/joined, a Mongo message route that crashed on a nonexistent model import, and a frontend calling stub endpoints that always returned empty) — now a single working path:
+* **Browse & join**: `GET /api/communities/discover` + self-serve `POST .../join` / `POST .../leave`; a dedicated `/communities` page (linked from the main nav) with a Discover toggle, matching the browsable pattern of Discover/Marketplace per product direction.
+* **Real-time chat**: Socket.IO `channel:join`/`channel:leave`/`channel:message:send`/`channel:message:new`, membership-gated via a Prisma client `apps/chat` holds against the same Postgres tables. The equivalent DM path (`message:send`/`message:new`) had two latent bugs fixed in the same pass — a field-name mismatch that silently persisted DM messages with empty content, and an event-name mismatch that meant sent messages never reached other clients. Both are now real.
+* **Presence**: persisted in Postgres (`presence.user_id` gained a `@unique` constraint), multi-tab-safe ref-counting on connect/disconnect, hydrated on load via `GET .../presence` plus live Socket.IO updates.
+* **Text-only enforcement**: remains application-level, not a DB constraint — a deliberate call given this repo's `prisma db push`-only, no-tracked-migrations workflow (a raw `CHECK` constraint would be invisible to the schema file that's the actual source of truth). The stray `'text' | 'voice'` type union in `messages/page.tsx` is gone.
+* **Community lifecycle**: owner-only delete (cascades to channels/members); an owner cannot leave their own community without deleting it — there is still no ownership-transfer flow.
 
-### 6.5 Monetization & Web3
-* **FR-5.1 Closed-Loop Credits:** All platform transactions (buying items, funding ads, tipping) use internal Credits.
-* **FR-5.2 Content Minting:** Option to mint an Item as an NFT (ERC-721/1155) on an L2 (Polygon/Base) to prove origin.
-* **FR-5.3 Account Abstraction (ERC-4337):** Users interact via "Credits" and email/social login. Gas fees are abstracted via Paymasters so users never see MetaMask prompts.
+### 6.5 Ad Studio / Meta Broadcasting 🔜 Build target — blocked on credentials
+Not started. Requires, before any code can go live: a Meta developer app (`META_APP_ID`, `META_APP_SECRET`, OAuth redirect URI). The `apps/meta` Express service structure can be scaffolded ahead of that, but OAuth, Graph API story posting, and Marketing API campaign creation all need real credentials to test against.
+* **FR-5.1** Connect Instagram/Facebook via OAuth.
+* **FR-5.2** Broadcast a DreamDOT post/story to linked Meta accounts.
+* **FR-5.3** Launch a paid ad campaign from a post, budgeted in Credits, via the Marketing API.
+
+### 6.6 Notification Service ✅ Shipped 2026-08-09 *(new section)*
+Every other pillar used to produce events with no destination: a like, a follow, a new message, an item purchase, a comment. `docs/DATA_SCHEMA.md` §6 documented an existing, unused Postgres `notifications` table (`social` schema) — this service activates it.
+
+* **FR-6.1 Service** ✅ — `apps/notifications`, built in **NestJS** (a deliberate, scoped exception to the Express-only backend rule — see TECH_STACK.md §5 for why). Builds clean, boots, connects to Postgres via Prisma, all routes register correctly.
+* **FR-6.2 Event sources** 🚧 — architecture supports any service calling in; only **follow events** are wired end-to-end so far (`apps/web/src/app/api/users/[id]/follow/route.js` → `apps/web/src/lib/notifications.js` → `POST /internal/notifications`). Item purchases, comments, and messages still need their producer call added at the relevant existing API routes/socket handlers — the ingestion endpoint and DTO already support all five types, this is wiring, not new design.
+* **FR-6.3 Storage** ✅ — writes to the existing Postgres `notifications` table via a dedicated minimal Prisma client (`apps/notifications/prisma/schema.prisma`) pointed at the same `POSTGRESS_DB_SOCIAL` connection — no new database, no new model.
+* **FR-6.4 Delivery** ✅ — REST (`GET /notifications`, `PATCH /notifications/:id/read`) and a Socket.IO gateway (same JWT-in-handshake pattern as `apps/chat`, reuses the existing `session.chatToken` — no new token minting needed) both implemented and wired into `/notifications/page.tsx`, which now renders a real live feed instead of a static empty state.
+* **FR-6.5 Scope for V1**: in-app only, unchanged. Email and push notifications are explicitly out of scope — the `User.notifications{}` preference flags for `emailNotifications`/`pushNotifications` already exist in the Mongo schema for a future phase, but nothing sends email or push today.
+* **FR-6.6 Respect user preferences** ✅ — the service checks `User.notifications.types.{newFollowers,itemPurchases,comments,messages,liveStreams}` before writing a row, defaulting to enabled only when the toggle isn't explicitly `false`.
+
+**Verification note**: build and route registration were confirmed directly (`nest build` succeeds, Prisma client generates, `/health`/`/notifications`/`/internal/notifications` all map correctly, Prisma correctly attempts and reports a real connection to `POSTGRESS_DB_SOCIAL`). Full live end-to-end (an actual notification round-trip against a running Postgres) was **not** verified in this operation — Docker Desktop wasn't running in the dev environment this was built in. Run `npm run db:up` then `npm run notifications:dev` to confirm live before shipping.
+
+### 6.7 Web3 / Blockchain 🔜 Build target — blocked on chain decisions
+Not started, no dependency installed. Before any code: which chain (Polygon vs. Base), testnet-first or straight to mainnet, RPC provider, and a contract deployment plan. Once decided:
+* **FR-7.1** Content minting (ERC-721/1155) as a proof-of-origin certificate.
+* **FR-7.2** Account Abstraction (ERC-4337) so users never see a MetaMask prompt — Credits stay the only thing users interact with.
+* **FR-7.3** Immutable on-chain ledger for high-value transactions, separate from the everyday internal Credits ledger (which already works via Stripe + Mongo `Transaction`, and needs no blockchain to function).
 
 ---
 
 ## 7. Non-Functional Requirements
-| Category | Requirement |
-| :--- | :--- |
-| **Performance** | Creator Studio rich-text editor must load in <100ms. Feed and Marketplace must load in <1.5s. |
-| **Security & DRM** | Dynamic watermarking must render at <16ms to avoid UI lag. Web3 private keys must never touch the backend. Strict zero-tolerance automated hashing (PhotoDNA) for illegal content. |
-| **Reliability** | Idempotent Stripe webhook handling; cached/shared DB connections; Socket.IO exponential backoff for presence events. |
-| **Usability** | Mobile-first responsive design. The 3-part Creator Studio must be intuitive and enforce the mandatory fields gracefully without frustrating the user. |
+
+| Category | Requirement | Status |
+| :--- | :--- | :--- |
+| Performance | Feed/Marketplace load <1.5s | ✅ (subjectively fine on current data volume; no formal budget/monitoring yet) |
+| Security & DRM | Watermarking must render at <16ms once built; Web3 private keys never touch the backend once that's built | 🔜 not yet measurable — nothing to benchmark until §6.3/§6.7 ship |
+| Reliability | Idempotent Stripe webhooks; Item create rolls back Postgres on Mongo failure | ✅ confirmed in `Items/create/route.js` |
+| Usability | Mobile-first responsive; Creator Studio enforces mandatory fields without blocking silently | ✅ per DESIGN.md, with visible inline validation |
 
 ---
 
-## 8. Technical Architecture Updates
+## 8. Technical Architecture (summary — full detail in `docs/TECH_STACK.md`)
 
 ```text
-                       ┌─────────────────────────────────────────────────┐
-                       │            apps/web (Next.js 15 App Router)     │
-                       │  Feed · Market · Wallet · Library · Vault(DRM)  │
-                       │  Ad Studio · Creator Studio (Writer/Media/Bundle)│
-                       │  Text Servers · Live Presence · Profile · Auth  │
-                       └──────┬──────────────┬──────────────┬────────────┘
-                              │              │              │
-              REST + Socket.IO│   REST/JWT   │  Meta APIs   │  Web3/RPC
-                              ▼              ▼              ▼              ▼
-                     ┌──────────────┐ ┌──────────────┐ ┌────────────┐ ┌──────────────┐
-                     │  apps/chat   │ │ apps/payment │ │ apps/meta  │ │ apps/web3    │
-                     │  Express+IO  │ │  Express     │ │  Express   │ │  Node/JS     │
-                     │  (Text Only) │ │  (Credits)   │ │  (Ads)     │ │  (Minting)   │
-                     └──────┬───────┘ └───────┬──────┘ └─────┬──────┘ └──────┬───────┘
-                            │                 │              │               │
-                            └────────┬────────┴──────────────┴───────────────┘
-                                     ▼
-                      ┌──────────────────────────────────────┐
-                      │      Hybrid Database & Indexing      │
-                      │  PostgreSQL (Prisma): Users, Social, │
-                      │  AdCampaigns, MetaIntegrations.      │
-                      │  MongoDB (Mongoose): Items (with     │
-                      │  mandatory script/thumbnail), Chat,  │
-                      │  Text Channels, Transactions.        │
-                      │  Redis: Caching, Socket.IO Pub/Sub,  │
-                      │  Live Presence state.                │
-                      └──────────────────────────────────────┘
+                 apps/web (Next.js 15) ✅        apps/chat ✅        apps/payment ✅
+                 Feed·Market·Wallet·Library      Express+Socket.IO   Express+Stripe
+                 Creator Studio·Communities
+                        │
+        ┌───────────────┼────────────────┬─────────────────┐
+        ▼                                ▼                  ▼
+  apps/notifications 🔜           apps/meta 🔜         apps/web3 🔜
+  NestJS — this operation         blocked on Meta      blocked on chain/RPC
+  activates existing Postgres     dev-app credentials    decisions
+  `notifications` table
+        │
+        ▼
+  PostgreSQL (5 Prisma schemas: user/social/items/community/audit)
+  MongoDB (@repo/database-mongo: User/Post/Item/Message/Conversation/Membership/Attachment/Transaction)
+  Redis (caching, provisioned, not yet load-bearing anywhere critical)
 ```
+
+Full model-by-model detail lives in `docs/DATA_SCHEMA.md` — this PRD doesn't duplicate it.
 
 ---
 
-## 9. Data Model Extensions (Critical Updates)
+## 9. Acceptance Criteria — V1 Deployable State
 
-### 9.1 MongoDB: Item Schema (Enforcing Creator Studio Rules)
-```javascript
-const ItemSchema = new Schema({
-  userId: { type: String, required: true, index: true },
-  
-  // MANDATORY FIELDS (Enforced at API and UI level)
-  title: { type: String, required: true, trim: true, maxlength: 140 },
-  thumbnailUrl: { type: String, required: true }, 
-  script: { type: String, required: true }, // The core text body/script, regardless of media type
-  
-  category: { type: String, enum: ['blog', 'comic', 'video', 'audio', 'code', 'art', 'bundle', 'other'], required: true },
-  pricingModel: { type: String, enum: ['free', 'paid', 'subscription', 'bundle'], default: 'free' },
-  priceCredits: { type: Number, default: 0 },
-  
-  // Bundle Specifics
-  bundleItems: [{ type: Schema.Types.ObjectId, ref: 'Item' }], // Populated only if category === 'bundle'
-  
-  // DRM & Web3
-  blockchainTokenId: { type: String, sparse: true },
-  drmEnabled: { type: Boolean, default: true },
-  
-  media: [{
-    url: String,
-    mimeType: String,
-    size: Number
-  }],
-  
-  visibility: { type: String, enum: ['private', 'unlisted', 'public'], default: 'private' },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-}, { timestamps: true });
-```
+Rewritten to be checkable against real code, not aspirational:
 
-### 9.2 MongoDB: Channel Schema (Text-Only Enforcement)
-```javascript
-const ChannelSchema = new Schema({
-  serverId: { type: String, required: true, index: true },
-  name: { type: String, required: true, trim: true },
-  // STRICTLY TEXT. No 'voice' or 'stage' enum values allowed.
-  type: { type: String, enum: ['text'], default: 'text' }, 
-  topic: { type: String, maxlength: 255 },
-  position: { type: Number, default: 0 }
-}, { timestamps: true });
-```
+1. **Creator Studio gate**: Publish is disabled until Title + Thumbnail + Description + price status are all set, independent of each other. *(Description independence is the one gap this operation closes.)*
+2. **Bundle**: creator selects ≥2 existing items, groups them, publishes at a unified credit price. ✅ already true.
+3. **Text-only communities**: server/channel creation cannot produce a non-text channel via the API. ✅ true at the API level; 🔜 not yet true at the schema level (no DB constraint).
+4. **Notifications**: a follow produces a real row in the `notifications` table and a live Socket.IO push, respecting the user's per-type preference toggle. ✅ true for `follow` events as of 2026-08-09; 🔜 comment/message/item_purchase producers still need wiring at their existing routes (§6.6 FR-6.2).
+5. **DRM Vault**: opening a purchased item blocks right-click and PrintScreen-triggered shortcuts, and overlays a watermark computed from the live viewer's ID and timestamp — not a static string. ✅ true as of 2026-08-09.
+6. **Ad Studio**: a creator can link an Instagram account and successfully create a Meta ad campaign from a post. 🔜 blocked on credentials, not yet true.
+
+A feature only counts as "done" here when it's true against the running app — not when a doc says it should be.
 
 ---
 
-## 10. Acceptance Criteria (MVP "Bring It Home")
-1. **Creator Studio Enforcement:** A creator *cannot* click "Publish" in the Creator Studio unless the Title, Thumbnail, and Script fields are filled. The UI clearly separates the Writer, Media, and Bundle tabs.
-2. **Bundle Functionality:** A creator can successfully select 2+ existing items, group them in the Bundle Part, and publish them as a single sellable asset with a unified credit price.
-3. **Text-Only Chat:** A user can create a server and add channels. The UI and API explicitly prevent the creation or joining of voice channels. 
-4. **Live Presence:** When a user opens the app, their contacts see a "Live/Online" indicator in the server member list or DM sidebar within 2 seconds via Socket.IO.
-5. **DRM Vault:** A purchased comic loads in the Library. Right-click is disabled, and a dynamic watermark with the viewer's User ID is visibly overlaid on the canvas.
-6. **Ad Studio:** A creator can link an IG account, select a feed post, allocate 100 Credits, and successfully trigger the Meta API to create an ad campaign.
+## 10. Known Risks & Mitigations
 
----
-
-## 11. Known Risks & Mitigations
 | Risk | Mitigation |
 | :--- | :--- |
-| **OS-Level Screen Recording** | Browsers cannot block OBS/native screen recorders. **Mitigation:** Forensic dynamic watermarking ensures any leaked content can be traced back to the specific user's account for immediate banning and legal action. |
-| **Creator Studio Friction** | Mandatory fields (Title, Thumbnail, Script) might annoy creators making simple posts. **Mitigation:** Provide smart defaults (e.g., auto-generate thumbnail from first media frame, auto-fill script with "No script provided" for pure media drops, though a custom script is still required to proceed). |
-| **Meta API Rate Limits** | Implement strict exponential backoff and queueing in the `apps/meta` microservice. |
-| **"No Censorship" Liability** | "No censorship" applies to ideology and art. **Strict zero-tolerance** automated hashing (PhotoDNA) must run on all uploads to block illegal content (CSAM, terrorism) to comply with international law. |
+| OS-level screen recording | Cannot be blocked browser-side. Mitigation is forensic traceability via the dynamic watermark (§6.3) — shipped 2026-08-09, this is now actually true rather than aspirational. |
+| Creator Studio friction from 4 mandatory fields | Auto-thumbnail-from-first-image already reduces friction; the newly-independent description requirement is small (a sentence is enough) — not a heavy ask. |
+| Meta API rate limits | Exponential backoff + queueing in `apps/meta` once built. |
+| "No censorship" liability | Automated hashing (PhotoDNA or equivalent) on all uploads remains a requirement regardless of when DRM/Web3 ship — this is a legal floor, not a nice-to-have, and should not wait on the rest of §6.3. |
+| **New: docs drifting from code again** | This PRD's status markers (✅/🚧/🔜) exist specifically so the next audit is a five-minute diff, not another full re-derivation. Update the marker the moment a feature's real state changes — don't let it go stale for months again. |
 
 ---
 
-## 12. Out of Scope (for V1)
-* **Voice or Video Chat Channels:** Explicitly excluded. Community interaction is text, image, and file-based only, with "Live" text presence.
-* **Native iOS/Android Apps:** Web PWA only for now.
-* **Fiat-to-Crypto On-Ramps:** Internal credit system only for V1 (Stripe is for credit top-ups, not direct fiat-to-creator payouts yet).
-* **Complex Algorithmic Feed Manipulation:** V1 is strictly chronological/following-based + trending.
+## 11. Out of Scope (for V1)
+* Voice/video chat channels — text, image, file only, with live text presence.
+* Native iOS/Android apps — Web PWA only.
+* Fiat-to-crypto on-ramps — internal Credits + Stripe top-ups only.
+* Complex algorithmic feed manipulation — chronological/following + trending only.
+* Email/push notifications — in-app only for V1 (§6.6).
 
 ---
-*“Empowering creators to own their art, their audience, and their voice. Uncensored. Unstoppable. Bring it home.”*
+
+## 12. Roadmap to Deployable
+
+In dependency order, not calendar order:
+
+1. ~~**Close the Description gap** (§5)~~ ✅ done 2026-08-09.
+2. ~~**Ship Notifications** (§6.6)~~ ✅ core service done 2026-08-09; remaining: wire comment/message/item_purchase producers (small, no blockers), and run a live end-to-end check against a running Postgres (Docker wasn't available in the build environment).
+3. ~~**Ship real DRM enforcement** (§6.3)~~ ✅ done 2026-08-09; remaining: video EME (needs a license-server decision, not a blocker for the rest of V1).
+4. ~~**Harden text-only enforcement**~~ — resolved by decision, not by adding a DB constraint (DATA_SCHEMA.md §2.4 explains why); application-level enforcement is the deliberate final state, not a placeholder.
+5. ~~**Rebuild communities into a real, browsable, real-time system**~~ ✅ done 2026-08-09 (§6.4) — was not on the original roadmap; surfaced when auditing the feature end-to-end.
+6. **Ad Studio** (§6.5) — needs a Meta developer app from Rijusmit before any OAuth code can be tested live; service scaffolding can start in parallel.
+7. **Web3** (§6.7) — needs a chain/RPC/contract decision from Rijusmit before deployment work can start; service scaffolding can start in parallel.
+
+Steps 1–5 have no external dependency and are done. Steps 6–7 need decisions and credentials only the product owner can provide — those are the two things standing between this app and a genuinely complete V1.
+
+---
+*"Empowering creators to own their art, their audience, and their voice."*

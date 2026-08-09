@@ -4,14 +4,16 @@
   "description": "Simple Socket.IO Chat Server",
   "main": "server.js",
   "scripts": {
-    "build": "echo 'No build step needed'",
-    "dev": "nodemon server.js",
-    "dev:debug": "nodemon --inspect server.js",
+    "build": "prisma generate",
+    "dev": "prisma generate && nodemon server.js",
+    "dev:debug": "prisma generate && nodemon --inspect server.js",
     "start": "node server.js",
-    "test-db": "node test-db.js"
+    "test-db": "node test-db.js",
+    "prisma:generate": "prisma generate"
   },
   "dependencies": {
     "@repo/database-mongo": "^0.0.0",
+    "@prisma/client": "^5.20.0",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
@@ -26,6 +28,7 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "prisma": "^5.20.0"
   }
 }

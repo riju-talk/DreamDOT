@@ -20,6 +20,14 @@
     "chat-server#dev": {
       "cache": false,
       "persistent": true
+    },
+    "payment-service#dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "notifications-server#dev": {
+      "cache": false,
+      "persistent": true
     }
   }
 }

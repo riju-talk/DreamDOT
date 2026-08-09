@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prismaSocial } from '@/lib/prisma/social'
+import { sendNotification } from '@/lib/notifications'
 
 /**
  * GET /api/users/[id]/follow
@@ -72,6 +73,11 @@ export async function POST(_req, { params }) {
         followee_id: userId,
       },
     })
+
+    // Fire-and-forget: never block or fail the follow action on a notifications-service hiccup
+    sendNotification(userId, 'follow', `${session.user.name || session.user.email || 'Someone'} started following you`).catch(
+      (err) => console.error('[API] Failed to dispatch follow notification:', err.message)
+    )
 
     return NextResponse.json(
       { message: 'Followed successfully', isFollowing: true },

@@ -51,6 +51,11 @@ const validateDraftFunc = (draft: Draft, step: 'writer' | 'media' | 'bundle'): {
     errors.script = 'Content must be at least 10 characters'
   }
 
+  // Description is mandatory on its own — a long script does not excuse a missing description
+  if (!draft.description || getVisibleTextLength(draft.description) < 1) {
+    errors.description = 'Description is required'
+  }
+
   if (!draft.category) {
     errors.category = 'Category is required'
   }

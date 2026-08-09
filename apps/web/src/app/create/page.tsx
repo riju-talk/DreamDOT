@@ -342,11 +342,35 @@ export default function CreatePage() {
                       </span>
                     </li>
                     <li className="flex items-center gap-2">
+                      <span className={`text-lg ${getVisibleTextLength(draft.description || '') >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {getVisibleTextLength(draft.description || '') >= 1 ? '✓' : '○'}
+                      </span>
+                      <span className={getVisibleTextLength(draft.description || '') >= 1 ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                        Description
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className={`text-lg ${draft.thumbnailUrl ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {draft.thumbnailUrl ? '✓' : '○'}
+                      </span>
+                      <span className={draft.thumbnailUrl ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                        Thumbnail
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2">
                       <span className={`text-lg ${draft.category ? 'text-primary' : 'text-muted-foreground'}`}>
                         {draft.category ? '✓' : '○'}
                       </span>
                       <span className={draft.category ? 'text-foreground font-medium' : 'text-muted-foreground'}>
                         Category
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className={`text-lg ${draft.pricingModel ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {draft.pricingModel ? '✓' : '○'}
+                      </span>
+                      <span className={draft.pricingModel ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                        Price status
                       </span>
                     </li>
                   </ul>

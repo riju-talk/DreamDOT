@@ -110,6 +110,7 @@ exports.Prisma.ServersScalarFieldEnum = {
   name: 'name',
   description: 'description',
   owner_id: 'owner_id',
+  is_public: 'is_public',
   created_at: 'created_at',
   updated_at: 'updated_at'
 };
@@ -130,15 +131,6 @@ exports.Prisma.MembersScalarFieldEnum = {
   user_id: 'user_id',
   role: 'role',
   joined_at: 'joined_at'
-};
-
-exports.Prisma.MessagesScalarFieldEnum = {
-  message_id: 'message_id',
-  channel_id: 'channel_id',
-  user_id: 'user_id',
-  content: 'content',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
 };
 
 exports.Prisma.PresenceScalarFieldEnum = {
@@ -169,7 +161,6 @@ exports.Prisma.ModelName = {
   servers: 'servers',
   channels: 'channels',
   members: 'members',
-  messages: 'messages',
   presence: 'presence'
 };
 

@@ -24,7 +24,7 @@ import {
 import { useSession } from "next-auth/react"
 import { useTypingIndicator } from "@/lib/useSocketHook"
 import { useChatStore } from "@/lib/store/useChatStore"
-import { emitSendMessage } from "@/lib/socket"
+import { emitSendMessage, emitSendChannelMessage } from "@/lib/socket"
 
 const MAX_CHARACTER_LIMIT = 4000
 const TYPING_INDICATOR_INTERVAL = 3000 // 3 seconds
@@ -42,8 +42,14 @@ interface FilePreview {
   type: "image" | "video" | "file"
 }
 
-export function MessageInput({ conversationId }: { conversationId: string }) {
-  console.log('[MessageInput] Initializing with conversationId:', conversationId)
+export function MessageInput({
+  conversationId,
+  type = 'dm',
+}: {
+  conversationId: string
+  type?: 'dm' | 'channel'
+}) {
+  console.log('[MessageInput] Initializing with conversationId:', conversationId, 'type:', type)
   
   const { data: session } = useSession()
   const { addMessage } = useChatStore()
@@ -318,7 +324,11 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
 
       // Emit socket message
       console.log('[MessageInput] Emitting message via socket')
-      emitSendMessage(conversationId, message.trim(), attachments)
+      if (type === 'channel') {
+        emitSendChannelMessage(conversationId, message.trim(), attachments)
+      } else {
+        emitSendMessage(conversationId, message.trim(), attachments)
+      }
 
       // Clear inputs
       setMessage("")

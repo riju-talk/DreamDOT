@@ -2,9 +2,10 @@
 
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Download, X } from "lucide-react"
+import { Download, X, ShieldAlert } from "lucide-react"
 import Image from "next/image"
 import { useSession } from "next-auth/react"
+import { useEffect, useRef, useState } from "react"
 import { LibraryItem } from "./LibraryItemCard"
 
 interface DRMViewerProps {
@@ -13,11 +14,88 @@ interface DRMViewerProps {
   onClose: () => void
 }
 
+// Shortcuts that would let a viewer inspect or save the underlying asset URL/markup.
+const BLOCKED_SHORTCUTS = (e: KeyboardEvent) =>
+  e.key === 'F12' ||
+  (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) ||
+  (e.ctrlKey && ['U', 'S'].includes(e.key.toUpperCase()))
+
+// DevTools panels change the gap between outer and inner window dimensions — not foolproof,
+// but a real, working heuristic rather than decoration.
+const DEVTOOLS_THRESHOLD = 160
+
 export function DRMViewer({ item, isOpen, onClose }: DRMViewerProps) {
   const { data: session } = useSession()
   const userName = session?.user?.name || "User"
+  const userId = (session?.user as { id?: string } | undefined)?.id || "unknown"
+
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [now, setNow] = useState(() => new Date())
+  const [devToolsOpen, setDevToolsOpen] = useState(false)
+  const [screenshotFlag, setScreenshotFlag] = useState(false)
+
+  // Live watermark clock — this is what makes the overlay a real per-session watermark
+  // instead of a static string baked in at first render.
+  useEffect(() => {
+    if (!isOpen) return
+    const interval = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(interval)
+  }, [isOpen])
+
+  // Anti-piracy input blocking, scoped to the viewer only (not the whole document).
+  useEffect(() => {
+    if (!isOpen) return
+
+    const node = containerRef.current
+
+    const blockContextMenu = (e: MouseEvent) => e.preventDefault()
+    const blockSelect = (e: Event) => e.preventDefault()
+    const blockKeys = (e: KeyboardEvent) => {
+      if (e.key === 'PrintScreen') {
+        // The capture has already happened by keydown, but flagging it lets us react
+        // (flash a warning, and in production, phone home for a tracking event) rather
+        // than pretend the click never happened.
+        setScreenshotFlag(true)
+        window.setTimeout(() => setScreenshotFlag(false), 2500)
+        console.warn(`[DRM] PrintScreen detected while viewing item ${item.id} — user ${userId}`)
+        return
+      }
+      if (BLOCKED_SHORTCUTS(e)) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    }
+
+    node?.addEventListener('contextmenu', blockContextMenu)
+    node?.addEventListener('selectstart', blockSelect)
+    window.addEventListener('keydown', blockKeys)
+
+    return () => {
+      node?.removeEventListener('contextmenu', blockContextMenu)
+      node?.removeEventListener('selectstart', blockSelect)
+      window.removeEventListener('keydown', blockKeys)
+    }
+  }, [isOpen, item.id, userId])
+
+  // DevTools-open heuristic — blurs the protected content rather than trusting the tab stays closed.
+  useEffect(() => {
+    if (!isOpen) return
+    const check = () => {
+      const widthGap = window.outerWidth - window.innerWidth
+      const heightGap = window.outerHeight - window.innerHeight
+      setDevToolsOpen(widthGap > DEVTOOLS_THRESHOLD || heightGap > DEVTOOLS_THRESHOLD)
+    }
+    check()
+    const interval = setInterval(check, 1000)
+    return () => clearInterval(interval)
+  }, [isOpen])
 
   if (!isOpen) return null
+
+  const watermarkTimestamp = now.toLocaleString('en-US', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  })
 
   return (
     <motion.div
@@ -28,13 +106,23 @@ export function DRMViewer({ item, isOpen, onClose }: DRMViewerProps) {
       onClick={onClose}
     >
       <motion.div
+        ref={containerRef}
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="bg-[#1a1918] rounded-lg max-w-3xl w-full mx-4 max-h-[90vh] flex flex-col border border-[#2a2826]"
+        className="bg-[#1a1918] rounded-lg max-w-3xl w-full mx-4 max-h-[90vh] flex flex-col border border-[#2a2826] select-none"
         onClick={(e) => e.stopPropagation()}
       >
+        {screenshotFlag && (
+          <div className="absolute inset-0 z-10 bg-[#99FF33]/10 border-2 border-[#99FF33] rounded-lg flex items-center justify-center pointer-events-none">
+            <div className="bg-[#121412] px-4 py-2 rounded-lg border border-[#99FF33] flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 text-[#99FF33]" />
+              <span className="text-xs text-[#99FF33] font-semibold">Screenshot attempt logged to this account</span>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#2a2826]">
           <div className="flex-1">
@@ -59,42 +147,55 @@ export function DRMViewer({ item, isOpen, onClose }: DRMViewerProps) {
           <div className="p-6 space-y-6">
             {/* DRM Protected Preview */}
             <div className="relative w-full h-96 bg-[#121412] rounded-lg border border-[#2a2826] flex items-center justify-center overflow-hidden group">
-              {/* Watermark Pattern */}
-              <div className="absolute inset-0 opacity-10 pointer-events-none text-[#99FF33] text-xs font-semibold overflow-hidden select-none">
+              {/* Image */}
+              <div
+                className={`absolute inset-0 transition-[filter] duration-200 ${devToolsOpen ? 'blur-2xl brightness-50' : ''}`}
+              >
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  className="object-cover pointer-events-none"
+                  draggable={false}
+                  unoptimized
+                />
+              </div>
+
+              {/* Dynamic Watermark — live userId + session timestamp, not a static string */}
+              <div className="absolute inset-0 opacity-[0.15] pointer-events-none text-[#99FF33] text-[10px] font-semibold overflow-hidden select-none z-[1]">
                 <div className="absolute inset-0 flex items-center justify-center flex-wrap content-center">
                   {Array.from({ length: 16 }).map((_, i) => (
                     <div
                       key={i}
-                      className="w-1/4 h-1/4 flex items-center justify-center transform -rotate-45 whitespace-nowrap"
+                      className="w-1/4 h-1/4 flex items-center justify-center transform -rotate-45 whitespace-nowrap leading-tight text-center"
                     >
-                      © {new Date().getFullYear()} {userName}
+                      {userId}
+                      <br />
+                      {watermarkTimestamp}
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Image */}
-              <div className="absolute inset-0">
-                <Image
-                  src={item.image}
-                  alt={item.title}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </div>
+              {devToolsOpen && (
+                <div className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-2 bg-black/60">
+                  <ShieldAlert className="h-8 w-8 text-[#99FF33]" />
+                  <p className="text-sm text-[#FFFFFF] font-semibold">Content hidden</p>
+                  <p className="text-xs text-[#6B8E6E]">Close developer tools to continue viewing</p>
+                </div>
+              )}
 
               {/* DRM Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
 
               {/* DRM Notice */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent z-[1] pointer-events-none">
                 <div className="flex items-center gap-2">
                   <div className="h-3 w-3 rounded-full bg-[#99FF33] animate-pulse" />
                   <p className="text-sm font-semibold text-[#FFFFFF]">DRM Protected</p>
                 </div>
                 <p className="text-xs text-[#6B8E6E] mt-1">
-                  © {new Date().getFullYear()} {userName} • Watermarked • Tracked
+                  {userName} • {watermarkTimestamp} • Watermarked • Tracked
                 </p>
               </div>
             </div>

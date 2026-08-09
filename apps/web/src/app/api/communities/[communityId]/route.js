@@ -36,6 +36,7 @@ export async function GET(_request, { params }) {
           name: community.name,
           description: community.description,
           ownerId: community.owner_id,
+          isPublic: community.is_public,
           memberCount: community._count.members,
           channels: community.channels.map((ch) => ({
             id: ch.channel_id,
@@ -54,7 +55,14 @@ export async function GET(_request, { params }) {
   }
 }
 
-export async function POST(request, { params }) {
+/**
+ * DELETE /api/communities/[communityId]
+ * Owner-only. Cascades to channels/members via the schema's onDelete: Cascade —
+ * channel messages (Mongo, keyed by channelId) are intentionally left orphaned
+ * rather than bulk-deleted, matching how deleted conversations/posts are handled
+ * elsewhere in this app (soft data retention, not a hard purge).
+ */
+export async function DELETE(_request, { params }) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
@@ -71,51 +79,21 @@ export async function POST(request, { params }) {
     }
 
     const { communityId } = await params
-    const { channelName, description } = await request.json()
 
-    if (!channelName?.trim()) {
-      return NextResponse.json({ error: 'Channel name is required' }, { status: 400 })
+    const community = await prismaCommunity.servers.findUnique({ where: { server_id: communityId } })
+    if (!community) {
+      return NextResponse.json({ error: 'Community not found' }, { status: 404 })
     }
 
-    // Verify user is owner/admin
-    const membership = await prismaCommunity.members.findUnique({
-      where: {
-        server_id_user_id: {
-          server_id: communityId,
-          user_id: currentUser.id,
-        },
-      },
-    })
-
-    if (!membership || !['owner', 'admin'].includes(membership.role)) {
-      return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
+    if (community.owner_id !== currentUser.id) {
+      return NextResponse.json({ error: 'Only the owner can delete this community' }, { status: 403 })
     }
 
-    // Create channel
-    const channel = await prismaCommunity.channels.create({
-      data: {
-        server_id: communityId,
-        name: channelName.trim(),
-        topic: description?.trim() || null,
-        type: 'text',
-        position: 0,
-      },
-    })
+    await prismaCommunity.servers.delete({ where: { server_id: communityId } })
 
-    return NextResponse.json(
-      {
-        channel: {
-          id: channel.channel_id,
-          name: channel.name,
-          type: channel.type,
-          topic: channel.topic,
-          position: channel.position,
-        },
-      },
-      { status: 201 }
-    )
+    return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error creating channel:', error)
+    console.error('Error deleting community:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,0 +1,38 @@
+{
+  "name": "notifications-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NestJS notification service — activates the existing Postgres `notifications` table for all cross-service events",
+  "scripts": {
+    "build": "prisma generate && nest build",
+    "dev": "prisma generate && nest start --watch",
+    "start": "node dist/main.js",
+    "prisma:generate": "prisma generate"
+  },
+  "dependencies": {
+    "@repo/database-mongo": "^0.0.0",
+    "@nestjs/common": "^10.4.4",
+    "@nestjs/core": "^10.4.4",
+    "@nestjs/platform-express": "^10.4.4",
+    "@nestjs/platform-socket.io": "^10.4.4",
+    "@nestjs/websockets": "^10.4.4",
+    "@prisma/client": "^5.20.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "jsonwebtoken": "^9.0.2",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "socket.io": "^4.7.4"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.4.5",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.10.7",
+    "prisma": "^5.20.0",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
