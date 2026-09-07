@@ -1,18 +1,21 @@
 {
   "name": "web3-service",
   "version": "1.0.0",
-  "description": "DreamDOT Web3 — content minting, ownership verification, credit ledger sync. NOT FUNCTIONAL until a chain/RPC/contract decision is made — see README.md.",
+  "description": "DreamDOT Web3 — minimal best-effort on-chain transaction ledger (0-value calldata tx on a free testnet). Degrades to Mongo-only when no chain is configured.",
   "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "node -e \"process.exit(0)\""
   },
   "dependencies": {
+    "@repo/database-mongo": "^0.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "helmet": "^7.1.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "viem": "^2.21.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

@@ -105,6 +105,8 @@ export const authOptions: NextAuthOptions = {
                 email: user.email,
                 password_hash: `OAUTH_LOGIN_${account.provider.toUpperCase()}`,
                 is_verified: true,
+                // Demo credit economy: every account starts with 100 credits.
+                initial_balance: 100,
                 user_profile: {
                   create: {
                     username,

@@ -29,7 +29,7 @@ export const config = {
     "/items/:path*",
     "/messages/:path*",
     "/settings/:path*",
-    "/payment/:path*",
+    "/wallet/:path*",
     "/api/posts/feed",
     "/api/marketplace",
   ],

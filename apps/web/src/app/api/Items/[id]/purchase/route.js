@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { prismaItems } from '@/lib/prisma/items'
 import { Item } from '@repo/database-mongo'
 import { connectToDatabase } from '@/lib/mongoose/connection'
+import { sendNotification } from '@/lib/notifications'
+import { recordLedger } from '@/lib/web3'
 
 export async function POST(request, { params }) {
   try {
@@ -112,7 +114,16 @@ export async function POST(request, { params }) {
       }
     )
 
-    // 10. Get seller info for notification (optional)
+    // 9b. Best-effort on-chain record of the purchase — never blocks the response.
+    recordLedger({
+      kind: 'purchase',
+      userId: user.id,
+      itemId: sqlItemId,
+      amount: item.price,
+      ref: transaction.transaction_id,
+    }).catch((err) => console.error('[API] purchase ledger record failed:', err.message))
+
+    // 10. Get seller info for notification
     const seller = await prismaItems.users.findUnique({
       where: { id: item.userId },
       select: {
@@ -123,6 +134,15 @@ export async function POST(request, { params }) {
         }
       }
     })
+
+    // Notify the seller — fire-and-forget, never blocks the response. Skip
+    // self-notification in the (defensive) case a creator "buys" their own item.
+    if (item.userId !== user.id) {
+      const buyerName = session.user.name || session.user.email || 'Someone'
+      sendNotification(item.userId, 'item_purchase', `${buyerName} purchased "${item.title}"`).catch((err) =>
+        console.error('[API] Failed to dispatch purchase notification:', err.message)
+      )
+    }
 
     return NextResponse.json(
       {

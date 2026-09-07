@@ -1,99 +1,59 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { prismaSocial } from '@/lib/prisma/social'
+import { authOptions } from '@/lib/auth'
+import { prismaUser } from '@/lib/prisma/user'
+import { prismaItems } from '@/lib/prisma/items'
 
-const USD_CONVERSION_RATE = 0.01 // 1 credit = 0.01 USD
+// Demo credit economy — 1 credit is displayed 1:1, no fiat conversion.
+// The authoritative balance lives in Postgres `users.initial_balance`.
 
-export async function GET(request) {
+export async function GET() {
   try {
-    // 1. Authenticate user
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 })
     }
 
-    // 2. Get user and balance
-    const user = await prismaSocial.users.findUnique({
+    const user = await prismaUser.users.findUnique({
       where: { email: session.user.email },
-      select: {
-        id: true,
-        intitial_balance: true,
-        user_profile: {
-          select: {
-            display_name: true
-          }
-        }
-      }
+      select: { id: true, initial_balance: true },
     })
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return NextResponse.json({ error: 'User not found', code: 'USER_NOT_FOUND' }, { status: 404 })
     }
 
-    const balance = user.intitial_balance || 0
+    const credits = Number(user.initial_balance ?? 0)
 
-    // 3. Get total spent
-    const totalSpentResult = await prismaSocial.transactions.aggregate({
-      where: {
-        buyer_id: user.id,
-        payment_status: 'completed',
-        transaction_type: {
-          in: ['purchase', 'top-up'] // Include both purchases and actual top-ups
-        }
-      },
-      _sum: {
-        amount: true
-      }
-    })
+    // Spend / earn stats come from the items-domain transactions table.
+    console.log('[API] balance: aggregating transactions for', user.id)
+    const [spent, earned] = await Promise.all([
+      prismaItems.transactions.aggregate({
+        where: { buyer_id: user.id, payment_status: 'completed' },
+        _sum: { amount: true },
+      }),
+      prismaItems.transactions.aggregate({
+        where: {
+          payment_status: 'completed',
+          items: { is: { user_id: user.id } },
+        },
+        _sum: { amount: true },
+      }),
+    ])
 
-    const totalSpent = Math.abs(parseFloat(totalSpentResult._sum.amount || 0))
-
-    // 4. Get total earned (from sales)
-    const totalEarnedResult = await prismaSocial.transactions.aggregate({
-      where: {
-        seller_id: user.id,
-        payment_status: 'completed'
-      },
-      _sum: {
-        amount: true
-      }
-    })
-
-    const totalEarned = parseFloat(totalEarnedResult._sum.amount || 0)
-
-    // 5. Get pending transactions (optional)
-    const pendingCount = await prismaSocial.transactions.count({
-      where: {
-        $or: [
-          { buyer_id: user.id },
-          { seller_id: user.id }
-        ],
-        payment_status: 'pending'
-      }
-    })
-
-    // 6. Format response
     return NextResponse.json(
       {
-        balance: {
-          credits: balance,
-          usd: balance * USD_CONVERSION_RATE
-        },
+        balance: { credits },
         stats: {
-          totalSpent,
-          totalEarned,
-          pendingTransactions: pendingCount
+          totalSpent: Number(spent._sum.amount ?? 0),
+          totalEarned: Number(earned._sum.amount ?? 0),
         },
-        conversionRate: USD_CONVERSION_RATE,
-        user: {
-          id: user.id,
-          name: user.user_profile?.display_name || 'User'
-        }
+        user: { id: user.id },
       },
       { status: 200 }
     )
   } catch (error) {
-    console.error('Get balance error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[API] Get balance error:', error)
+    return NextResponse.json({ error: 'Internal server error', code: 'INTERNAL' }, { status: 500 })
   }
 }

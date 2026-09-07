@@ -12,6 +12,8 @@
 
 ---
 
+> **Deployment update (2026-09):** `apps/payment` was **removed** — the credit economy is a demo (100 credits on signup, free top-ups, optional review → `reviews` table). `apps/web3` is now a **minimal working** on-chain ledger (0-value calldata tx on Polygon Amoy via `viem`, best-effort). Deploy split: `apps/web` → **Vercel** (native, no `vercel.json`); `apps/chat` / `apps/notifications` / `apps/web3` → **Docker** (`apps/<svc>/Dockerfile` + `fly.toml`). See `DEPLOYMENT.md`.
+
 ## 1. Services — What's Actually Running
 
 | Service | Status | Language | Port | Entry point |

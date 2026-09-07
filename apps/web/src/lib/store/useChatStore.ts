@@ -8,6 +8,13 @@ import {
   emitTypingIndicator,
 } from '@/lib/socket'
 
+// A single stable empty-array reference for selectors below. Returning a fresh
+// `[]` literal from a Zustand selector when there's no data creates a new
+// reference on every call — React's useSyncExternalStore then sees a "changed"
+// snapshot on every render and loops ("Maximum update depth exceeded"). Return
+// this constant instead so the reference is stable when there's genuinely nothing.
+const EMPTY_ARRAY: never[] = []
+
 // ============================================================================
 // Type Definitions
 // ============================================================================
@@ -433,7 +440,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
  */
 export const selectActiveConversationMessages = (state: ChatState) => {
   const { activeConversationId, messages } = state
-  return activeConversationId ? messages[activeConversationId] || [] : []
+  return activeConversationId ? messages[activeConversationId] || EMPTY_ARRAY : EMPTY_ARRAY
 }
 
 /**
@@ -441,7 +448,7 @@ export const selectActiveConversationMessages = (state: ChatState) => {
  */
 export const selectActiveConversationTypingUsers = (state: ChatState) => {
   const { activeConversationId, typingUsers } = state
-  return activeConversationId ? typingUsers[activeConversationId] || [] : []
+  return activeConversationId ? typingUsers[activeConversationId] || EMPTY_ARRAY : EMPTY_ARRAY
 }
 
 /**

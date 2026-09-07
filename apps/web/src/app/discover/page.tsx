@@ -4,6 +4,10 @@ import { TrendingHashtags } from "@/components/trending-hashtags"
 import { SuggestedCreators } from "@/components/suggested-creators"
 import { AuthenticatedLayout } from "@/components/authenticated-layout"
 
+// Reads live data (posts/items) at request time — never prerender at build,
+// where no database is reachable.
+export const dynamic = "force-dynamic"
+
 export default async function DiscoverPage() {
   return (
     <AuthenticatedLayout>

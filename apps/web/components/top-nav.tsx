@@ -213,7 +213,8 @@ export function TopNav() {
           {[
             { name: "Home Feed", href: "/feed" },
             { name: "Discover", href: "/discover" },
-            { name: "Marketplace", href: "/marketplace" }
+            { name: "Marketplace", href: "/marketplace" },
+            { name: "About", href: "/about" }
           ].map((link) => (
             <Link
               key={link.href}

@@ -10,6 +10,7 @@ const compression = require('compression');
 const { connectDb } = require('./db');
 const { authenticateToken, authenticateSocket, ensureMember, ensureChannelMember } = require('./auth');
 const { prismaCommunity } = require('./prisma-client');
+const { sendNotification } = require('./notifications');
 // Use shared models
 const { Message, Conversation, User } = require('@repo/database-mongo');
 
@@ -169,7 +170,7 @@ app.post('/api/v1/conversations/:id/messages', async (req, res) => {
 
 
     // Check if user is member
-    await ensureMember(userId, id);
+    const conversation = await ensureMember(userId, id);
 
     // Create message
     const message = await Message.create({
@@ -190,6 +191,16 @@ app.post('/api/v1/conversations/:id/messages', async (req, res) => {
       $addToSet: { unreadBy: { $each: [] } }, // Reset unreadBy for sender
       $pull: { unreadBy: userId }, // Remove sender from unreadBy
     });
+
+    // Notify every other participant — fire-and-forget, never blocks the response
+    const sender = await User.findById(userId).lean();
+    conversation.participants
+      .filter((participantId) => participantId !== userId)
+      .forEach((participantId) => {
+        sendNotification(participantId, 'message', `${sender?.name || 'Someone'} sent you a message`).catch((err) =>
+          debugLog('ERROR: Failed to dispatch message notification:', err.message)
+        );
+      });
 
     debugLog('SUCCESS: Message sent:', message._id);
     res.json({ success: true, data: message });
@@ -297,7 +308,7 @@ io.on('connection', async (socket) => {
       }
 
       // Check membership
-      await ensureMember(socket.userId, conversationId);
+      const conversation = await ensureMember(socket.userId, conversationId);
 
       const savedMessage = await Message.create({
         conversationId,
@@ -331,6 +342,16 @@ io.on('connection', async (socket) => {
 
       // Broadcast to room (excluding sender)
       socket.to(conversationId).emit('message:new', payload);
+
+      // Notify every other participant — fire-and-forget, covers the case where a
+      // recipient isn't actively connected/in this room to receive the live broadcast.
+      conversation.participants
+        .filter((participantId) => participantId !== socket.userId)
+        .forEach((participantId) => {
+          sendNotification(participantId, 'message', `${payload.senderName} sent you a message`).catch((err) =>
+            debugLog('ERROR: Failed to dispatch message notification:', err.message)
+          );
+        });
 
       debugLog('SUCCESS: Message sent and broadcasted:', savedMessage._id);
 

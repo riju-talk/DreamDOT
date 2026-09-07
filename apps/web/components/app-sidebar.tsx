@@ -24,6 +24,7 @@ import {
   Settings,
   Sparkles,
   Users,
+  Info,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -36,6 +37,7 @@ export function AppSidebar() {
   const isHome = pathname === "/feed" || pathname === "/"
   const isDiscover = pathname?.startsWith("/discover")
   const isMarketplace = pathname?.startsWith("/marketplace")
+  const isAbout = pathname?.startsWith("/about")
   const isCommunities = pathname?.startsWith("/communities")
   const isAnalytics = pathname?.startsWith("/analytics")
   const isCreate = pathname?.startsWith("/create")
@@ -111,6 +113,23 @@ export function AppSidebar() {
                   <Link href="/marketplace">
                     <ShoppingBag className="transition-colors" />
                     <span className="font-medium transition-colors">Market</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={Boolean(isAbout)}
+                  className={cn(
+                    "h-10 rounded-xl transition-all duration-300 active:scale-95",
+                    isAbout
+                      ? "bg-primary/10 border-l-2 border-primary shadow-md text-primary"
+                      : "hover:bg-foreground/5 text-foreground/60 hover:text-primary"
+                  )}
+                >
+                  <Link href="/about">
+                    <Info className="transition-colors" />
+                    <span className="font-medium transition-colors">About</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -195,9 +214,9 @@ export function AppSidebar() {
                   asChild 
                   className="h-10 rounded-xl transition-all duration-300 active:scale-95 hover:bg-foreground/5 text-foreground/60 hover:text-primary"
                 >
-                  <Link href="/payment">
+                  <Link href="/wallet">
                     <Wallet className="transition-colors" />
-                    <span className="font-medium transition-colors">Payments</span>
+                    <span className="font-medium transition-colors">Wallet</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

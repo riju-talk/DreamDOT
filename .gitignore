@@ -51,3 +51,10 @@ replit.nix
 errors.txt
 errors2.txt
 tsconfig.tsbuildinfo
+
+# Generated Prisma clients — regenerated on install/build (apps/web/scripts/prisma-generate.mjs).
+# The *.prisma schema files under src/generated/* are the source of truth and stay tracked.
+apps/web/src/generated/**
+apps/web/src/lib/generated/**
+!apps/web/src/generated/*/
+!apps/web/src/generated/*/schema.prisma

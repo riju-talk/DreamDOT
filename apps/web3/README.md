@@ -1,24 +1,41 @@
-# apps/web3
+# apps/web3 — On-chain transaction ledger
 
-Content minting, on-chain ownership verification, and credit ledger sync. See `docs/PRD.md` §6.7.
+A tiny Express service that records DreamDOT credit transactions (purchases and
+top-ups) on a public blockchain, as a tamper-evident receipt. It is **best-effort
+and optional** — if no chain is configured it still writes a queryable record to
+MongoDB and returns `txHash: null`.
 
-## Status: structure only, zero working routes
+## How it works
 
-Unlike `apps/meta` (which just needs credentials), this service is blocked on **architecture decisions**, not a credentials gap:
+- `apps/web` calls `POST /ledger/record` (fire-and-forget) after a purchase or a
+  credit top-up succeeds. Auth is the shared `x-service-secret` header.
+- The service writes a `LedgerEntry` document to Mongo (`@repo/database-mongo`).
+- If `RPC_URL` + `WEB3_PRIVATE_KEY` + `CHAIN_ID` are all set, it also sends a
+  **0-value transaction from a burner wallet to itself**, with a small JSON
+  payload hex-encoded in the transaction's `data` field. No smart contract.
+- The resulting transaction hash + explorer link are saved back onto the entry.
 
-1. **Which chain** — Polygon or Base, per `docs/TECH_STACK.md`. Testnet-first (Amoy/Sepolia) or straight to mainnet?
-2. **RPC provider** — Alchemy, Infura, or a public RPC, and its URL.
-3. **Contracts** — an ERC-721/1155 for content and an account-abstraction (ERC-4337) setup for gasless Credits don't exist yet. They need to be written, audited at whatever level the budget allows, and deployed before `/mint` can do anything.
-4. **The `ethers` (or `viem`-for-Node) dependency itself** hasn't been added — deliberately. Picking a library version before the chain/tooling (Hardhat vs Foundry) is chosen would be a guess, and the Rules of Engagement are explicit about not adding dependencies without asking first.
+## Endpoints
 
-Every route in `routes/` returns `501 Not Implemented` with a clear reason rather than pretending to work. This is the honest state of Web3 in this codebase: a placeholder that won't lie to you about being done.
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/health` | no auth; reports `configured` + `chainId` |
+| POST | `/ledger/record` | `x-service-secret`; body `{ kind, userId, itemId?, amount, ref }` |
+| GET | `/ledger/entries?userId=` | `x-service-secret`; recent entries for a user |
 
-## What NOT to build yet
-Don't write real `ethers.js` contract calls against a guessed ABI. Don't pick a chain unilaterally — it's an irreversible-feeling decision (deployed contract addresses, whatever gas gets spent testing) that belongs to Rijusmit.
+## Running on-chain (optional, free)
 
-## Once the decision is made
-1. Add the env vars in `.env.example` with real values.
-2. Add `ethers` (or the chosen library) to `package.json` explicitly.
-3. Deploy the contracts, drop the ABI JSON into a new `contracts/` directory.
-4. Fill in `routes/mint.js`, `routes/verify.js`, `routes/ledger.js` against the real ABI.
-5. Add a `BlockchainLedger` Mongo model (`docs/DATA_SCHEMA.md` §7 tracks this as pending) once there's something real to log.
+Default target is the **Polygon Amoy testnet** (chain id `80002`):
+
+1. Create a burner wallet:
+   `node -e "console.log(require('viem/accounts').generatePrivateKey())"`
+2. Fund it with free test POL at <https://faucet.polygon.technology> (select "Amoy").
+3. Put the private key in `WEB3_PRIVATE_KEY` (see `.env.example`).
+
+Leaving `WEB3_PRIVATE_KEY` blank runs the service in local-only mode — perfectly
+fine for demos and CI.
+
+## Deploy
+
+Dockerfile at `apps/web3/Dockerfile` (build context = repo root). See the repo
+`DEPLOYMENT.md`.

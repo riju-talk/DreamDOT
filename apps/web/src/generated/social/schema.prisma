@@ -2,7 +2,7 @@ generator client {
   provider        = "prisma-client-js"
   output          = "../../generated/social"
   previewFeatures = ["multiSchema"]
-  binaryTargets   = ["native", "debian-openssl-3.0.x", "windows"]
+  binaryTargets   = ["native", "debian-openssl-3.0.x", "rhel-openssl-3.0.x", "windows"]
 }
 
 datasource db {

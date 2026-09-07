@@ -1,0 +1,22 @@
+# Build context for the backend service images (apps/chat, apps/notifications, apps/web3).
+# The Next.js app (apps/web) deploys to Vercel and is never containerized, but its
+# package.json must stay in context so `npm ci` can resolve the workspace graph.
+
+**/node_modules
+**/.next
+**/.turbo
+**/dist
+apps/web/src/generated
+apps/web/src/lib/generated
+apps/web/public
+.git
+.github
+**/*.log
+
+# Never ship env files into an image — secrets come from the platform.
+**/.env
+**/.env.*
+
+DEPLOYMENT_PLAN.md
+docker
+docker-compose.yml

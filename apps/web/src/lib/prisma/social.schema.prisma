@@ -2,7 +2,7 @@ generator client {
   provider        = "prisma-client-js"
   output          = "../generated/social"
   previewFeatures = ["multiSchema"]
-  binaryTargets   = ["native", "debian-openssl-3.0.x", "windows"]
+  binaryTargets   = ["native", "debian-openssl-3.0.x", "rhel-openssl-3.0.x", "windows"]
 }
 
 datasource db {
@@ -154,7 +154,7 @@ model users {
   is_active         Boolean?           @default(true)
   pass_salts        String?
   user_type         String?            @default("user")
-  initial_balance   Float              @default(50000) @db.Real
+  initial_balance   Float              @default(100) @db.Real
   notifications     notifications[]
   posts             posts[]
   user_analytics    user_analytics?

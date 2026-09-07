@@ -35,7 +35,7 @@ export async function SocialFeed() {
   try {
     postsData = await fetchPosts({ page: 1, limit: 5 })
   } catch (error) {
-    console.error("Error loading posts from database, using fake data:", error)
+    console.error("[SocialFeed] Error loading posts from database:", error)
     postsData = null
   }
 

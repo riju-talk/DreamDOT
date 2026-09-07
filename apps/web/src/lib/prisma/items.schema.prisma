@@ -2,7 +2,7 @@ generator client {
   provider        = "prisma-client-js"
   output          = "../generated/items"
   previewFeatures = ["multiSchema"]
-  binaryTargets   = ["native", "debian-openssl-3.0.x", "windows"]
+  binaryTargets   = ["native", "debian-openssl-3.0.x", "rhel-openssl-3.0.x", "windows"]
 }
 
 datasource db {
@@ -63,11 +63,13 @@ model favorites {
 model reviews {
   review_id   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id     String    @db.Uuid
-  item_id     String    @db.Uuid
+  // Nullable: a "platform" review (left when topping up credits) is not tied to an item.
+  item_id     String?   @db.Uuid
+  review_type String?   @default("item") // item | platform
   rating      Int?
   review_text String?
   created_at  DateTime? @default(now()) @db.Timestamp(6)
-  items       items     @relation(fields: [item_id], references: [item_id], onDelete: Cascade, onUpdate: NoAction)
+  items       items?    @relation(fields: [item_id], references: [item_id], onDelete: Cascade, onUpdate: NoAction)
   users       users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("items_d")
@@ -76,12 +78,14 @@ model reviews {
 model transactions {
   transaction_id   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   buyer_id         String    @db.Uuid
-  item_id          String    @db.Uuid
+  // Nullable: a credit top-up has no associated item.
+  item_id          String?   @db.Uuid
+  kind             String?   @default("purchase") // purchase | topup
   amount           Decimal   @db.Decimal(10, 2)
   payment_status   String?   @default("pending")
   transaction_date DateTime? @default(now()) @db.Timestamp(6)
   users            users     @relation(fields: [buyer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  items            items     @relation(fields: [item_id], references: [item_id], onDelete: Cascade, onUpdate: NoAction)
+  items            items?    @relation(fields: [item_id], references: [item_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("items_d")
 }
@@ -120,7 +124,7 @@ model users {
   is_active             Boolean?                @default(true)
   pass_salts            String?
   user_type             String?                 @default("user")
-  initial_balance       Float                   @default(50000) @db.Real
+  initial_balance       Float                   @default(100) @db.Real
   favorites             favorites[]
   items                 items[]
   reviews               reviews[]

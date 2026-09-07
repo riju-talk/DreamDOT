@@ -64,7 +64,7 @@ const archiveCards = [
 const economyStats = [
   { value: "95%", label: "creator-first revenue share" },
   { value: "50 MB", label: "validated media uploads" },
-  { value: "4", label: "credit packages ready for checkout" },
+  { value: "100", label: "credits to start, top up any time" },
   { value: "1", label: "profile for portfolio, feed, sales, and chat" },
 ]
 
@@ -75,8 +75,8 @@ const trustSignals = [
     icon: Eye,
   },
   {
-    title: "Secure Payments",
-    body: "Stripe checkout and idempotent webhooks back the credits rail.",
+    title: "Credit Economy",
+    body: "An internal credit balance backs every purchase, with an on-chain record of each transaction.",
     icon: ShieldCheck,
   },
   {
@@ -428,7 +428,7 @@ export function LandingPage() {
               </div>
               <h3 className="mt-8 font-serif text-4xl font-black italic leading-none">Credit Wallet</h3>
               <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                Fans top up credits through Stripe-backed packages. Creators price work, sell access, and track
+                Everyone starts with credits and can top up any time. Creators price work, sell access, and track
                 transaction history from the same product ecosystem.
               </p>
             </div>

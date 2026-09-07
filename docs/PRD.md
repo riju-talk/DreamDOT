@@ -14,6 +14,8 @@
 
 ---
 
+> **Deployment update (2026-09):** Payments are a **demo** — `apps/payment` removed, every account starts with **100 credits**, top-ups are free (with an optional review). Purchases + top-ups get a best-effort **on-chain record** via `apps/web3` (Polygon Amoy testnet). Deploy: `apps/web` → Vercel, backends → Docker. See `DEPLOYMENT.md`.
+
 ## 1. Overview & Core Identity
 
 **DreamDOT** is a unified Social Media and Content Monetization Platform for the creator economy: a native social feed, real-time text communities, and a DRM-protected marketplace for digital assets (writing, illustration, audio, video, code, and more).

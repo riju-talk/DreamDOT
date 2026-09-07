@@ -13,6 +13,8 @@ interface LivePresenceProps {
   maxDisplay?: number
 }
 
+const EMPTY_ARRAY: never[] = []
+
 /**
  * LivePresence Component
  * Displays online users, typing status, and real-time presence updates
@@ -23,10 +25,13 @@ export function LivePresence({
   participantNames,
   maxDisplay = 5,
 }: LivePresenceProps) {
-  const { onlineUsers, typingUsers } = useChatStore((state) => ({
-    onlineUsers: state.onlineUsers,
-    typingUsers: state.typingUsers[conversationId] || [],
-  }))
+  // Two separate primitive-selector subscriptions rather than one selector
+  // returning a combined object — an object literal (or a `[]` fallback) built
+  // fresh in the selector gives React's useSyncExternalStore a new reference on
+  // every call, which triggers "Maximum update depth exceeded".
+  const onlineUsers = useChatStore((state) => state.onlineUsers)
+  const typingUsersForConversation = useChatStore((state) => state.typingUsers[conversationId])
+  const typingUsers = typingUsersForConversation || EMPTY_ARRAY
 
   // Map participants to their online status
   const participantStatus = useMemo(() => {

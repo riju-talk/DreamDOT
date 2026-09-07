@@ -247,6 +247,12 @@ Five genuinely separate schema files, each its own generated client. Naming is `
 ### 2.3 `items.schema.prisma` (client: `prismaItems`)
 `items`, `monetization` (separate monthly/annual rows for subscription items), `favorites`, `reviews`, `transactions`, `collections`, `item_ownership`, plus a duplicate `users` cross-reference (`items_d` + `user_d`).
 
+**Demo-credits update (2026-09):**
+- `users.initial_balance` default changed `50000` → **`100`** (every account starts with 100 credits).
+- `reviews.item_id` is now **nullable** + new `reviews.review_type` (`"item"` | `"platform"`). A "platform" review is left when a user tops up credits and is not tied to an item.
+- `transactions.item_id` is now **nullable** + new `transactions.kind` (`"purchase"` | `"topup"`). A top-up row has no item.
+- Apply with `prisma db push` (no migration history — repo convention).
+
 There is **no** `MetaIntegration`, `AdCampaign`, or `SubscriptionTier` model anywhere in Postgres today — those are Ad Studio / subscription-tier build targets (§7), not existing schema.
 
 ### 2.4 `community.schema.prisma` (client: `prismaCommunity`) — updated 2026-08-09
@@ -334,7 +340,7 @@ This table existed with **zero writers and zero readers** until 2026-08-09 — `
 
 Per product decision, these stay in V1 scope but have **no schema today** — each needs its own design pass when work starts, not a placeholder guessed now:
 
-- **Web3 / blockchain ledger**: no `BlockchainLedger` model, no `apps/web3` service, no wagmi/viem/ethers dependency anywhere in `package.json`. Needs: target chain decision (Polygon/Base, testnet vs. mainnet), contract deployment, and only then a ledger schema.
+- ~~**Web3 / blockchain ledger**~~ ✅ **Shipped 2026-09 (minimal).** `apps/web3` now records every purchase + credit top-up. New Mongo model `LedgerEntry` (`apps/database-mongo/src/models/LedgerEntry.ts`): `{ userId, kind: 'purchase'|'topup', itemId?, amount, ref, txHash?, chainId?, explorerUrl?, status: 'onchain'|'local-only'|'failed' }`. The on-chain write is a 0-value calldata self-transaction on the **Polygon Amoy testnet** via `viem` — best-effort, degrades to Mongo-only when `WEB3_PRIVATE_KEY` is unset. No smart contract, no ERC-721/1155, no account abstraction (those remain future work).
 - **Meta / Ad Studio**: no `MetaIntegration` or `AdCampaign` model, no `apps/meta` service. Needs a Meta developer app (`META_APP_ID`/`META_APP_SECRET`) before OAuth token storage can be designed for real.
 - **DRM enforcement mechanics**: `Item.drm{}` flags exist and are set correctly (`enabled`/`watermark`/`tracking`, all default `true`). As of 2026-08-09, `DRMViewer.tsx` enforces contextmenu/selectstart blocking, a live dynamic watermark, and a DevTools-open heuristic. Video EME remains unbuilt — needs a license-server decision.
 

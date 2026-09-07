@@ -1,140 +1,96 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { prismaSocial } from '@/lib/prisma/social'
+import { authOptions } from '@/lib/auth'
+import { prismaItems } from '@/lib/prisma/items'
 
+/**
+ * GET /api/transactions?page=&limit=&type=all|income|expense
+ * Returns the current user's credit transactions (purchases they made,
+ * sales of their items, and top-ups).
+ */
 export async function GET(request) {
   try {
-    // 1. Authenticate user
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 })
     }
 
-    // 2. Get user
-    const user = await prismaSocial.users.findUnique({
+    const user = await prismaItems.users.findUnique({
       where: { email: session.user.email },
-      select: { id: true }
+      select: { id: true },
     })
-
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return NextResponse.json({ error: 'User not found', code: 'USER_NOT_FOUND' }, { status: 404 })
     }
 
-    // 3. Parse query parameters
-    const searchParams = request.nextUrl.searchParams
-    const page = Math.max(1, parseInt(searchParams.get('page')) || 1)
-    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit')) || 20))
-    const type = searchParams.get('type') // 'all', 'income', 'expense'
-    const sortBy = searchParams.get('sortBy') || 'date-desc' // 'date-asc', 'date-desc', 'amount-asc', 'amount-desc'
-
-    // 4. Build filter conditions
-    let where = {
-      $or: [
-        { buyer_id: user.id },
-        { seller_id: user.id }
-      ]
-    }
-
-    // Filter by type
-    if (type === 'income') {
-      where = { seller_id: user.id, payment_status: 'completed' }
-    } else if (type === 'expense') {
-      where = { buyer_id: user.id, payment_status: 'completed' }
-    } else {
-      where.payment_status = 'completed'
-    }
-
-    // 5. Get total count
-    const total = await prismaSocial.transactions.count({ where })
-
-    // 6. Determine sort order
-    let orderBy = { transaction_date: 'desc' }
-    if (sortBy === 'date-asc') orderBy = { transaction_date: 'asc' }
-    else if (sortBy === 'amount-asc') orderBy = { amount: 'asc' }
-    else if (sortBy === 'amount-desc') orderBy = { amount: 'desc' }
-
-    // 7. Fetch transactions
+    const sp = request.nextUrl.searchParams
+    const page = Math.max(1, parseInt(sp.get('page')) || 1)
+    const limit = Math.max(1, Math.min(100, parseInt(sp.get('limit')) || 20))
+    const type = sp.get('type') || 'all'
     const skip = (page - 1) * limit
-    const transactions = await prismaSocial.transactions.findMany({
-      where,
-      include: {
-        items: {
-          select: {
-            title: true
-          }
-        }
-      },
-      orderBy,
-      skip,
-      take: limit
+
+    // "income" = someone bought one of my items; "expense" = I bought / topped up.
+    const mine = { buyer_id: user.id, payment_status: 'completed' }
+    const sales = { items: { is: { user_id: user.id } }, payment_status: 'completed' }
+    const where =
+      type === 'income' ? sales : type === 'expense' ? mine : { OR: [mine, sales] }
+
+    console.log('[API] transactions: query for', user.id, 'type', type)
+
+    const [total, rows] = await Promise.all([
+      prismaItems.transactions.count({ where }),
+      prismaItems.transactions.findMany({
+        where,
+        include: { items: { select: { title: true, user_id: true } } },
+        orderBy: { transaction_date: 'desc' },
+        skip,
+        take: limit,
+      }),
+    ])
+
+    const transactions = rows.map((tx) => {
+      const isIncome = tx.items?.user_id === user.id && tx.buyer_id !== user.id
+      const amount = Number(tx.amount ?? 0)
+      return {
+        id: tx.transaction_id,
+        type: tx.kind === 'topup' ? 'topup' : isIncome ? 'income' : 'expense',
+        itemTitle: tx.kind === 'topup' ? 'Credit top-up' : tx.items?.title || 'Transaction',
+        amount,
+        amountDisplay: isIncome || tx.kind === 'topup' ? `+${amount}` : `-${amount}`,
+        status: tx.payment_status,
+        timestamp: tx.transaction_date,
+      }
     })
 
-    // 8. Enrich transactions with metadata
-    const enrichedTransactions = await Promise.all(
-      transactions.map(async (tx) => {
-        const isIncome = tx.seller_id === user.id
-        const otherUserId = isIncome ? tx.buyer_id : tx.seller_id
-        
-        const otherUser = await prismaSocial.users.findUnique({
-          where: { id: otherUserId },
-          select: {
-            user_profile: {
-              select: {
-                display_name: true,
-                avatar_url: true
-              }
-            }
-          }
-        })
+    const [spent, earned, topped] = await Promise.all([
+      prismaItems.transactions.aggregate({
+        where: { buyer_id: user.id, kind: 'purchase', payment_status: 'completed' },
+        _sum: { amount: true },
+      }),
+      prismaItems.transactions.aggregate({ where: sales, _sum: { amount: true } }),
+      prismaItems.transactions.aggregate({
+        where: { buyer_id: user.id, kind: 'topup', payment_status: 'completed' },
+        _sum: { amount: true },
+      }),
+    ])
 
-        return {
-          id: tx.transaction_id,
-          type: isIncome ? 'income' : 'expense',
-          itemTitle: tx.items?.title || 'Transaction',
-          amount: tx.amount,
-          amountDisplay: isIncome ? `+${tx.amount}` : `-${tx.amount}`,
-          status: tx.payment_status,
-          timestamp: tx.transaction_date,
-          otherUser: {
-            id: otherUserId,
-            name: otherUser?.user_profile?.display_name || 'Unknown User',
-            avatar: otherUser?.user_profile?.avatar_url || null
-          },
-          category: tx.transaction_type || 'purchase'
-        }
-      })
-    )
-
-    // 9. Calculate summary stats
-    const incomeResult = await prismaSocial.transactions.aggregate({
-      where: { seller_id: user.id, payment_status: 'completed' },
-      _sum: { amount: true }
-    })
-
-    const expenseResult = await prismaSocial.transactions.aggregate({
-      where: { buyer_id: user.id, payment_status: 'completed' },
-      _sum: { amount: true }
-    })
-
-    const stats = {
-      totalIncome: parseFloat(incomeResult._sum.amount || 0),
-      totalExpense: parseFloat(expenseResult._sum.amount || 0)
-    }
-
-    // 10. Return response
     return NextResponse.json(
       {
-        transactions: enrichedTransactions,
-        hasMore: skip + enrichedTransactions.length < total,
+        transactions,
+        hasMore: skip + transactions.length < total,
         total,
         page,
         limit,
-        stats
+        stats: {
+          totalSpent: Number(spent._sum.amount ?? 0),
+          totalEarned: Number(earned._sum.amount ?? 0),
+          totalToppedUp: Number(topped._sum.amount ?? 0),
+        },
       },
       { status: 200 }
     )
   } catch (error) {
-    console.error('Get transactions error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[API] Get transactions error:', error)
+    return NextResponse.json({ error: 'Internal server error', code: 'INTERNAL' }, { status: 500 })
   }
 }

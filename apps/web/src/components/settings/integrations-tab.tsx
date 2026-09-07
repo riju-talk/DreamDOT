@@ -39,14 +39,6 @@ export function IntegrationsSettingsTab({ user }: IntegrationsSettingsTabProps) 
       connecting: false,
     },
     {
-      id: "stripe",
-      name: "Stripe",
-      description: "Connect Stripe for payment processing",
-      icon: "💳",
-      connected: false,
-      connecting: false,
-    },
-    {
       id: "github",
       name: "GitHub",
       description: "Connect GitHub for developer integrations",

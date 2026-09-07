@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prismaSocial } from '@/lib/prisma/social'
 import { prismaUser } from '@/lib/prisma/user'
+import { sendNotification } from '@/lib/notifications'
 
 export async function POST(request, { params }) {
   try {
@@ -73,6 +74,15 @@ export async function POST(request, { params }) {
         },
       },
     })
+
+    // Notify the post owner — fire-and-forget, never blocks the response. Skip
+    // self-notification when someone comments on their own post.
+    if (post.user_id !== currentUser.id) {
+      const commenterName = user?.user_profile?.display_name || user?.user_profile?.username || 'Someone'
+      sendNotification(post.user_id, 'comment', `${commenterName} commented on your post`).catch((err) =>
+        console.error('[API] Failed to dispatch comment notification:', err.message)
+      )
+    }
 
     return NextResponse.json(
       {

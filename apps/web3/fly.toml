@@ -1,0 +1,37 @@
+# fly.toml — apps/web3 (on-chain transaction ledger)
+# Deploy from the repo root:  fly deploy -c apps/web3/fly.toml --dockerfile apps/web3/Dockerfile
+# Secrets:  fly secrets set SERVICE_SECRET=... MONGODB_URI=... WEB3_PRIVATE_KEY=... -c apps/web3/fly.toml
+# (WEB3_PRIVATE_KEY is optional — omit it to run in local-only mode.)
+
+app = "dreamdot-web3"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3005"
+  HOST = "0.0.0.0"
+  NODE_ENV = "production"
+  CHAIN_ID = "80002"
+  CHAIN_NAME = "polygon-amoy"
+  RPC_URL = "https://rpc-amoy.polygon.technology"
+  EXPLORER_BASE = "https://amoy.polygonscan.com"
+
+[http_service]
+  internal_port = 3005
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "3s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

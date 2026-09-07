@@ -48,6 +48,8 @@ export async function POST(req) {
           email: normalizedEmail,
           password_hash,
           is_verified: false,
+          // Demo credit economy: every account starts with 100 credits.
+          initial_balance: 100,
         },
       });
 
