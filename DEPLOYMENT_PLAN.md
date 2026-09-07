@@ -1,10 +1,13 @@
 # DreamDOT — Deployment-Ready Plan (4 services, split deploy)
 
-> Status: **IMPLEMENTED 2026-09-07.** All 8 phases applied. See `DEPLOYMENT.md` for the
-> operator guide. Remaining manual steps: rotate leaked secrets, create + fund an Amoy
-> burner wallet (optional), provide production DB connection strings, run `prisma db push`
-> for the 5 schemas on the target DB. Docker images were not build-tested locally (Docker
-> Desktop was offline) — CI's `docker` job covers that on first push.
+> Status: **IMPLEMENTED 2026-09-07** on branch `deploy/split-services-demo-credits`
+> (commit `44ae080`, not pushed). All 8 phases applied. `npm run build` (turbo, 5 tasks)
+> is green; `next build` verified stable across 3 consecutive runs.
+> See `DEPLOYMENT.md` for the operator guide. Remaining manual steps: rotate leaked
+> secrets, create + fund an Amoy burner wallet (optional), provide production DB
+> connection strings, run `prisma db push` for the 5 schemas on the target DB. Docker
+> images were not build-tested locally (Docker Desktop was offline) — CI's `docker` job
+> covers that on first push.
 
 ## Context
 
