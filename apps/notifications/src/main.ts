@@ -1,4 +1,15 @@
 import 'reflect-metadata';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import * as dotenv from 'dotenv';
+
+// Local dev convenience: load the repo-root .env if present. On a PaaS / in a
+// container the platform supplies env vars and this file won't exist.
+const rootEnv = resolve(__dirname, '../../../.env');
+if (existsSync(rootEnv)) {
+  dotenv.config({ path: rootEnv });
+}
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
