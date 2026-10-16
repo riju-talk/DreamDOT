@@ -1,0 +1,24 @@
+name: Keep free services awake
+
+# Render's free plan sleeps a service after ~15 min idle (30-60s cold start, which breaks the
+# first Socket.IO connect). Ping /health every 10 min. Set repo Variables (Settings ->
+# Secrets and variables -> Actions -> Variables): CHAT_URL, NOTIFICATIONS_URL, WEB3_URL.
+# Unset variables are skipped, so this is a no-op until you deploy.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /health
+        env:
+          URLS: ${{ vars.CHAT_URL }} ${{ vars.NOTIFICATIONS_URL }} ${{ vars.WEB3_URL }}
+        run: |
+          for u in $URLS; do
+            code=$(curl -s -o /dev/null -m 60 -w '%{http_code}' "$u/health" || echo 000)
+            echo "$u/health -> $code"
+          done

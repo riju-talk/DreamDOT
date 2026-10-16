@@ -5,9 +5,9 @@ Four services, deployed separately:
 | Service | Host | How |
 |---|---|---|
 | `apps/web` | **Vercel** | Native Next.js (no `vercel.json` — configure in the dashboard) |
-| `apps/chat` | Fly.io (or Railway) | Docker — `apps/chat/Dockerfile` + `apps/chat/fly.toml` |
-| `apps/notifications` | Fly.io (or Railway) | Docker — `apps/notifications/Dockerfile` + `fly.toml` |
-| `apps/web3` | Fly.io (or Railway) | Docker — `apps/web3/Dockerfile` + `fly.toml` |
+| `apps/chat` | **Render free** (Fly.io / Railway alternatives) | Docker — `apps/chat/Dockerfile` + `apps/chat/fly.toml` |
+| `apps/notifications` | **Render free** (Fly.io / Railway alternatives) | Docker — `apps/notifications/Dockerfile` + `fly.toml` |
+| `apps/web3` | **Render free** (Fly.io / Railway alternatives) | Docker — `apps/web3/Dockerfile` + `fly.toml` |
 
 `apps/payment` was removed — the credit economy is a demo (100 credits on signup,
 free top-ups). `apps/meta` remains an un-deployed stub.
@@ -37,6 +37,35 @@ git push --force
 |---|---|
 | `JWT_SECRET` | web (mints the token), chat, notifications (verify it) |
 | `SERVICE_SECRET` | web, chat, notifications, web3 (internal `x-service-secret` calls) |
+
+---
+
+## 0b. Free-tier path (all $0): Vercel + Render + Neon + Atlas
+
+| Piece | Free service | Notes |
+|---|---|---|
+| Web | Vercel Hobby | Root Directory `apps/web`, Node 22 |
+| chat / notifications / web3 | Render free web services | `render.yaml` blueprint at repo root |
+| Postgres | Neon free | One database, 5 schemas (`?schema=user_d` etc.) |
+| Mongo | MongoDB Atlas M0 | Allow `0.0.0.0/0` in Network Access (Render/Vercel IPs are dynamic) |
+| Chain (optional) | Polygon Amoy testnet | Faucet POL; skip for local-only ledger |
+
+Order (each step is checkable before the next):
+1. **Neon + Atlas:** create both, copy connection strings. For Neon use the *direct* (non-pooled) URL
+   for `npm run db:push`; use the *pooled* URL (`-pooler` host, add `&pgbouncer=true&connection_limit=1`)
+   in Vercel. Then locally: set the 5 `POSTGRESS_DB_*` vars, `npm run db:push`, `npm run db:seed`.
+2. **Render:** New -> Blueprint -> this repo. Fill the prompts (`JWT_SECRET`, `SERVICE_SECRET`,
+   `MONGODB_URI`, the two Postgres URLs, `NOTIFICATIONS_SERVICE_URL`). `CORS_ORIGIN` can be a
+   placeholder until Vercel gives you the domain; then update and redeploy chat/notifications/web3.
+   Check `https://<svc>.onrender.com/health` for each.
+3. **Vercel:** import repo, Root Directory `apps/web`, add env vars from `apps/web/.env.example`,
+   pointing the service URLs at the `*.onrender.com` hosts. Deploy.
+4. **Keepalive:** in GitHub repo Variables set `CHAT_URL`, `NOTIFICATIONS_URL`, `WEB3_URL`; the
+   `keepalive.yml` workflow then stops Render's 15-minute sleep.
+5. Run the checks in section 5, with the Render hosts instead of `*.fly.dev`.
+
+Free-tier limits to expect: first request after idle can take 30-60s, Atlas M0 and Neon pause or
+cap connections under load. Fine for a demo; not for production traffic.
 
 ---
 
@@ -86,7 +115,7 @@ in `binaryTargets` for every schema.
 
 ---
 
-## 3. `apps/chat`, `apps/notifications`, `apps/web3` → Fly.io
+## 3. `apps/chat`, `apps/notifications`, `apps/web3` → Fly.io (paid alternative; free path is section 0b)
 
 Each has a `Dockerfile` (build context = **repo root**) and a `fly.toml`.
 
