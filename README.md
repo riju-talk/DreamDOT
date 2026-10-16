@@ -39,20 +39,44 @@ docs/
   mongoose-schemas.json
 ```
 
-## Local development
+## Quick start (5 commands)
 
 ```bash
 npm install
-npm run dev:all          # web + chat + notifications + web3
-# or individually: npm run dev / chat:dev / notifications:dev / web3:dev
-docker compose up -d     # mongo + postgres + redis
+docker compose --profile app up -d --build   # mongo, postgres, redis + chat, notifications, web3 + local EVM chain
+npm run db:push                              # create all Postgres tables (5 Prisma schemas, safe order)
+npm run db:seed                              # 5 demo users (bcrypt), 10 posts, comments, likes - idempotent
+npm run dev                                  # web on http://localhost:5000
 ```
 
-Default local ports:
-- Web: `5000`
-- Chat: `3001`
-- Notifications: `3003`
-- Web3 ledger: `3005`
+Demo login: `ava@dreamdot.dev` (also `ben`, `cleo`, `dev`, `eli`) / `DreamDot#2026`.
+
+Verify everything works end to end (needs the stack above running):
+
+```bash
+npm run test:graphql     # 12 checks: auth guard, seeded login, createPost/addComment/topUp, service auth
+npm run test:e2e         # 28 checks: signup, purchases, balances, on-chain ledger tx hashes
+```
+
+## API: GraphQL first
+
+`POST /api/graphql` (GraphiQL at the same URL in dev). Schema: `apps/web/src/lib/graphql/typeDefs.js`.
+Resolvers are thin; business rules live in `apps/web/src/lib/services/*` and are shared by the GraphQL
+resolvers and the legacy REST routes, so the two cannot drift. Sibling services can call the same
+endpoint with `x-service-secret` + `x-user-id` headers.
+
+```graphql
+{ feed(limit: 5) { posts { content likeCount author { username } comments { content } } } }
+mutation { topUp(amount: 25) { newBalance } }
+```
+
+## Architecture and trade-offs
+
+See [`docs/CAP_AND_CONSISTENCY.md`](docs/CAP_AND_CONSISTENCY.md) - which data is CP vs AP, the
+Postgres+Mongo saga, atomic balance updates, and what we deliberately did not build.
+
+Default local ports: web `5000`, chat `3001`, notifications `3003`, web3 ledger `3005`,
+local chain (anvil) `8545`, Postgres `5433`, Mongo `27017`, Redis `6379`.
 
 ## Environment variables
 

@@ -1,17 +1,18 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { prismaSocial } from '@/lib/prisma/social'
+import { authOptions } from '@/lib/auth'
+import { prismaItems } from '@/lib/prisma/items'
 
 export async function GET(request) {
   try {
     // 1. Authenticate user
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // 2. Get user by email
-    const user = await prismaSocial.users.findUnique({
+    const user = await prismaItems.users.findUnique({
       where: { email: session.user.email },
       select: { id: true }
     })
@@ -31,7 +32,9 @@ export async function GET(request) {
     // 4. Build filter conditions
     const where = {
       buyer_id: user.id,
-      payment_status: 'completed'
+      payment_status: 'completed',
+      // Top-ups have no item; the library only lists purchased items.
+      item_id: { not: null }
     }
 
     // Add category filter if provided
@@ -53,10 +56,10 @@ export async function GET(request) {
     }
 
     // 5. Get total count for pagination
-    const total = await prismaSocial.transactions.count({ where })
+    const total = await prismaItems.transactions.count({ where })
 
     // 6. Fetch transactions with pagination
-    const transactions = await prismaSocial.transactions.findMany({
+    const transactions = await prismaItems.transactions.findMany({
       where,
       include: {
         items: {
@@ -98,7 +101,7 @@ export async function GET(request) {
     }))
 
     // 8. Calculate statistics
-    const processingCount = await prismaSocial.transactions.count({
+    const processingCount = await prismaItems.transactions.count({
       where: {
         buyer_id: user.id,
         payment_status: 'pending'
@@ -111,10 +114,11 @@ export async function GET(request) {
     }
 
     // 9. Calculate total spent
-    const totalSpentResult = await prismaSocial.transactions.aggregate({
+    const totalSpentResult = await prismaItems.transactions.aggregate({
       where: {
         buyer_id: user.id,
-        payment_status: 'completed'
+        payment_status: 'completed',
+        item_id: { not: null }
       },
       _sum: {
         amount: true

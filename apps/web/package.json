@@ -7,10 +7,10 @@
     "prisma:generate": "node scripts/prisma-generate.mjs",
     "build": "node scripts/prisma-generate.mjs && next build",
     "postinstall": "node scripts/prisma-generate.mjs",
+    "db:push": "node scripts/db-push.mjs",
     "start": "next start -p 5000 -H 0.0.0.0",
     "lint": "next lint",
-    "check-types": "tsc --noEmit",
-    "seed": "tsx seed.ts"
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@imagekit/next": "^2.1.2",
@@ -41,6 +41,8 @@
     "cobe": "^0.6.4",
     "framer-motion": "^12.19.1",
     "fuse.js": "^7.1.0",
+    "graphql": "^16.14.2",
+    "graphql-yoga": "^5.24.6",
     "imagekit": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.518.0",
@@ -61,8 +63,8 @@
     "sonner": "^2.0.5",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
-    "zustand": "^5.0.14",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

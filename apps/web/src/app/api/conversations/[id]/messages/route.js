@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { connectToDatabase } from '@/lib/mongoose/connection'
 import { Conversation, Message, User } from '@repo/database-mongo'
 
@@ -20,7 +21,7 @@ function validatePagination(limit, offset) {
 export async function GET(req, { params }) {
   try {
     // Authentication check
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       console.log('[API] Unauthorized access attempt to GET /api/conversations/[id]/messages')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -121,7 +122,7 @@ export async function GET(req, { params }) {
 export async function POST(req, { params }) {
   try {
     // Authentication check
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       console.log('[API] Unauthorized access attempt to POST /api/conversations/[id]/messages')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

@@ -1,88 +1,18 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { prismaSocial } from '@/lib/prisma/social'
 import { prismaUser } from '@/lib/prisma/user'
-import { sendNotification } from '@/lib/notifications'
+import { addComment } from '@/lib/services/comments'
+import { errorResponse, getSessionUserId, unauthorized } from '@/lib/services/http'
 
+/** POST /api/posts/:postId/comments - REST twin of the GraphQL `addComment` mutation. */
 export async function POST(request, { params }) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const userId = await getSessionUserId()
+    if (!userId) return unauthorized()
 
     const { postId } = await params
-    const { content, parentCommentId } = await request.json()
-
-    if (!content?.trim()) {
-      return NextResponse.json({ error: 'Comment content is required' }, { status: 400 })
-    }
-
-    // Get current user ID
-    const currentUser = await prismaUser.users.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
-    })
-
-    if (!currentUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
-    // Check if post exists
-    const post = await prismaSocial.posts.findUnique({
-      where: { id: postId },
-    })
-
-    if (!post) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
-    }
-
-    // Create comment
-    const comment = await prismaSocial.comments.create({
-      data: {
-        post_id: postId,
-        user_id: currentUser.id,
-        content,
-        parent_comment_id: parentCommentId || null,
-      },
-    })
-
-    // Update analytics
-    await prismaSocial.posts_analytics.upsert({
-      where: { post_id: postId },
-      update: { comments_count: { increment: 1 } },
-      create: {
-        post_id: postId,
-        comments_count: 1,
-        views_count: 0,
-        likes_count: 0,
-      },
-    })
-
-    // Get comment user data
-    const user = await prismaUser.users.findUnique({
-      where: { id: currentUser.id },
-      select: {
-        id: true,
-        user_profile: {
-          select: {
-            username: true,
-            display_name: true,
-            avatar_url: true,
-          },
-        },
-      },
-    })
-
-    // Notify the post owner — fire-and-forget, never blocks the response. Skip
-    // self-notification when someone comments on their own post.
-    if (post.user_id !== currentUser.id) {
-      const commenterName = user?.user_profile?.display_name || user?.user_profile?.username || 'Someone'
-      sendNotification(post.user_id, 'comment', `${commenterName} commented on your post`).catch((err) =>
-        console.error('[API] Failed to dispatch comment notification:', err.message)
-      )
-    }
+    const { content, parentCommentId } = await request.json().catch(() => ({}))
+    const { comment, profile } = await addComment({ userId, postId, content, parentCommentId })
 
     return NextResponse.json(
       {
@@ -92,17 +22,16 @@ export async function POST(request, { params }) {
           content: comment.content,
           createdAt: comment.created_at,
           user: {
-            username: user?.user_profile?.username || 'user',
-            display_name: user?.user_profile?.display_name || null,
-            avatar_url: user?.user_profile?.avatar_url || null,
+            username: profile?.username || 'user',
+            display_name: profile?.display_name || null,
+            avatar_url: profile?.avatar_url || null,
           },
         },
       },
       { status: 201 }
     )
-  } catch (error) {
-    console.error('Error creating comment:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  } catch (err) {
+    return errorResponse(err, 'create comment')
   }
 }
 

@@ -17,6 +17,5 @@ apps/web/public
 **/.env
 **/.env.*
 
-DEPLOYMENT_PLAN.md
 docker
 docker-compose.yml

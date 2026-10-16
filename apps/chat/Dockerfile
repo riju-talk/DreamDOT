@@ -11,6 +11,9 @@ RUN npm run build --workspace=@repo/database-mongo \
 
 FROM node:20-bookworm-slim AS runtime
 WORKDIR /app
+# Prisma's query engine needs OpenSSL at runtime; the slim image doesn't ship it.
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production PORT=3001
 COPY --from=build /app /app
 EXPOSE 3001

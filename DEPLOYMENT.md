@@ -44,13 +44,13 @@ git push --force
 
 Bring up Postgres + Mongo + Redis (managed, or `docker compose up -d` locally).
 
-Push the 5 Postgres schemas (this repo uses `prisma db push`, no migration history):
+Push the 5 Postgres schemas with the ordered helper (do not loop `prisma db push` by hand -
+`user_d` tables are declared in several schema files and push order matters, see
+`apps/web/scripts/db-push.mjs`):
 
 ```bash
-cd apps/web
-for s in user social items community audit; do
-  npx prisma db push --schema=src/lib/prisma/$s.schema.prisma --accept-data-loss
-done
+npm run db:push        # needs POSTGRESS_DB_* in the environment
+npm run db:seed        # optional: demo users/posts/comments (idempotent)
 ```
 
 Mongo collections + indexes are created automatically on first connect by

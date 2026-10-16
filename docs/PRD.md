@@ -145,7 +145,7 @@ Not started, no dependency installed. Before any code: which chain (Polygon vs. 
 | :--- | :--- | :--- |
 | Performance | Feed/Marketplace load <1.5s | ✅ (subjectively fine on current data volume; no formal budget/monitoring yet) |
 | Security & DRM | Watermarking must render at <16ms once built; Web3 private keys never touch the backend once that's built | 🔜 not yet measurable — nothing to benchmark until §6.3/§6.7 ship |
-| Reliability | Idempotent Stripe webhooks; Item create rolls back Postgres on Mongo failure | ✅ confirmed in `Items/create/route.js` |
+| Reliability | Item create rolls back Postgres on Mongo failure | ✅ confirmed in `Items/create/route.js` |
 | Usability | Mobile-first responsive; Creator Studio enforces mandatory fields without blocking silently | ✅ per DESIGN.md, with visible inline validation |
 
 ---
@@ -153,8 +153,9 @@ Not started, no dependency installed. Before any code: which chain (Polygon vs. 
 ## 8. Technical Architecture (summary — full detail in `docs/TECH_STACK.md`)
 
 ```text
-                 apps/web (Next.js 15) ✅        apps/chat ✅        apps/payment ✅
-                 Feed·Market·Wallet·Library      Express+Socket.IO   Express+Stripe
+                 apps/web (Next.js 15) ✅        apps/chat ✅
+                 Feed·Market·Wallet·Library      Express+Socket.IO
+                 GraphQL /api/graphql + REST
                  Creator Studio·Communities
                         │
         ┌───────────────┼────────────────┬─────────────────┐
@@ -204,7 +205,7 @@ A feature only counts as "done" here when it's true against the running app — 
 ## 11. Out of Scope (for V1)
 * Voice/video chat channels — text, image, file only, with live text presence.
 * Native iOS/Android apps — Web PWA only.
-* Fiat-to-crypto on-ramps — internal Credits + Stripe top-ups only.
+* Fiat-to-crypto on-ramps — internal demo Credits only (free top-ups, no payment provider).
 * Complex algorithmic feed manipulation — chronological/following + trending only.
 * Email/push notifications — in-app only for V1 (§6.6).
 

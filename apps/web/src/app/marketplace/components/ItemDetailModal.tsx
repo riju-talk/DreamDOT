@@ -13,9 +13,12 @@ interface FakeItem {
   reviews: number
   image: string
   category: string
+  featured?: boolean
+  sales?: number
   creator: {
     name: string
     avatar: string
+    followers?: number
   }
 }
 
@@ -185,7 +188,7 @@ export function ItemDetailModal({
                   <div className="flex-1">
                     <p className="font-semibold text-sm">{item.creator.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {item.creator.followers.toLocaleString()} followers
+                      {(item.creator.followers ?? 0).toLocaleString()} followers
                     </p>
                   </div>
                   <button className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity">

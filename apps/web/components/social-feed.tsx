@@ -33,7 +33,7 @@ export async function SocialFeed() {
   let postsData: PostsResponse | null = null
   
   try {
-    postsData = await fetchPosts({ page: 1, limit: 5 })
+    postsData = (await fetchPosts({ page: 1, limit: 5 })) as unknown as PostsResponse
   } catch (error) {
     console.error("[SocialFeed] Error loading posts from database:", error)
     postsData = null

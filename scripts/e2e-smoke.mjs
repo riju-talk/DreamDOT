@@ -3,6 +3,9 @@
 // post creation, item creation (free + paid), community create + join,
 // purchases, transaction records, and dashboard/balance updates.
 
+import dotenv from 'dotenv';
+dotenv.config(); // SERVICE_SECRET etc. from the repo-root .env
+
 const WEB = process.env.WEB || 'http://localhost:5000';
 const NOTIF = process.env.NOTIF || 'http://localhost:3003';
 const WEB3 = process.env.WEB3 || 'http://localhost:3005';
@@ -195,11 +198,12 @@ const rnd = Math.random().toString(36).slice(2, 8);
   check('seller sees income transaction(s)', (sTx?.transactions || []).length >= 1, `count=${(sTx?.transactions||[]).length}`);
 
   // ---- web3 ledger ----
-  section('On-chain ledger (local-only mode)');
+  section('On-chain ledger');
   try {
     const r = await fetch(`${WEB3}/ledger/entries?userId=${b.userId}`, { headers: { 'x-service-secret': process.env.SERVICE_SECRET || '' } });
     const led = await json(r);
     check('web3 ledger has entries for buyer', (led?.entries || []).length >= 1, `status ${r.status} count=${(led?.entries||[]).length}`);
+    check('ledger entries carry a real chain tx hash (skipped if chain not configured)', (led?.entries||[]).every(e=>!!e.txHash) || !(await (await fetch(`${WEB3}/health`)).json()).configured, (led?.entries||[]).map(e=>e.txHash).join(','));
     check('ledger entries include a purchase + a topup', (led?.entries||[]).some(e=>e.kind==='purchase') && (led?.entries||[]).some(e=>e.kind==='topup'), (led?.entries||[]).map(e=>e.kind).join(','));
   } catch (e) { check('web3 ledger reachable', false, e.message); }
 

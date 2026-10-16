@@ -141,6 +141,8 @@ Every other backend service in this repo is Express, per the Rules of Engagement
 | Post/Item content bodies, chat, transactions | MongoDB | `@repo/database-mongo` |
 
 ### 5.1 API Style & Language Rules (Strict, unchanged)
+
+> **Update (2026-10):** a GraphQL endpoint (`/api/graphql`, graphql-yoga) now sits next to the REST routes. Both call the same service layer in `apps/web/src/lib/services/*`. The route file is still `.js`, per the rules below. See `docs/CAP_AND_CONSISTENCY.md`.
 - Next.js `app/api/**/route.js` — **JavaScript only**, no TypeScript, no `NextRequest`/`NextResponse` types.
 - Chat REST (`/api/v1/conversations`) — JavaScript, JWT Bearer.
 - Payment REST (`/api/payment/*`) — JavaScript, JWT Bearer + Stripe signature.
@@ -202,7 +204,7 @@ PascalCase components, camelCase `use`-prefixed hooks/stores, `route.js` (strict
 ---
 
 ## 11. Out of Scope / Not Adopted — unchanged
-Redux/Jotai/Recoil, React Query/SWR, Pages Router, Prisma-for-Mongo, GraphQL, native mobile apps (Phase 2). **Complex Web3 key management** stays out — Account Abstraction (ERC-4337) is still the plan for when `apps/web3` starts, so users never see MetaMask prompts.
+Redux/Jotai/Recoil, React Query/SWR, Pages Router, Prisma-for-Mongo, native mobile apps (Phase 2). **Complex Web3 key management** stays out — Account Abstraction (ERC-4337) is still the plan for when `apps/web3` starts, so users never see MetaMask prompts.
 
 ---
 

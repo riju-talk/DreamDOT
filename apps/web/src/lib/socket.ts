@@ -253,7 +253,8 @@ export function disconnectSocket(): void {
 export function emitSendMessage(
   conversationId: string,
   message: string,
-  attachments?: any[]
+  attachments?: any[],
+  ack?: (response: any) => void
 ): void {
   if (socketInstance && connectionState.isConnected) {
     console.log('[Socket] Emitting message:send', { conversationId, message })
@@ -264,8 +265,9 @@ export function emitSendMessage(
       content: message,
       attachments,
       timestamp: new Date().toISOString(),
-    })
+    }, ack) // server replies via ack({ ok, ... }); previously this callback was dropped
   } else {
+    ack?.({ ok: false, error: 'Socket not connected' })
     console.warn('[Socket] Cannot emit message:send - socket not connected', {
       isConnected: connectionState.isConnected,
     })

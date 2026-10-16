@@ -19,8 +19,12 @@
     "db:up": "docker-compose up -d",
     "db:down": "docker-compose down",
     "db:logs": "docker-compose logs -f",
-    "db:seed": "tsx scripts/seed.ts",
-    "db:clear": "tsx scripts/seed.ts --clear"
+    "db:push": "npm run db:push -w dreamdot",
+    "db:seed": "node scripts/seed-demo.mjs",
+    "test:graphql": "node scripts/graphql-smoke.mjs",
+    "test:chat": "node scripts/chat-smoke.mjs",
+    "test:e2e": "node scripts/e2e-smoke.mjs",
+    "stack:up": "docker compose up -d --build"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

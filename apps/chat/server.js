@@ -161,6 +161,22 @@ app.get('/api/v1/conversations/:id/messages', async (req, res) => {
   }
 });
 
+/**
+ * Update the conversation's last-message pointer and unread markers after a send.
+ * Recipients become "unread", the sender is cleared. These are TWO updates on purpose:
+ * MongoDB rejects a single update that $addToSet-s and $pull-s the same path
+ * ("would create a conflict at 'unreadBy'"), which previously made EVERY send fail.
+ */
+async function recordLastMessage(conversation, messageId, senderId) {
+  const recipients = (conversation.participants || []).map(String).filter((p) => p !== String(senderId));
+  await Conversation.findByIdAndUpdate(conversation._id, {
+    lastMessage: messageId,
+    lastMessageAt: new Date(),
+    $addToSet: { unreadBy: { $each: recipients } },
+  });
+  await Conversation.findByIdAndUpdate(conversation._id, { $pull: { unreadBy: String(senderId) } });
+}
+
 // Send message (REST API fallback)
 app.post('/api/v1/conversations/:id/messages', async (req, res) => {
   try {
@@ -185,12 +201,7 @@ app.post('/api/v1/conversations/:id/messages', async (req, res) => {
     });
 
     // Update conversation's last message
-    await Conversation.findByIdAndUpdate(id, {
-      lastMessage: message._id,
-      lastMessageAt: new Date(),
-      $addToSet: { unreadBy: { $each: [] } }, // Reset unreadBy for sender
-      $pull: { unreadBy: userId }, // Remove sender from unreadBy
-    });
+    await recordLastMessage(conversation, message._id, userId);
 
     // Notify every other participant — fire-and-forget, never blocks the response
     const sender = await User.findById(userId).lean();
@@ -230,22 +241,23 @@ io.use(authenticateSocket);
 // scaled to multiple instances, this needs to move to a shared store (e.g. Redis).
 const userSocketCounts = new Map();
 
-io.on('connection', async (socket) => {
+// NOTE: the handler body must register every socket.on(...) SYNCHRONOUSLY. If it awaits
+// anything first, events the client emits right after `connect` (e.g. room:join) arrive
+// before the listeners exist and are silently dropped. Slow work (presence) is fire-and-forget.
+io.on('connection', (socket) => {
   debugLog('Socket connected:', socket.userId);
 
   const openSockets = (userSocketCounts.get(socket.userId) || 0) + 1;
   userSocketCounts.set(socket.userId, openSockets);
   if (openSockets === 1) {
-    try {
-      await prismaCommunity.presence.upsert({
+    prismaCommunity.presence
+      .upsert({
         where: { user_id: socket.userId },
         update: { status: 'online', last_seen: new Date() },
         create: { user_id: socket.userId, status: 'online', last_seen: new Date() },
-      });
-      debugLog('Presence: user online:', socket.userId);
-    } catch (error) {
-      debugLog('ERROR: presence upsert (online) failed:', error.message);
-    }
+      })
+      .then(() => debugLog('Presence: user online:', socket.userId))
+      .catch((error) => debugLog('ERROR: presence upsert (online) failed:', error.message));
   }
 
   // Handle room joining
@@ -324,12 +336,7 @@ io.on('connection', async (socket) => {
       });
 
       // Update conversation
-      await Conversation.findByIdAndUpdate(conversationId, {
-        lastMessage: savedMessage._id,
-        lastMessageAt: new Date(),
-        $addToSet: { unreadBy: { $each: [] } },
-        $pull: { unreadBy: socket.userId },
-      });
+      await recordLastMessage(conversation, savedMessage._id, socket.userId);
 
       const sender = await User.findById(socket.userId).lean();
       const payload = {

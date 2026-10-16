@@ -12,9 +12,12 @@ interface FakeItem {
   reviews: number
   image: string
   category: string
+  featured?: boolean
+  sales?: number
   creator: {
     name: string
     avatar: string
+    followers?: number
   }
 }
 

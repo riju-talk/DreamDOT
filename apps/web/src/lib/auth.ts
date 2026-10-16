@@ -146,8 +146,8 @@ export const authOptions: NextAuthOptions = {
 
           // Update user object with database info
           user.id = dbUser.id;
-          user.username = dbUser.user_profile?.username;
-          user.avatar = dbUser.user_profile?.avatar_url;
+          user.username = dbUser.user_profile?.username ?? undefined;
+          user.avatar = dbUser.user_profile?.avatar_url ?? undefined;
           user.verified = dbUser.is_verified;
 
           return true;
@@ -182,10 +182,10 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id;
-        session.user.username = token.username;
-        session.user.image = token.avatar;
-        session.user.verified = token.verified;
+        session.user.id = token.id as string;
+        session.user.username = token.username as string | undefined;
+        session.user.image = token.avatar as string | null | undefined;
+        session.user.verified = token.verified as boolean | null | undefined;
       }
       session.chatToken = token.chatToken;
       return session;

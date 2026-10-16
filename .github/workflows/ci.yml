@@ -27,7 +27,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22 # graphql-yoga (apps/web) requires Node >= 22.15
           cache: npm
 
       - name: Install dependencies
@@ -45,7 +45,6 @@ jobs:
 
       - name: Type-check
         run: npm run check-types
-        continue-on-error: true
 
       - name: Build (all workspaces)
         run: npm run build

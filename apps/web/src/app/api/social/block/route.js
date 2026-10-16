@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { PrismaClient } from '@/generated/social/client'
+import { authOptions } from '@/lib/auth'
+import { PrismaClient } from '@/generated/social'
 
 const prisma = new PrismaClient()
 
 export async function POST(request) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { targetUserId } = await request.json()
@@ -54,7 +55,7 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { targetUserId } = await request.json()

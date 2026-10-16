@@ -30,7 +30,7 @@
 | Items (content + media) | **MongoDB** | `Item` (`media[]`, `drm{}`, `metadata{}` — see §1.2 for the `script`/`thumbnailUrl` caveat) |
 | Chat (conversations & messages) | **MongoDB** | `Conversation`, `Message`, `Membership`, `Attachment` |
 | Community servers/channels | **PostgreSQL** (`community` schema) | `servers`, `channels`, `members`, `messages`, `presence` — **note: this is Postgres, not Mongo.** The old doc's `Server`/`Channel` Mongoose model does not exist. |
-| Financial transactions | **MongoDB** | `Transaction` (Stripe-facing, mirrors `apps/payment`) |
+| Financial transactions | **MongoDB** | `Transaction` (legacy Mongo model; the live credit ledger is Postgres `items_d.transactions` + the `LedgerEntry` chain mirror) |
 | Audit/observability | **PostgreSQL** (`audit` schema) | `audit_logs`, `api_logs`, `access_logs`, `error_logs` |
 | Web3 / blockchain ledger | *(none yet)* | Not built. See §7 — build target, not existing schema. |
 
@@ -214,7 +214,7 @@ This works today but means `script`/`thumbnailUrl`/`bundleItemIds` are **unindex
 { filename, originalName, mimeType, size, url, uploadedBy, message: ObjectId(ref: Message) }
 ```
 
-### 1.8 `Transaction` (mirrors `apps/payment`, Stripe-facing)
+### 1.8 `Transaction` (legacy; `apps/payment` and Stripe were removed)
 ```ts
 {
   userId: String,
