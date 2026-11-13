@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prismaSocial } from '@/lib/prisma/social'
 import { prismaUser } from '@/lib/prisma/user'
+import { sendNotification, actorName } from '@/lib/notifications'
 
 export async function POST(_request, { params }) {
   try {
@@ -45,6 +46,10 @@ export async function POST(_request, { params }) {
       where: { post_id: postId },
       data: { likes_count: { increment: 1 } },
     })
+
+    if (post.user_id !== currentUser.id) {
+      await sendNotification(post.user_id, 'like', `${await actorName(currentUser.id)} liked your post`)
+    }
 
     return NextResponse.json({ success: true }, { status: 200 })
   } catch (error) {

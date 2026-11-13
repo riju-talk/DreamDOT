@@ -2,6 +2,7 @@ import { prismaSocial } from '@/lib/prisma/social'
 import { connectToDatabase } from '@/lib/mongoose/connection'
 import { Post } from '@repo/database-mongo'
 import { ServiceError } from './errors'
+import { sendNotification, sendNotificationToMany, actorName } from '@/lib/notifications'
 
 /**
  * Create a post across two stores: Postgres (metadata/relations) and Mongo (body/media).
@@ -65,6 +66,21 @@ export async function createPost({ userId, content, media = [], visibility = tru
       create: { user_id: userId, posts_count: 1 },
     }),
   ]).catch((err) => console.error('[posts] analytics update failed (non-fatal):', err.message))
+
+  // Step 4: notifications (awaited so serverless doesn't freeze before they land; all non-fatal).
+  await sendNotification(userId, 'post', 'Your post was published')
+  if (visibility) {
+    const followers = await prismaSocial.following
+      .findMany({ where: { followee_id: userId }, select: { follower_id: true } })
+      .catch(() => [])
+    if (followers.length) {
+      await sendNotificationToMany(
+        followers.map((f) => f.follower_id),
+        'new_post',
+        `${await actorName(userId)} published a new post`
+      )
+    }
+  }
 
   return row
 }

@@ -58,3 +58,10 @@ apps/web/src/generated/**
 apps/web/src/lib/generated/**
 !apps/web/src/generated/*/
 !apps/web/src/generated/*/schema.prisma
+
+# Per-service deploy env files (contain secrets once filled)
+.env.web
+.env.chat
+.env.notifications
+.env.web3
+.env.meta

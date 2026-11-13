@@ -4,6 +4,7 @@ import { prismaUser } from "@/lib/prisma/user";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "@/lib/mongoose/connection";
+import { sendNotification } from "@/lib/notifications";
 import { User as MongoUser } from "@repo/database-mongo";
 
 export async function POST(req) {
@@ -83,6 +84,13 @@ export async function POST(req) {
     } catch (mirrorErr) {
       console.error("Mongo user mirror failed (non-fatal):", mirrorErr.message);
     }
+
+    // 8b) Welcome notification (awaited: serverless may freeze the function after the response).
+    await sendNotification(
+      result.user.id,
+      "welcome",
+      "Welcome to DreamDOT! Your account is ready with 100 starter credits."
+    );
 
     // 9) Successful response
     return NextResponse.json(

@@ -24,6 +24,7 @@ import {
   WalletCards,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { VideoMontage } from "@/components/video-montage"
 
 const navItems = [
   { label: "Publish", href: "#publish" },
@@ -131,6 +132,7 @@ export function LandingPage() {
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground selection:bg-[#5a8c5a] dark:selection:bg-primary selection:text-white">
       <div className="pointer-events-none fixed inset-0 z-0">
+        <VideoMontage />
         <div className="absolute -left-40 -top-40 h-[40rem] w-[40rem] rounded-full bg-[#5a8c5a]/10 dark:bg-primary/10 blur-[160px]" />
         <div className="absolute -right-32 top-1/3 h-[35rem] w-[35rem] rounded-full bg-[#5a8c5a]/5 dark:bg-primary/5 blur-[160px]" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent,color-mix(in_srgb,var(--background)_92%_transparent)_68%,var(--background))]" />

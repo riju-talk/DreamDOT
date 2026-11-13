@@ -1,6 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import { prismaUser } from "./prisma/user"
+import { sendNotification } from "./notifications"
 import { getServerSession } from "next-auth"
 import type { NextAuthOptions } from "next-auth"
 import jwt from "jsonwebtoken"
@@ -32,6 +33,9 @@ export const authOptions: NextAuthOptions = {
 
           const isValid = await bcrypt.compare(credentials.password, user.password_hash)
           if (!isValid) return null
+
+          // Security notice in the notification feed (fire-and-forget, never blocks login).
+          await sendNotification(user.id, "login", "New sign-in to your DreamDOT account")
 
           return {
             id: user.id,

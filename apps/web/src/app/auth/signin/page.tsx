@@ -139,6 +139,23 @@ export default function SignInPage() {
               </p>
             </div>
 
+            <div className="mb-6 rounded-xl border border-dashed border-[#5a8c5a]/40 dark:border-primary/40 bg-[#5a8c5a]/5 dark:bg-primary/5 p-4 text-sm">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-[#5a8c5a] dark:text-primary">Try the demo</p>
+              <p className="mt-2 text-slate-700 dark:text-slate-300">
+                Email: <code className="font-mono font-bold">demo@dreamdot.dev</code>
+              </p>
+              <p className="text-slate-700 dark:text-slate-300">
+                Password: <code className="font-mono font-bold">DreamDot#2026</code>
+              </p>
+              <button
+                type="button"
+                onClick={() => setFormData({ email: "demo@dreamdot.dev", password: "DreamDot#2026" })}
+                className="mt-3 text-xs font-bold text-[#5a8c5a] underline hover:text-[#4a7c4a] dark:text-primary"
+              >
+                Fill in demo credentials
+              </button>
+            </div>
+
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-xs font-bold text-slate-900 dark:text-slate-100">

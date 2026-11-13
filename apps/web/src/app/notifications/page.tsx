@@ -1,14 +1,29 @@
 'use client'
 
-import { Bell, UserPlus, MessageCircle, ShoppingBag, MessageSquare, Radio } from "lucide-react"
+import {
+  Bell,
+  Bookmark,
+  CheckCheck,
+  FilePlus2,
+  Heart,
+  MessageCircle,
+  MessageSquare,
+  Radio,
+  ShieldCheck,
+  ShoppingBag,
+  Sparkles,
+  UserPlus,
+} from "lucide-react"
 import { useEffect, useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
-import { io, Socket } from "socket.io-client"
 import { AuthenticatedLayout } from "@/components/authenticated-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 
-const NOTIFICATIONS_SERVICE_URL = process.env.NEXT_PUBLIC_NOTIFICATIONS_SERVICE_URL || 'http://localhost:3003'
+// Notifications are stored in Postgres and served by /api/notifications (works on Vercel,
+// no websocket server needed). The page polls so new events appear within seconds.
+const POLL_MS = 8000
 
 interface Notification {
   notification_id: string
@@ -18,12 +33,18 @@ interface Notification {
   created_at: string
 }
 
-const TYPE_ICON: Record<string, typeof Bell> = {
-  follow: UserPlus,
-  item_purchase: ShoppingBag,
-  comment: MessageCircle,
-  message: MessageSquare,
-  live_stream: Radio,
+const TYPE_META: Record<string, { icon: typeof Bell; label: string }> = {
+  follow: { icon: UserPlus, label: "New follower" },
+  item_purchase: { icon: ShoppingBag, label: "Sale" },
+  comment: { icon: MessageCircle, label: "Comment" },
+  like: { icon: Heart, label: "Like" },
+  save: { icon: Bookmark, label: "Saved" },
+  post: { icon: FilePlus2, label: "Published" },
+  new_post: { icon: FilePlus2, label: "New post" },
+  message: { icon: MessageSquare, label: "Message" },
+  live_stream: { icon: Radio, label: "Live" },
+  welcome: { icon: Sparkles, label: "Welcome" },
+  login: { icon: ShieldCheck, label: "Security" },
 }
 
 function relativeTime(iso: string) {
@@ -37,79 +58,61 @@ function relativeTime(iso: string) {
 }
 
 export default function NotificationsPage() {
-  const { data: session } = useSession()
-  const token = (session as any)?.chatToken
+  const { status } = useSession()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (!token) return
-
-    let cancelled = false
-    setLoading(true)
-
-    fetch(`${NOTIFICATIONS_SERVICE_URL}/notifications`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error(`Service responded ${res.status}`)
-        return res.json()
-      })
-      .then((data) => {
-        if (!cancelled) setNotifications(Array.isArray(data) ? data : [])
-      })
-      .catch((err) => {
-        console.error('[notifications] Failed to load feed:', err)
-        if (!cancelled) setError('Could not reach the notification service')
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch('/api/notifications', { cache: 'no-store' })
+      if (!res.ok) throw new Error(`Service responded ${res.status}`)
+      const data = await res.json()
+      setNotifications(Array.isArray(data?.items) ? data.items : [])
+      setError('')
+    } catch (err) {
+      console.error('[notifications] Failed to load feed:', err)
+      setError('Could not load notifications')
+    } finally {
+      setLoading(false)
     }
-  }, [token])
+  }, [])
 
   useEffect(() => {
-    if (!token) return
+    if (status !== 'authenticated') return
+    load()
+    const timer = setInterval(load, POLL_MS)
+    return () => clearInterval(timer)
+  }, [status, load])
 
-    const socket: Socket = io(NOTIFICATIONS_SERVICE_URL, {
-      auth: { token },
-      transports: ['websocket', 'polling'],
-    })
+  const markRead = useCallback((id?: string) => {
+    setNotifications((prev) => prev.map((n) => (!id || n.notification_id === id ? { ...n, is_read: true } : n)))
+    fetch('/api/notifications', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(id ? { id } : {}),
+    }).catch((err) => console.error('[notifications] Failed to mark read:', err))
+  }, [])
 
-    socket.on('notification:new', (notification: Notification) => {
-      setNotifications((prev) => [notification, ...prev])
-    })
-
-    return () => {
-      socket.disconnect()
-    }
-  }, [token])
-
-  const markRead = useCallback(
-    (id: string) => {
-      if (!token) return
-      setNotifications((prev) =>
-        prev.map((n) => (n.notification_id === id ? { ...n, is_read: true } : n))
-      )
-      fetch(`${NOTIFICATIONS_SERVICE_URL}/notifications/${id}/read`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` },
-      }).catch((err) => console.error('[notifications] Failed to mark read:', err))
-    },
-    [token]
-  )
+  const unread = notifications.filter((n) => !n.is_read).length
 
   return (
     <AuthenticatedLayout>
       <div className="space-y-8">
-        <div>
-          <Badge variant="outline" className="mb-4 px-4 py-1.5 rounded-full border-primary/20 bg-primary/5 text-primary text-xs font-mono tracking-[0.3em] uppercase">System</Badge>
-          <h1 className="text-4xl font-serif tracking-tight">Notifications</h1>
-          <p className="text-muted-foreground mt-2">Stay updated with your creative ecosystem.</p>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <Badge variant="outline" className="mb-4 px-4 py-1.5 rounded-full border-primary/20 bg-primary/5 text-primary text-xs font-mono tracking-[0.3em] uppercase">
+              {unread > 0 ? `${unread} unread` : 'All caught up'}
+            </Badge>
+            <h1 className="text-4xl font-serif tracking-tight">Notifications</h1>
+            <p className="text-muted-foreground mt-2">Likes, comments, follows, saves, sales and account activity, live.</p>
+          </div>
+          {unread > 0 && (
+            <Button variant="outline" className="rounded-full" onClick={() => markRead()}>
+              <CheckCheck className="mr-2 h-4 w-4" />
+              Mark all read
+            </Button>
+          )}
         </div>
 
         {loading && (
@@ -139,18 +142,22 @@ export default function NotificationsPage() {
         {!loading && !error && notifications.length > 0 && (
           <div className="space-y-2">
             {notifications.map((n) => {
-              const Icon = TYPE_ICON[n.notification_type] || Bell
+              const meta = TYPE_META[n.notification_type]
+              const Icon = meta?.icon || Bell
               return (
                 <Card
                   key={n.notification_id}
-                  className={`border-border/50 cursor-pointer transition-colors ${n.is_read ? '' : 'bg-primary/5 border-primary/20'}`}
+                  className={`border-border/50 cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${n.is_read ? '' : 'bg-primary/5 border-primary/20'}`}
                   onClick={() => !n.is_read && markRead(n.notification_id)}
                 >
                   <CardContent className="flex items-center gap-4 py-4">
-                    <div className={`p-2 rounded-xl ${n.is_read ? 'bg-muted' : 'bg-primary/10'}`}>
+                    <div className={`p-2.5 rounded-xl ${n.is_read ? 'bg-muted' : 'bg-primary/10'}`}>
                       <Icon className={`h-5 w-5 ${n.is_read ? 'text-muted-foreground' : 'text-primary'}`} />
                     </div>
                     <div className="flex-1 min-w-0">
+                      {meta && (
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/80">{meta.label}</p>
+                      )}
                       <p className={`text-sm ${n.is_read ? 'text-muted-foreground' : 'text-foreground font-medium'}`}>
                         {n.notification_content}
                       </p>
