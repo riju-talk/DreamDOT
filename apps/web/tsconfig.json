@@ -19,10 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./components/*"]
+      "@/*": ["./src/*", "./*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/chat/messages/route.js", "src/app/api/chat/conversations/route.js", "src/app/api/chat/attachments/route.js", "src/app/api/chat/attachments/[id]/route.js"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts"]
 }

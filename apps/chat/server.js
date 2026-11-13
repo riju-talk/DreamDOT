@@ -8,9 +8,11 @@ const helmet = require('helmet');
 const compression = require('compression');
 
 const { connectDb } = require('./db');
-const { authenticateToken, authenticateSocket, ensureMember } = require('./auth');
+const { authenticateToken, authenticateSocket, ensureMember, ensureChannelMember } = require('./auth');
+const { prismaCommunity } = require('./prisma-client');
+const { sendNotification } = require('./notifications');
 // Use shared models
-const { Message, Conversation } = require('@repo/database-mongo');
+const { Message, Conversation, User } = require('@repo/database-mongo');
 
 // Debug logging function
 function debugLog(message, data = null) {
@@ -159,6 +161,22 @@ app.get('/api/v1/conversations/:id/messages', async (req, res) => {
   }
 });
 
+/**
+ * Update the conversation's last-message pointer and unread markers after a send.
+ * Recipients become "unread", the sender is cleared. These are TWO updates on purpose:
+ * MongoDB rejects a single update that $addToSet-s and $pull-s the same path
+ * ("would create a conflict at 'unreadBy'"), which previously made EVERY send fail.
+ */
+async function recordLastMessage(conversation, messageId, senderId) {
+  const recipients = (conversation.participants || []).map(String).filter((p) => p !== String(senderId));
+  await Conversation.findByIdAndUpdate(conversation._id, {
+    lastMessage: messageId,
+    lastMessageAt: new Date(),
+    $addToSet: { unreadBy: { $each: recipients } },
+  });
+  await Conversation.findByIdAndUpdate(conversation._id, { $pull: { unreadBy: String(senderId) } });
+}
+
 // Send message (REST API fallback)
 app.post('/api/v1/conversations/:id/messages', async (req, res) => {
   try {
@@ -168,7 +186,7 @@ app.post('/api/v1/conversations/:id/messages', async (req, res) => {
 
 
     // Check if user is member
-    await ensureMember(userId, id);
+    const conversation = await ensureMember(userId, id);
 
     // Create message
     const message = await Message.create({
@@ -183,12 +201,17 @@ app.post('/api/v1/conversations/:id/messages', async (req, res) => {
     });
 
     // Update conversation's last message
-    await Conversation.findByIdAndUpdate(id, {
-      lastMessage: message._id,
-      lastMessageAt: new Date(),
-      $addToSet: { unreadBy: { $each: [] } }, // Reset unreadBy for sender
-      $pull: { unreadBy: userId }, // Remove sender from unreadBy
-    });
+    await recordLastMessage(conversation, message._id, userId);
+
+    // Notify every other participant — fire-and-forget, never blocks the response
+    const sender = await User.findById(userId).lean();
+    conversation.participants
+      .filter((participantId) => participantId !== userId)
+      .forEach((participantId) => {
+        sendNotification(participantId, 'message', `${sender?.name || 'Someone'} sent you a message`).catch((err) =>
+          debugLog('ERROR: Failed to dispatch message notification:', err.message)
+        );
+      });
 
     debugLog('SUCCESS: Message sent:', message._id);
     res.json({ success: true, data: message });
@@ -213,8 +236,29 @@ const io = socketIo(server, {
 // Socket connection handler
 io.use(authenticateSocket);
 
+// Multi-tab-safe presence: only flip online->offline when a user's LAST socket
+// disconnects, not on every tab close. Per-process only — if apps/chat is ever
+// scaled to multiple instances, this needs to move to a shared store (e.g. Redis).
+const userSocketCounts = new Map();
+
+// NOTE: the handler body must register every socket.on(...) SYNCHRONOUSLY. If it awaits
+// anything first, events the client emits right after `connect` (e.g. room:join) arrive
+// before the listeners exist and are silently dropped. Slow work (presence) is fire-and-forget.
 io.on('connection', (socket) => {
   debugLog('Socket connected:', socket.userId);
+
+  const openSockets = (userSocketCounts.get(socket.userId) || 0) + 1;
+  userSocketCounts.set(socket.userId, openSockets);
+  if (openSockets === 1) {
+    prismaCommunity.presence
+      .upsert({
+        where: { user_id: socket.userId },
+        update: { status: 'online', last_seen: new Date() },
+        create: { user_id: socket.userId, status: 'online', last_seen: new Date() },
+      })
+      .then(() => debugLog('Presence: user online:', socket.userId))
+      .catch((error) => debugLog('ERROR: presence upsert (online) failed:', error.message));
+  }
 
   // Handle room joining
   socket.on('room:join', async (data) => {
@@ -262,20 +306,26 @@ io.on('connection', (socket) => {
   });
 
   // Handle message sending
+  // NOTE: the client (apps/web/src/lib/socket.ts emitSendMessage) sends a plaintext
+  // `content` field. `ciphertext`/`nonce`/`keyId` remain supported for a future E2E
+  // path but nothing produces them today — content is the common case.
   socket.on('message:send', async (data, ack) => {
     try {
       debugLog('Socket message send:', data.conversationId);
 
-      const { conversationId, ciphertext, nonce, keyId, attachments = [] } = data;
+      const { conversationId, content, ciphertext, nonce, keyId, attachments = [] } = data;
+
+      if (!content && !ciphertext) {
+        throw new Error('Message must include content or ciphertext');
+      }
 
       // Check membership
-      await ensureMember(socket.userId, conversationId);
+      const conversation = await ensureMember(socket.userId, conversationId);
 
-      // Save encrypted message
       const savedMessage = await Message.create({
         conversationId,
         senderId: socket.userId,
-        sender: socket.userId,
+        content,
         ciphertext,
         nonce,
         keyId,
@@ -286,23 +336,34 @@ io.on('connection', (socket) => {
       });
 
       // Update conversation
-      await Conversation.findByIdAndUpdate(conversationId, {
-        lastMessage: savedMessage._id,
-        lastMessageAt: new Date(),
-        $addToSet: { unreadBy: { $each: [] } },
-        $pull: { unreadBy: socket.userId },
-      });
+      await recordLastMessage(conversation, savedMessage._id, socket.userId);
+
+      const sender = await User.findById(socket.userId).lean();
+      const payload = {
+        ...savedMessage.toObject(),
+        id: savedMessage._id.toString(),
+        senderName: sender?.name || 'Unknown',
+        senderAvatar: sender?.avatar || '',
+        status: 'delivered',
+      };
 
       // Broadcast to room (excluding sender)
-      socket.to(conversationId).emit('message:new', {
-        ...savedMessage.toObject(),
-        status: 'delivered'
-      });
+      socket.to(conversationId).emit('message:new', payload);
+
+      // Notify every other participant — fire-and-forget, covers the case where a
+      // recipient isn't actively connected/in this room to receive the live broadcast.
+      conversation.participants
+        .filter((participantId) => participantId !== socket.userId)
+        .forEach((participantId) => {
+          sendNotification(participantId, 'message', `${payload.senderName} sent you a message`).catch((err) =>
+            debugLog('ERROR: Failed to dispatch message notification:', err.message)
+          );
+        });
 
       debugLog('SUCCESS: Message sent and broadcasted:', savedMessage._id);
 
       if (ack) {
-        ack({ ok: true, id: savedMessage._id });
+        ack({ ok: true, id: savedMessage._id, message: payload });
       }
     } catch (error) {
       debugLog('ERROR: Error sending socket message:', error.message);
@@ -313,9 +374,107 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ============================================================================
+  // Community Channel Messaging (real-time)
+  // ============================================================================
+  // Channel/server/membership structure lives in Postgres (community.schema.prisma,
+  // owned by apps/web) — ensureChannelMember reads it via prisma-client.js. Message
+  // CONTENT lives in the same Mongo `Message` collection as DMs, distinguished by
+  // channelId vs conversationId (see apps/database-mongo/src/models/Message.ts).
+
+  socket.on('channel:join', async (data, ack) => {
+    try {
+      const { channelId } = data;
+      debugLog('Joining channel:', channelId);
+
+      await ensureChannelMember(socket.userId, channelId);
+      await socket.join(`channel:${channelId}`);
+
+      socket.to(`channel:${channelId}`).emit('presence:join', {
+        userId: socket.userId,
+        timestamp: new Date().toISOString(),
+      });
+
+      debugLog('SUCCESS: Joined channel:', channelId);
+      if (ack) ack({ ok: true });
+    } catch (error) {
+      debugLog('ERROR: Error joining channel:', error.message);
+      socket.emit('error', { event: 'channel:join', message: error.message });
+      if (ack) ack({ ok: false, error: error.message });
+    }
+  });
+
+  socket.on('channel:leave', (data) => {
+    const { channelId } = data;
+    debugLog('Leaving channel:', channelId);
+
+    socket.leave(`channel:${channelId}`);
+    socket.to(`channel:${channelId}`).emit('presence:leave', {
+      userId: socket.userId,
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  socket.on('channel:message:send', async (data, ack) => {
+    try {
+      const { channelId, content, attachments = [] } = data;
+      debugLog('Channel message send:', channelId);
+
+      if (!content || typeof content !== 'string' || content.length === 0 || content.length > 4000) {
+        throw new Error('Message content must be 1-4000 characters');
+      }
+
+      await ensureChannelMember(socket.userId, channelId);
+
+      const savedMessage = await Message.create({
+        channelId,
+        senderId: socket.userId,
+        content,
+        type: 'text',
+        attachments,
+        readBy: [socket.userId],
+        timestamp: new Date(),
+      });
+
+      const sender = await User.findById(socket.userId).lean();
+      const payload = {
+        ...savedMessage.toObject(),
+        id: savedMessage._id.toString(),
+        senderName: sender?.name || 'Unknown',
+        senderAvatar: sender?.avatar || '',
+      };
+
+      socket.to(`channel:${channelId}`).emit('channel:message:new', payload);
+
+      debugLog('SUCCESS: Channel message sent and broadcasted:', savedMessage._id);
+      if (ack) ack({ ok: true, id: savedMessage._id, message: payload });
+    } catch (error) {
+      debugLog('ERROR: Error sending channel message:', error.message);
+      socket.emit('error', { event: 'channel:message:send', message: error.message });
+      if (ack) ack({ ok: false, error: error.message });
+    }
+  });
+
   // Handle disconnect
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     debugLog('Socket disconnected:', socket.userId);
+
+    const remaining = (userSocketCounts.get(socket.userId) || 1) - 1;
+    if (remaining <= 0) {
+      userSocketCounts.delete(socket.userId);
+      try {
+        await prismaCommunity.presence.upsert({
+          where: { user_id: socket.userId },
+          update: { status: 'offline', last_seen: new Date() },
+          create: { user_id: socket.userId, status: 'offline', last_seen: new Date() },
+        });
+        debugLog('Presence: user offline:', socket.userId);
+      } catch (error) {
+        debugLog('ERROR: presence upsert (offline) failed:', error.message);
+      }
+    } else {
+      userSocketCounts.set(socket.userId, remaining);
+    }
   });
 });
 

@@ -6,13 +6,16 @@
     "scripts": {
         "build": "tsc",
         "dev": "tsc -w",
-        "lint": "eslint src/**"
+        "check-types": "tsc --noEmit",
+        "lint": "eslint src"
     },
     "dependencies": {
         "mongoose": "^8.9.5"
     },
     "devDependencies": {
+        "@repo/eslint-config": "*",
         "@types/node": "^22.10.7",
+        "eslint": "^9.33.0",
         "typescript": "5.7.3"
     }
 }

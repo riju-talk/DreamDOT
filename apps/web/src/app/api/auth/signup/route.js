@@ -1,8 +1,11 @@
 // app/api/auth/signup/route.js
 import { NextResponse } from "next/server";
-import { prismaUser } from "@/lib/db";
+import { prismaUser } from "@/lib/prisma/user";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
+import { connectToDatabase } from "@/lib/mongoose/connection";
+import { sendNotification } from "@/lib/notifications";
+import { User as MongoUser } from "@repo/database-mongo";
 
 export async function POST(req) {
   const body = await req.json();
@@ -48,6 +51,8 @@ export async function POST(req) {
           email: normalizedEmail,
           password_hash,
           is_verified: false,
+          // Demo credit economy: every account starts with 100 credits.
+          initial_balance: 100,
         },
       });
 
@@ -67,7 +72,27 @@ export async function POST(req) {
       return { user, profile };
     });
 
-    // 8) Successful response
+    // 8) Mirror a minimal Mongo profile (chat/notifications resolve display names from it).
+    // Best-effort: Postgres is the source of truth, so a Mongo hiccup must not fail signup.
+    try {
+      await connectToDatabase();
+      await MongoUser.updateOne(
+        { _id: result.user.id },
+        { $setOnInsert: { _id: result.user.id, email: result.user.email, name: result.profile.display_name, avatar: result.profile.avatar_url } },
+        { upsert: true }
+      );
+    } catch (mirrorErr) {
+      console.error("Mongo user mirror failed (non-fatal):", mirrorErr.message);
+    }
+
+    // 8b) Welcome notification (awaited: serverless may freeze the function after the response).
+    await sendNotification(
+      result.user.id,
+      "welcome",
+      "Welcome to DreamDOT! Your account is ready with 100 starter credits."
+    );
+
+    // 9) Successful response
     return NextResponse.json(
       {
         message: "Signed up successfully",
@@ -81,7 +106,7 @@ export async function POST(req) {
       { status: 201 }
     );
   } catch (err) {
-    // 9) Granular error handling
+    // 10) Granular error handling
     if (err instanceof Error) {
       if (err.message === "EMAIL_EXISTS") {
         return NextResponse.json(

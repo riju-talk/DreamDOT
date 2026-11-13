@@ -5,18 +5,33 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "type-check": "turbo type-check",
+    "check-types": "turbo check-types",
     "chat:dev": "cd apps/chat && npm run dev",
     "chat:build": "cd apps/chat && npm run build",
     "chat:start": "cd apps/chat && npm start",
-    "dev:all": "concurrently \"npm run dev\" \"npm run chat:dev\"",
-    "postinstall": "cd apps/web && npx prisma generate --schema=src/lib/prisma/schema.user.prisma && npx prisma generate --schema=src/lib/prisma/schema.social.prisma && npx prisma generate --schema=src/lib/prisma/schema.item.prisma && npx prisma generate --schema=src/lib/prisma/schema.community.prisma && npx prisma generate --schema=src/lib/prisma/schema.audit.prisma"
+    "notifications:dev": "cd apps/notifications && npm run dev",
+    "notifications:build": "cd apps/notifications && npm run build",
+    "notifications:start": "cd apps/notifications && npm start",
+    "web3:dev": "cd apps/web3 && npm run dev",
+    "web3:build": "cd apps/web3 && npm run build",
+    "web3:start": "cd apps/web3 && npm start",
+    "dev:all": "concurrently \"npm run dev\" \"npm run chat:dev\" \"npm run notifications:dev\" \"npm run web3:dev\"",
+    "db:up": "docker-compose up -d",
+    "db:down": "docker-compose down",
+    "db:logs": "docker-compose logs -f",
+    "db:push": "npm run db:push -w dreamdot",
+    "db:seed": "node scripts/seed-demo.mjs",
+    "test:graphql": "node scripts/graphql-smoke.mjs",
+    "test:chat": "node scripts/chat-smoke.mjs",
+    "test:e2e": "node scripts/e2e-smoke.mjs",
+    "stack:up": "docker compose up -d --build"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
     "prettier": "^3.6.2",
     "turbo": "^2.5.6",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "tsx": "^4.7.0"
   },
   "engines": {
     "node": ">=18"
@@ -27,6 +42,12 @@
     "packages/*"
   ],
   "dependencies": {
-    "@swc/helpers": "^0.5.17"
+    "@swc/helpers": "^0.5.17",
+    "bcryptjs": "^3.0.3",
+    "@faker-js/faker": "^8.4.1",
+    "dotenv": "^16.3.1",
+    "mongoose": "^8.9.5",
+    "uuid": "^9.0.1",
+    "mongodb": "^6.3.0"
   }
 }

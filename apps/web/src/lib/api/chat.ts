@@ -14,7 +14,9 @@ class ChatApi {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const { getSession } = await import('next-auth/react')
+      const session = await getSession()
+      const token = (session as any)?.chatToken
       
       const response = await fetch(`${API_BASE}${endpoint}`, {
         ...options,

@@ -1,0 +1,141 @@
+# DreamDOT local / demo stack.
+#
+#   docker compose up -d                  -> data stores only (what day-to-day dev needs)
+#   docker compose --profile app up -d --build
+#                                         -> + chat, notifications, web3 (+ local chain)
+#
+# Production topology is different on purpose (web on Vercel, services on Fly.io, managed
+# databases) - see DEPLOYMENT.md. This file mirrors the same service boundaries locally.
+#
+# Secrets below are DEMO values for a throwaway local stack. Never reuse them anywhere real.
+
+x-service-env: &service-env
+  NODE_ENV: production
+  # Containers reach each other by service name, not localhost.
+  MONGODB_URI: mongodb://mongodb:27017/dreamdot
+  MONGODB_DB_NAME: dreamdot
+  POSTGRESS_DB_SOCIAL: postgresql://postgres:postgres@postgres:5432/dreamdot?schema=social
+  POSTGRESS_DB_COMMUNITY: postgresql://postgres:postgres@postgres:5432/dreamdot?schema=community
+  # Must match apps/web: web mints the JWT, chat/notifications verify it.
+  JWT_SECRET: ${JWT_SECRET:-local-demo-jwt-secret-change-me}
+  SERVICE_SECRET: ${SERVICE_SECRET:-local-demo-service-secret-change-me}
+  CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5000}
+
+x-app-service: &app-service
+  profiles: ["app"]
+  restart: unless-stopped
+  depends_on:
+    mongodb: { condition: service_healthy }
+    postgres: { condition: service_healthy }
+
+services:
+  # ---------------------------------------------------------------- data stores
+  mongodb:
+    image: mongo:7
+    container_name: dreamdot-mongodb
+    restart: unless-stopped
+    ports: ["27017:27017"]
+    environment:
+      MONGO_INITDB_DATABASE: dreamdot
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+      - ./docker/mongo/init.js:/docker-entrypoint-initdb.d/init.js
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: dreamdot-postgres
+    restart: unless-stopped
+    ports: ["5433:5432"] # 5433 on the host so it never collides with a local Postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dreamdot
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: dreamdot-redis
+    restart: unless-stopped
+    ports: ["6379:6379"]
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ------------------------------------------------------------ local EVM chain
+  # Anvil = a throwaway Ethereum node with pre-funded accounts. It gives apps/web3 a REAL
+  # chain to write to (blocks, tx hashes, receipts) with no faucet or wallet setup.
+  # Swap RPC_URL/CHAIN_ID/WEB3_PRIVATE_KEY for Polygon Amoy to go to a public testnet.
+  chain:
+    profiles: ["app"]
+    image: ghcr.io/foundry-rs/foundry:latest
+    container_name: dreamdot-chain
+    restart: unless-stopped
+    entrypoint: ["anvil", "--host", "0.0.0.0", "--block-time", "2"]
+    ports: ["8545:8545"]
+    healthcheck:
+      test: ["CMD", "cast", "block-number"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ------------------------------------------------------------ backend services
+  chat:
+    <<: *app-service
+    build: { context: ., dockerfile: apps/chat/Dockerfile }
+    container_name: dreamdot-chat
+    ports: ["3001:3001"]
+    environment:
+      <<: *service-env
+      PORT: "3001"
+      NOTIFICATIONS_SERVICE_URL: http://notifications:3003
+
+  notifications:
+    <<: *app-service
+    build: { context: ., dockerfile: apps/notifications/Dockerfile }
+    container_name: dreamdot-notifications
+    ports: ["3003:3003"]
+    environment:
+      <<: *service-env
+      PORT: "3003"
+
+  web3:
+    <<: *app-service
+    build: { context: ., dockerfile: apps/web3/Dockerfile }
+    container_name: dreamdot-web3
+    ports: ["3005:3005"]
+    depends_on:
+      mongodb: { condition: service_healthy }
+      chain: { condition: service_healthy }
+    environment:
+      <<: *service-env
+      PORT: "3005"
+      RPC_URL: http://chain:8545
+      CHAIN_ID: "31337"
+      CHAIN_NAME: anvil-local
+      EXPLORER_BASE: http://localhost:8545
+      # Anvil's well-known account #0 key. PUBLIC and worthless outside this container.
+      WEB3_PRIVATE_KEY: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+
+volumes:
+  mongodb_data:
+  mongodb_config:
+  postgres_data:
+  redis_data:

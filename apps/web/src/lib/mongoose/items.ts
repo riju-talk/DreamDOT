@@ -2,9 +2,8 @@
 
 import { Collection } from "mongoose";
 import { connectToDatabase } from "./connection";
-// import { Item } from "./types/Item";
 import { Item } from "@repo/database-mongo";
-import { prismaItem } from "../db";
+import { prismaItems } from "../prisma/items";
 
 // Re-export the Mongoose model so API routes can import it directly
 export { Item as ItemModel };
@@ -73,13 +72,14 @@ export async function fetchItems(
     }
 
     // --- 4. Fetch from PostgreSQL (items_d schema) ---
-    const mongoIds = mongoItems.map((it) => String(it._id));
+    // Use sqlId (stored in MongoDB) to match PostgreSQL item_id
+    const sqlIds = mongoItems.map((it) => String(it.sqlId));
     // Fetching corresponding SQL entries from Prisma
     console.time("⏱️ Prisma fetch");
-    const sqlItems = await prismaItem.items.findMany({
-      where: { item_id: { in: mongoIds } },
+    const sqlItems = await prismaItems.items.findMany({
+      where: { sql_id: { in: sqlIds } },
       select: {
-        item_id: true,
+        sql_id: true,
         price: true,
         category: true,
         monetization_type: true,
@@ -101,7 +101,8 @@ export async function fetchItems(
         ? ratings.reduce((a, b) => a + b, 0) / ratings.length
         : null;
 
-      sqlMap.set(s.item_id, {
+      // Use sql_id as key to match MongoDB sqlId
+      sqlMap.set(s.sql_id, {
         price: parseFloat(s.price?.toString() ?? "0"),
         rating: avgRating,
         sales: s.transactions?.length ?? 0,
@@ -113,8 +114,9 @@ export async function fetchItems(
 
     // --- 6. Merge Mongo + SQL ---
     const mergedItems: any[] = mongoItems.map((mongo) => {
+      // Use sqlId to look up in sqlMap
+      const sql = sqlMap.get(String(mongo.sqlId));
       const mongoId = String(mongo._id);
-      const sql = sqlMap.get(mongoId);
 
       return {
         ...mongo,

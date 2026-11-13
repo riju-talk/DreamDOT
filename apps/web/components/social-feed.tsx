@@ -30,8 +30,16 @@ interface PostsResponse {
 }
 
 export async function SocialFeed() {
+  let postsData: PostsResponse | null = null
+  
   try {
-    const postsData = await fetchPosts({ page: 1, limit: 5 })
+    postsData = (await fetchPosts({ page: 1, limit: 5 })) as unknown as PostsResponse
+  } catch (error) {
+    console.error("[SocialFeed] Error loading posts from database:", error)
+    postsData = null
+  }
+
+  const posts = postsData?.posts || []
     
     return (
       <div className="space-y-6 max-w-2xl mx-auto">
@@ -53,8 +61,8 @@ export async function SocialFeed() {
         </div>
 
         <div className="space-y-6">
-          {postsData.posts.length > 0 ? (
-            postsData.posts.map((post) => (
+          {posts.length > 0 ? (
+            posts.map((post) => (
               <SocialPost
                 key={post.id}
                 post={{
@@ -65,7 +73,7 @@ export async function SocialFeed() {
                     avatar: post.user?.avatar_url || "/placeholder.svg",
                     verified: post.user?.verified || false,
                   },
-                  timestamp: new Date(post.createdAt).toLocaleTimeString([], {
+                  timestamp: new Date(post.created_at).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   }),
@@ -107,17 +115,5 @@ export async function SocialFeed() {
         </div>
       </div>
     )
-  } catch (error) {
-    console.error("Error loading posts:", error)
-    return (
-      <div className="text-center py-12 space-y-4">
-        <p className="text-destructive">Failed to load posts</p>
-        <form action="/discover" method="get">
-          <Button type="submit" variant="outline">
-            Try Again
-          </Button>
-        </form>
-      </div>
-    )
-  }
 }
+

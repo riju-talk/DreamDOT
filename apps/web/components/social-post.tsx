@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 
 interface SocialPostProps {
   post: {
@@ -47,17 +49,48 @@ interface SocialPostProps {
 import { motion } from "framer-motion"
 
 export function SocialPost({ post }: SocialPostProps) {
+  const router = useRouter()
+  const { data: session } = useSession()
   const [isLiked, setIsLiked] = useState(post.isLiked)
   const [isBookmarked, setIsBookmarked] = useState(post.isBookmarked)
+  const [isLiking, setIsLiking] = useState(false)
   const [likes, setLikes] = useState(post.engagement.likes)
 
-  const handleLike = () => {
+  const handleLike = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (isLiking) return
+    if (!(session as any)?.user?.id) {
+      router.push('/auth/signin')
+      return
+    }
+    const method = isLiked ? 'DELETE' : 'POST'
+    setIsLiking(true)
     setIsLiked(!isLiked)
     setLikes(isLiked ? likes - 1 : likes + 1)
+    try {
+      const res = await fetch(`/api/posts/${post.id}/like`, { method })
+      if (!res.ok && res.status !== 409) {
+        setIsLiked(isLiked)
+        setLikes(isLiked ? likes + 1 : likes - 1)
+      }
+    } catch {
+      setIsLiked(isLiked)
+      setLikes(isLiked ? likes + 1 : likes - 1)
+    } finally {
+      setIsLiking(false)
+    }
   }
 
-  const handleBookmark = () => {
+  const handleBookmark = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
     setIsBookmarked(!isBookmarked)
+  }
+
+  const openPostPage = (e: React.MouseEvent) => {
+    e.preventDefault()
+    router.push(`/posts/${post.id}`)
   }
 
   return (
@@ -66,13 +99,16 @@ export function SocialPost({ post }: SocialPostProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="dream-card bg-white/[0.02] backdrop-blur-3xl border-white/[0.05] overflow-hidden group hover:bg-white/[0.04] transition-all duration-700">
+      <Card
+        className="dream-card bg-card border-border/50 overflow-hidden group hover:bg-card/80 transition-all duration-700 cursor-pointer"
+        onClick={openPostPage}
+      >
         <CardContent className="p-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <Avatar className="h-12 w-12 border border-white/10 group-hover:scale-105 transition-transform duration-500">
+                <Avatar className="h-12 w-12 border border-border/50 group-hover:scale-105 transition-transform duration-500">
                   <AvatarImage src={post.user.avatar || "/placeholder.svg"} alt={post.user.name} />
                   <AvatarFallback className="bg-primary/20 text-primary font-serif">
                     {post.user.name.substring(0, 2)}
@@ -82,12 +118,12 @@ export function SocialPost({ post }: SocialPostProps) {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <Link href={`/account/${post.user.handle}`} className="text-base font-serif text-white/90 hover:text-primary transition-colors block">
+                  <Link href={`/account/${post.user.handle}`} className="text-base font-serif text-foreground hover:text-primary transition-colors block" onClick={(e) => e.stopPropagation()}>
                     {post.user.name}
                   </Link>
                   {post.user.verified && <Sparkles className="h-3 w-3 text-primary" />}
                 </div>
-                <div className="flex items-center text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/20">
+                <div className="flex items-center text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
                   <span>{post.user.handle}</span>
                   <span className="mx-2 opacity-30">•</span>
                   <span>{post.timestamp}</span>
@@ -96,14 +132,14 @@ export function SocialPost({ post }: SocialPostProps) {
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-white/20 hover:text-white/80 hover:bg-white/5">
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted" onClick={(e) => e.stopPropagation()}>
                   <MoreHorizontal className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-[#0A0A0A] border-white/10 backdrop-blur-3xl">
+              <DropdownMenuContent align="end" className="bg-card border-border/50 backdrop-blur-sm">
                 <DropdownMenuItem className="text-[10px] uppercase font-bold tracking-widest py-3">Save post</DropdownMenuItem>
                 <DropdownMenuItem className="text-[10px] uppercase font-bold tracking-widest py-3">Copy link</DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-white/5" />
+                <DropdownMenuSeparator className="bg-border/30" />
                 <DropdownMenuItem className="text-[10px] uppercase font-bold tracking-widest py-3 text-destructive">Report</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -111,7 +147,7 @@ export function SocialPost({ post }: SocialPostProps) {
 
           {/* Content */}
           <div className="space-y-6">
-            <p className="text-xl font-serif text-white/80 leading-relaxed italic">
+            <p className="text-xl font-serif text-foreground leading-relaxed italic">
               {post.content.text}
             </p>
 
@@ -119,7 +155,7 @@ export function SocialPost({ post }: SocialPostProps) {
             {post.content.media && post.content.media.length > 0 && (
               <div className="space-y-4">
                 {post.content.media.map((media, index) => (
-                  <div key={index} className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
+                  <div key={index} className="relative overflow-hidden rounded-[32px] border border-border/50 bg-muted/30">
                     {media.type === "image" && (
                       <div className="relative aspect-[16/10] w-full">
                         <Image
@@ -128,7 +164,7 @@ export function SocialPost({ post }: SocialPostProps) {
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-1000"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/40 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
                       </div>
                     )}
                   </div>
@@ -138,7 +174,7 @@ export function SocialPost({ post }: SocialPostProps) {
           </div>
         </CardContent>
 
-        <CardFooter className="p-8 pt-0 flex items-center justify-between border-t border-white/[0.05] mt-4 pt-6 bg-white/[0.01]">
+        <CardFooter className="p-8 pt-0 flex items-center justify-between border-t border-border/30 mt-4 pt-6 bg-muted/10">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -146,7 +182,7 @@ export function SocialPost({ post }: SocialPostProps) {
               className={`h-11 px-6 rounded-2xl transition-all duration-500 gap-3 border border-transparent ${
                 isLiked 
                   ? "bg-primary/10 border-primary/20 text-primary" 
-                  : "text-white/40 hover:text-primary hover:bg-primary/5 hover:border-primary/10"
+                  : "text-muted-foreground hover:text-primary hover:bg-primary/5 hover:border-primary/10"
               }`}
               onClick={handleLike}
             >
@@ -157,7 +193,8 @@ export function SocialPost({ post }: SocialPostProps) {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-11 px-6 rounded-2xl text-white/40 hover:text-white/80 hover:bg-white/5 transition-all duration-500 gap-3"
+              className="h-11 px-6 rounded-2xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-500 gap-3"
+              onClick={openPostPage}
             >
               <MessageCircle className="h-4 w-4" />
               <span className="text-[11px] font-bold font-mono tracking-widest">{post.engagement.comments}</span>
@@ -166,7 +203,8 @@ export function SocialPost({ post }: SocialPostProps) {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-11 px-6 rounded-2xl text-white/40 hover:text-white/80 hover:bg-white/5 transition-all duration-500"
+              className="h-11 px-6 rounded-2xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-500"
+              onClick={openPostPage}
             >
               <Share2 className="h-4 w-4" />
             </Button>
@@ -178,7 +216,7 @@ export function SocialPost({ post }: SocialPostProps) {
             className={`h-11 w-11 rounded-full flex items-center justify-center transition-all duration-500 ${
               isBookmarked 
                 ? "bg-primary/10 text-primary border border-primary/20" 
-                : "text-white/40 hover:text-primary hover:bg-primary/5"
+                : "text-muted-foreground hover:text-primary hover:bg-primary/5"
             }`}
             onClick={handleBookmark}
           >

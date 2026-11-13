@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server'
-import { prismaUser, prismaSocial, prismaItem } from '@/lib/db'
+import { prismaUser } from '@/lib/prisma/user'
+import { prismaSocial } from '@/lib/prisma/social'
+import { prismaItems } from '@/lib/prisma/items'
 
 export async function GET() {
   try {
     const results = await Promise.allSettled([
       prismaUser.$queryRaw`SELECT 1`,
       prismaSocial.$queryRaw`SELECT 1`,
-      prismaItem.$queryRaw`SELECT 1`,
+      prismaItems.$queryRaw`SELECT 1`,
     ])
 
     const dbNames = ['user', 'social', 'items']

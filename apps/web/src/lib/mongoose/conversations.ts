@@ -1,5 +1,36 @@
 import { connectToDatabase } from './connection'
-import { Conversation, Message } from '@repo/database-mongo'
+import { Conversation, Message, User } from '@repo/database-mongo'
+
+async function enrichParticipants(userIds: string[]) {
+  if (!userIds.length) return []
+  await connectToDatabase()
+  const users = await User.find({ _id: { $in: userIds } }).lean() as any[]
+  const userMap = new Map(users.map(u => [u._id.toString(), u]))
+
+  return userIds.map((id, idx) => {
+    const user = userMap.get(id)
+    return {
+      id,
+      name: user?.name || 'Unknown',
+      avatar: user?.avatar || '',
+    }
+  })
+}
+
+async function enrichSenderInfo(messages: any[]) {
+  const senderIds = [...new Set(messages.map(m => m.senderId))]
+  if (!senderIds.length) return messages
+
+  await connectToDatabase()
+  const users = await User.find({ _id: { $in: senderIds } }).lean() as any[]
+  const userMap = new Map(users.map(u => [u._id.toString(), u]))
+
+  return messages.map(msg => ({
+    ...msg,
+    senderName: userMap.get(msg.senderId)?.name || 'Unknown',
+    senderAvatar: userMap.get(msg.senderId)?.avatar || '',
+  }))
+}
 
 export async function fetchConversations(userId: string): Promise<{
   conversations: any[]
@@ -7,12 +38,10 @@ export async function fetchConversations(userId: string): Promise<{
   try {
     await connectToDatabase()
 
-    // Use .find() directly on the model
     const conversations = await Conversation.find({
-      'participants': userId
+      participants: userId
     }).lean()
 
-    // Get last message for each conversation
     const conversationsWithMessages = await Promise.all(
       conversations.map(async (conv: any) => {
         const lastMessage = await Message.findOne({
@@ -24,24 +53,35 @@ export async function fetchConversations(userId: string): Promise<{
           readBy: { $ne: userId }
         })
 
+        const participants = await enrichParticipants(conv.participants || [])
+
+        let lastMsgData = null
+        if (lastMessage) {
+          const enriched = await enrichSenderInfo([lastMessage])
+          lastMsgData = {
+            id: enriched[0]._id.toString(),
+            content: enriched[0].content,
+            senderId: enriched[0].senderId,
+            senderName: enriched[0].senderName,
+            senderAvatar: enriched[0].senderAvatar,
+            timestamp: enriched[0].timestamp?.toISOString?.() || enriched[0].timestamp,
+            type: enriched[0].type,
+            attachments: enriched[0].attachments || [],
+            isRead: enriched[0].readBy ? enriched[0].readBy.includes(userId) : false
+          }
+        }
+
         return {
           id: conv._id.toString(),
-          type: conv.type,
+          type: conv.type === 'direct' ? 'dm' : conv.type,
           name: conv.name || (conv.type === 'direct' ? 'Direct Message' : 'Group Chat'),
-          avatar: conv.avatar,
-          participants: conv.participants,
-          lastMessage: lastMessage ? {
-            id: lastMessage._id.toString(),
-            content: lastMessage.content,
-            senderId: lastMessage.senderId,
-            senderName: lastMessage.senderName, // Note: Shared model might need updating if these fields are missing
-            timestamp: lastMessage.timestamp.toISOString(),
-            type: lastMessage.type,
-            isRead: lastMessage.readBy ? lastMessage.readBy.includes(userId) : false
-          } : null,
+          avatar: conv.avatar || '',
+          participants,
+          lastMessage: lastMsgData,
           unreadCount,
-          createdAt: conv.createdAt ? conv.createdAt.toISOString() : new Date().toISOString(),
-          updatedAt: conv.updatedAt ? conv.updatedAt.toISOString() : (conv.createdAt ? conv.createdAt.toISOString() : new Date().toISOString())
+          lastSeen: conv.lastMessageAt?.toISOString?.() || null,
+          createdAt: conv.createdAt?.toISOString?.() || new Date().toISOString(),
+          updatedAt: conv.updatedAt?.toISOString?.() || (conv.createdAt?.toISOString?.() || new Date().toISOString())
         }
       })
     )
@@ -67,16 +107,17 @@ export async function fetchMessages(conversationId: string, userId: string): Pro
       conversationId
     }).sort({ timestamp: 1 }).lean() as any[]
 
-    const formattedMessages = messages.map(msg => ({
+    const enriched = await enrichSenderInfo(messages)
+
+    const formattedMessages = enriched.map(msg => ({
       id: msg._id.toString(),
       content: msg.content,
       senderId: msg.senderId,
       senderName: msg.senderName,
       senderAvatar: msg.senderAvatar,
-      timestamp: msg.timestamp.toISOString(),
+      timestamp: msg.timestamp?.toISOString?.() || msg.timestamp,
       type: msg.type,
       attachments: msg.attachments || [],
-      fileName: msg.fileName,
       isRead: msg.readBy ? msg.readBy.includes(userId) : false
     }))
 
@@ -93,7 +134,7 @@ export async function createConversation({
   participantIds,
   isPrivate = false
 }: {
-  type: 'direct' | 'group'
+  type: 'dm' | 'group'
   name?: string
   participantIds: string[]
   isPrivate?: boolean
@@ -101,30 +142,31 @@ export async function createConversation({
   try {
     await connectToDatabase()
 
-    // Note: Shared model ConversationSchema defines participants as [String] (IDs), not objects with roles
-    // Adjusting to shared schema
+    const dbType = type === 'dm' ? 'direct' : type
+
     const conversation = new Conversation({
-      type,
-      name,
-      isArchived: isPrivate, // Mapping isPrivate to isArchived or adding field if needed
+      type: dbType,
+      name: name || `Chat ${new Date().toLocaleDateString()}`,
+      isArchived: isPrivate,
       participants: participantIds,
-      admins: [participantIds[0]], // Assuming creator is first
+      admins: [participantIds[0]],
       createdBy: participantIds[0],
-      createdAt: new Date()
+      lastMessageAt: new Date(),
     })
 
     await conversation.save()
+    const participants = await enrichParticipants(conversation.participants || [])
 
     return {
       conversation: {
         id: conversation._id.toString(),
-        type: conversation.type,
+        type: type,
         name: conversation.name,
-        isPrivate: conversation.isArchived,
-        participants: conversation.participants,
-        createdAt: conversation.createdAt.toISOString(),
-        updatedAt: conversation.updatedAt.toISOString(),
-        unreadCount: 0
+        avatar: conversation.avatar || '',
+        participants,
+        unreadCount: 0,
+        createdAt: conversation.createdAt?.toISOString?.() || new Date().toISOString(),
+        updatedAt: conversation.updatedAt?.toISOString?.() || new Date().toISOString()
       }
     }
   } catch (error) {
@@ -141,7 +183,6 @@ export async function sendMessage({
   content,
   type = 'text',
   attachments = [],
-  fileName
 }: {
   conversationId: string
   senderId: string
@@ -150,32 +191,22 @@ export async function sendMessage({
   content: string
   type?: 'text' | 'image' | 'file' | 'audio' | 'video'
   attachments?: Array<{ url: string; type: string; name?: string; size?: number }>
-  fileName?: string
 }): Promise<{ message: any }> {
   try {
     await connectToDatabase()
 
     const message = new Message({
       conversationId,
-      conversation: conversationId, // Shared model requires conversation ref
       senderId,
-      sender: senderId, // Shared model uses 'sender' for ID too usually, or name? Check model.
-      // Shared model Message.ts: sender: { type: String, required: true } -> This is likely ID or Name. 
-      // apps/chat used userId. Let's assume ID.
-      // But keeping senderName/Avatar in content or metadata might be needed if not in schema.
-      // Schema has senderId (String) and sender (String).
       content,
       type,
       attachments,
-      // fileName not in shared schema options? Attachment schema exists.
-      // Map fileName to attachment if needed or assume text content contains it.
       timestamp: new Date(),
       readBy: [senderId]
     })
 
     await message.save()
 
-    // Update conversation's updatedAt
     await Conversation.findByIdAndUpdate(conversationId, {
       lastMessage: message._id,
       lastMessageAt: new Date()
@@ -186,12 +217,11 @@ export async function sendMessage({
         id: message._id.toString(),
         content: message.content,
         senderId: message.senderId,
-        senderName: senderName, // Return passed name for UI
-        senderAvatar: senderAvatar,
-        timestamp: message.timestamp.toISOString(),
+        senderName,
+        senderAvatar: senderAvatar || '',
+        timestamp: message.timestamp?.toISOString?.() || message.timestamp,
         type: message.type,
         attachments: message.attachments || [],
-        fileName: fileName,
         isRead: true
       }
     }
@@ -205,7 +235,6 @@ export async function markConversationAsRead(conversationId: string, userId: str
   try {
     await connectToDatabase()
 
-    // Mark all messages in the conversation as read by this user
     await Message.updateMany(
       {
         conversationId,

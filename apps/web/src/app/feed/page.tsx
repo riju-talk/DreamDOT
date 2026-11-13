@@ -1,87 +1,893 @@
-"use client";
+'use client'
 
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { AppSidebar } from "../../../components/app-sidebar"
-import { TopNav } from "../../../components/top-nav"
-import { CreatePostPrompt } from "../../../components/create-post-prompt"
-import { UnifiedFeed } from "../../../components/unified-feed"
-import { TrendingCreators } from "../../../components/trending-creators"
-import { PopularTags } from "../../../components/popular-tags"
-import { ScrollableContent } from "../../../components/scrollable-content"
-import { MobileNav } from "../../../components/mobile-nav"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { AuthenticatedLayout } from '@/components/authenticated-layout'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useInView } from 'react-intersection-observer'
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  Bookmark,
+  Sparkles,
+  Star,
+  Eye,
+  Play,
+  Music,
+  ShoppingCart,
+  AlertCircle,
+  Loader2,
+  Image as ImageIcon,
+  X,
+  Plus,
+  Copy,
+  Link2,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
+import { toast } from 'sonner'
+import { uploadMultipleMediaFiles } from '@/lib/utils/media-upload'
 
-export default function FeedPage() {
+type FeedItemType = 'post' | 'item'
+
+interface Post {
+  id: string
+  userId: string
+  content: string
+  media?: { type: string; url: string; alt?: string }[]
+  createdAt: string
+  likes: string[]
+  comments: { userId: string; text: string; timestamp: string }[]
+  author?: { id: string; name: string; avatar: string; verified?: boolean }
+  analytics?: { likes_count?: number; comments_count?: number }
+  type: 'post'
+}
+
+interface FeedItem {
+  id: string
+  title: string
+  description?: string
+  category: string
+  price: number
+  image: string
+  media?: { type: string; url: string; alt?: string }[]
+  rating: number
+  sales: number
+  creator: {
+    id: string
+    name: string
+    avatar: string
+    verified?: boolean
+  }
+  itemType?: 'image' | 'video' | 'audio' | '3d'
+  type: 'item'
+  views?: number
+}
+
+type FeedContent = Post | FeedItem
+
+const FALLBACK_IMAGE = 'https://i0.wp.com/www.innovationyourself.com/wp-content/uploads/2020/08/simplifying-controllers-action-fallback.png?fit=700%2C400&ssl=1'
+
+function FeedItemSkeleton() {
   return (
-    <div className="min-h-screen bg-[#050505] text-foreground relative font-sans overflow-hidden selection:bg-primary/30">
-      {/* Texture Overlay */}
-      <div className="fixed inset-0 z-[1] opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+    <Card className="dream-card border-border/50">
+      <CardContent className="p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-24" />
+          </div>
+        </div>
+        <Skeleton className="h-48 w-full rounded-lg" />
+        <div className="flex gap-3">
+          <Skeleton className="h-8 w-20" />
+          <Skeleton className="h-8 w-20" />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
-      {/* Background Ambient Glows */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] right-[-5%] w-[1000px] h-[1000px] bg-primary/10 rounded-full blur-[160px] opacity-20 animate-pulse transition-opacity duration-1000" />
-        <div className="absolute bottom-[10%] left-[-10%] w-[800px] h-[800px] bg-purple-500/5 rounded-full blur-[140px] opacity-20" />
-        <div className="absolute top-[40%] left-[20%] w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[120px] opacity-10" />
-      </div>
+function PostCard({ post }: { post: Post }) {
+  const { data: session } = useSession()
+  const router = useRouter()
+  const [isLiked, setIsLiked] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
+  const [likeCount, setLikeCount] = useState(post.analytics?.likes_count ?? post.likes?.length ?? 0)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [shareUrl, setShareUrl] = useState('')
 
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="relative bg-transparent z-[2]">
-          <TopNav />
-          <ScrollableContent>
-            <main className="container mx-auto px-6 md:px-12 py-16">
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-16">
-                <div className="lg:col-span-3 space-y-16">
-                  <header className="space-y-4">
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.8 }}
-                    >
-                      <h2 className="text-5xl md:text-6xl font-serif tracking-tight text-white/90 leading-[1.1]">
-                        Curated <span className="text-white/20 italic font-light">Inspirations</span>
-                      </h2>
-                      <div className="flex items-center gap-4 mt-6">
-                        <div className="h-[1px] w-12 bg-primary/40" />
-                        <p className="text-[10px] text-primary/60 font-mono uppercase tracking-[0.4em] font-bold">The Digital Atelier Collective</p>
-                      </div>
-                    </motion.div>
-                  </header>
-                  <CreatePostPrompt />
-                  <UnifiedFeed />
+  // Hydrate real like/save state from the server
+  useEffect(() => {
+    let active = true
+    const loadEngagementState = async () => {
+      try {
+        const [likeRes, saveRes] = await Promise.all([
+          fetch(`/api/posts/likes?postIds=${post.id}`),
+          fetch(`/api/posts/save?postIds=${post.id}`),
+        ])
+        if (!active) return
+        if (likeRes.ok) {
+          const likeData = await likeRes.json()
+          const state = likeData.likes?.[post.id]
+          if (state) {
+            setIsLiked(state.liked)
+            setLikeCount(state.count)
+          }
+        }
+        if (saveRes.ok) {
+          const saveData = await saveRes.json()
+          const savedState = saveData.saved?.[post.id]
+          if (savedState !== undefined) setIsSaved(savedState)
+        }
+      } catch {
+        // Keep optimistic defaults on network failure
+      }
+    }
+    loadEngagementState()
+    return () => {
+      active = false
+    }
+  }, [post.id])
+
+  const handleLike = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!(session as any)?.user?.id) return
+    const method = isLiked ? 'DELETE' : 'POST'
+    const prev = { liked: isLiked, count: likeCount }
+    setIsLiked((v) => !v)
+    setLikeCount((c) => c + (prev.liked ? -1 : 1))
+    try {
+      const res = await fetch(`/api/posts/${post.id}/like`, { method })
+      if (!res.ok && res.status !== 409) {
+        setIsLiked(prev.liked)
+        setLikeCount(prev.count)
+      }
+    } catch {
+      setIsLiked(prev.liked)
+      setLikeCount(prev.count)
+    }
+  }
+
+  const handleSave = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!(session as any)?.user?.id) return
+    const method = isSaved ? 'DELETE' : 'POST'
+    const prev = isSaved
+    setIsSaved((v) => !v)
+    try {
+      const res = await fetch(`/api/posts/${post.id}/save`, { method })
+      if (!res.ok && res.status !== 409) {
+        setIsSaved(prev)
+      }
+    } catch {
+      setIsSaved(prev)
+    }
+  }
+
+  const goToPost = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    router.push(`/posts/${post.id}`)
+  }
+
+  const copyToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('Post URL copied to clipboard')
+      return true
+    } catch (error) {
+      console.error('Error copying to clipboard:', error)
+      toast.error('Failed to copy post URL')
+      return false
+    }
+  }
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const url = `${window.location.origin}/posts/${post.id}`
+    setShareUrl(url)
+    await copyToClipboard(url)
+    setShareOpen(true)
+  }
+
+  const handleCopyLink = async () => {
+    await copyToClipboard(shareUrl)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      whileHover={{ y: -2 }}
+    >
+      <Card
+        className="dream-card border-border/50 overflow-hidden hover:border-primary/30 transition-all duration-300 group cursor-pointer"
+        onClick={goToPost}
+      >
+        <CardContent className="p-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <Link
+              href={`/profile/${post.author?.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-3 group/author"
+            >
+              <Avatar className="h-10 w-10 border border-border/50 group-hover/author:border-primary transition-colors">
+                <AvatarImage src={post.author?.avatar} alt={post.author?.name} />
+                <AvatarFallback>{post.author?.name?.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="flex items-center gap-1">
+                  <p className="font-semibold text-foreground group-hover/author:text-primary transition-colors">
+                    {post.author?.name}
+                  </p>
+                  {post.author?.verified && <Sparkles className="h-3 w-3 text-primary" />}
                 </div>
-                <div className="space-y-12 hidden lg:block">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                    className="space-y-10"
-                  >
-                    <TrendingCreators />
-                    <PopularTags />
-                    
-                    <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/[0.05] backdrop-blur-2xl">
-                      <h4 className="text-sm font-serif mb-4 text-white/60">Atelier Stats</h4>
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-end">
-                          <span className="text-[10px] text-white/30 uppercase tracking-widest font-bold">Active Manifestations</span>
-                          <span className="text-lg font-mono text-primary">12,402</span>
-                        </div>
-                        <div className="w-full h-[1px] bg-white/[0.05]" />
-                        <div className="flex justify-between items-end">
-                          <span className="text-[10px] text-white/30 uppercase tracking-widest font-bold">Creator Resonance</span>
-                          <span className="text-lg font-mono text-primary">98.2%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(post.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            </Link>
+          </div>
+
+          {/* Content */}
+          <p className="text-muted-foreground text-sm mb-4">{post.content}</p>
+
+          {/* Image */}
+          {post.media && post.media.length > 0 && (
+            <div className="relative w-full h-64 rounded-lg overflow-hidden mb-4 bg-black/30">
+              <Image
+                src={post.media[0].url}
+                alt={post.media[0].alt || 'Post media'}
+                fill
+                className="object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            </div>
+          )}
+
+          {/* Engagement */}
+          <div className="flex items-center justify-between text-sm text-muted-foreground mb-4 pb-4 border-b border-border/30">
+            <div className="flex gap-4">
+              <span>{likeCount} Likes</span>
+              <span>{post.comments?.length || 0} Comments</span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                'flex-1 text-muted-foreground group/btn transition-colors',
+                isLiked ? 'text-destructive hover:text-destructive' : 'hover:text-primary'
+              )}
+              onClick={handleLike}
+            >
+              <Heart className={cn('h-4 w-4 transition-all', isLiked && 'fill-destructive text-destructive scale-110')} />
+              {likeCount > 0 ? likeCount : 'Like'}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex-1 text-muted-foreground hover:text-primary"
+              onClick={goToPost}
+            >
+              <MessageCircle className="h-4 w-4" />
+              Comment
+            </Button>
+            <Button variant="ghost" size="sm" className="flex-1 text-muted-foreground hover:text-primary" onClick={handleShare}>
+              <Share2 className="h-4 w-4" />
+              Share
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                'flex-1 text-muted-foreground transition-colors',
+                isSaved ? 'text-primary hover:text-primary' : 'hover:text-primary'
+              )}
+              onClick={handleSave}
+              title={isSaved ? 'Unsave' : 'Save'}
+            >
+              <Bookmark className={cn('h-4 w-4 transition-all', isSaved && 'fill-primary text-primary scale-110')} />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Share Post Modal */}
+      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+        <DialogContent className="bg-card border border-border rounded-2xl max-w-xl w-[calc(100vw-2rem)]">
+          <DialogHeader className="space-y-2">
+            <DialogTitle className="text-xl font-bold text-foreground">Share this post</DialogTitle>
+            <p className="text-sm text-muted-foreground">Share this post with others</p>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            {/* Copy Link Section */}
+            <div className="flex items-center gap-2 min-w-0 rounded-xl border border-border/50 bg-muted/30 p-3 hover:bg-muted/50 transition-colors">
+              <Link2 className="h-5 w-5 text-primary flex-shrink-0" />
+              <p className="text-sm text-foreground truncate flex-1 min-w-0 font-mono">{shareUrl}</p>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10 flex-shrink-0"
+                onClick={handleCopyLink}
+                title="Copy link"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Hidden Input for Selection */}
+            <Input
+              readOnly
+              value={shareUrl}
+              onFocus={(e) => e.target.select()}
+              className="hidden"
+            />
+          </div>
+          <DialogFooter className="flex gap-3 sm:justify-between">
+            <DialogClose asChild>
+              <Button variant="outline" className="flex-1 rounded-lg">
+                Close
+              </Button>
+            </DialogClose>
+            <Button
+              className="flex-1 bg-gradient-to-r from-[#5a8c5a] to-[#4a7c4a] dark:from-primary dark:to-primary/80 text-white rounded-lg hover:shadow-lg transition-shadow"
+              onClick={() => {
+                handleCopyLink()
+                setTimeout(() => setShareOpen(false), 1000)
+              }}
+            >
+              Copy & Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </motion.div>
+  )
+}
+
+function ItemCard({ item }: { item: FeedItem }) {
+  const TypeIcon = item.itemType === 'video' ? Play : item.itemType === 'audio' ? Music : Sparkles
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      whileHover={{ y: -2 }}
+    >
+      <Link href={`/items/${item.id}`}>
+        <Card className="dream-card border-border/50 overflow-hidden hover:border-primary/30 transition-all duration-300 group cursor-pointer h-full">
+          {/* Image */}
+          <div className="relative w-full h-64 bg-black/30 overflow-hidden">
+            <img
+              src={item.image || item.media?.[0]?.url || FALLBACK_IMAGE}
+              alt={item.title || 'Item'}
+              loading="lazy"
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            />
+
+            {/* Type Badge */}
+            <Badge className="absolute top-3 left-3 bg-primary/80 backdrop-blur-sm capitalize">
+              {item.itemType || 'item'}
+            </Badge>
+
+            {/* Type Icon Overlay */}
+            {item.itemType && item.itemType !== 'image' && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="w-12 h-12 rounded-full bg-primary/80 flex items-center justify-center">
+                  <TypeIcon className="h-6 w-6 text-primary-foreground" />
                 </div>
               </div>
-            </main>
-          </ScrollableContent>
-          <MobileNav />
-        </SidebarInset>
-      </SidebarProvider>
-    </div>
+            )}
+
+            {/* Overlay Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          </div>
+
+          <CardContent className="p-4">
+            {/* Creator */}
+            <div className="flex items-center gap-2 mb-3">
+              <Avatar className="h-7 w-7 border border-border/50">
+                <AvatarImage src={item.creator?.avatar || '/placeholder.svg'} alt={item.creator?.name || 'Creator'} />
+                <AvatarFallback>{item.creator?.name?.charAt(0) || 'C'}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1">
+                  <p className="text-xs font-semibold text-muted-foreground truncate group-hover:text-primary transition-colors">
+                    {item.creator?.name || 'Creator'}
+                  </p>
+                  {item.creator?.verified && <Sparkles className="h-3 w-3 text-primary flex-shrink-0" />}
+                </div>
+              </div>
+            </div>
+
+            {/* Title */}
+            <h3 className="font-semibold text-foreground line-clamp-2 mb-3 group-hover:text-primary transition-colors">
+              {item.title}
+            </h3>
+
+            {/* Category & Price */}
+            <div className="flex items-center justify-between mb-3">
+              <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
+                {item.category}
+              </Badge>
+              <p className="text-primary font-bold">${item.price}</p>
+            </div>
+
+            {/* Stats */}
+            <div className="flex gap-3 text-xs text-muted-foreground pt-3 border-t border-border/30">
+              <div className="flex items-center gap-1">
+                <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                {item.rating}
+              </div>
+              <div className="flex items-center gap-1">
+                <ShoppingCart className="h-3 w-3" />
+                {item.sales}
+              </div>
+              {item.views && (
+                <div className="flex items-center gap-1">
+                  <Eye className="h-3 w-3" />
+                  {item.views}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </Link>
+    </motion.div>
+  )
+}
+
+export default function FeedPage() {
+  const [feedContent, setFeedContent] = useState<FeedContent[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(1)
+  const [error, setError] = useState<string | null>(null)
+  const [createPostOpen, setCreatePostOpen] = useState(false)
+  const [postDescription, setPostDescription] = useState('')
+  const [postImageFiles, setPostImageFiles] = useState<File[]>([])
+  const [postImages, setPostImages] = useState<string[]>([])
+  const [submittingPost, setSubmittingPost] = useState(false)
+  const { ref: loadMoreRef, inView } = useInView()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Initial load
+  useEffect(() => {
+    fetchFeed(1, true)
+  }, [])
+
+  // Load more on scroll
+  useEffect(() => {
+    if (inView && hasMore && !loadingMore && !loading) {
+      fetchFeed(page + 1, false)
+    }
+  }, [inView, hasMore, loadingMore, loading, page])
+
+  const fetchFeed = async (pageNum: number, reset: boolean = false) => {
+    try {
+      setError(null)
+      if (reset) {
+        setLoading(true)
+      } else {
+        setLoadingMore(true)
+      }
+
+      const params = new URLSearchParams({
+        page: pageNum.toString(),
+        limit: '10',
+      })
+
+      const response = await fetch(`/api/posts/feed?${params}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch feed')
+      }
+
+      const data = await response.json()
+
+      if (reset) {
+        setFeedContent(data.feed || data.posts || [])
+      } else {
+        setFeedContent((prev) => [...prev, ...(data.feed || data.posts || [])])
+      }
+
+      setHasMore(data.pagination?.hasMore ?? false)
+      if (!reset) {
+        setPage(pageNum)
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load feed'
+      setError(message)
+      console.error('Feed error:', err)
+    } finally {
+      setLoading(false)
+      setLoadingMore(false)
+    }
+  }
+
+  const handleSearch = (value: string) => {
+    setPage(1)
+    setFeedContent([])
+  }
+
+  const addImageFile = (file: File) => {
+    setPostImageFiles((prev) => [...prev, file])
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const result = event.target?.result
+      if (result) {
+        setPostImages((prev) => [...prev, result as string])
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files) {
+      Array.from(files).forEach(addImageFile)
+    }
+  }
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items
+    if (items) {
+      Array.from(items).forEach((item) => {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile()
+          if (file) addImageFile(file)
+        }
+      })
+    }
+  }
+
+  const removeImage = (index: number) => {
+    setPostImages((prev) => prev.filter((_, i) => i !== index))
+    setPostImageFiles((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleCreatePost = async () => {
+    if (!postDescription.trim()) return
+
+    setSubmittingPost(true)
+    try {
+      let media: Array<{ type: string; url: string }> = []
+      if (postImageFiles.length > 0) {
+        const results = await uploadMultipleMediaFiles(postImageFiles, 'posts')
+        const failed = results.find((r) => !r.success)
+        if (failed) {
+          setError(failed.error || 'Failed to upload image')
+          return
+        }
+        media = results.map((r) => ({ type: r.type || 'image', url: r.url! }))
+      }
+
+      const response = await fetch('/api/posts/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: postDescription,
+          media,
+        }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        setError(data.message || 'Failed to create post')
+        return
+      }
+
+      setCreatePostOpen(false)
+      setPostDescription('')
+      setPostImages([])
+      setPostImageFiles([])
+      // Refresh feed
+      setPage(1)
+      setFeedContent([])
+      fetchFeed(1, true)
+    } catch (err) {
+      console.error('Error creating post:', err)
+      setError(err instanceof Error ? err.message : 'Failed to create post')
+    } finally {
+      setSubmittingPost(false)
+    }
+  }
+
+
+
+  return (
+    <AuthenticatedLayout>
+      <div className="max-w-4xl mx-auto py-8 px-4 lg:px-0">
+        {/* Stories Section - Above Search */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.0 }}
+          className="mb-8"
+        >
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+            {/* Your Story Bubble */}
+            <motion.div
+              className="flex-shrink-0"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/40 to-primary/20 border-2 border-primary/60 cursor-pointer hover:border-primary transition-all hover:shadow-lg hover:shadow-primary/30 flex items-center justify-center p-1 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
+                <div className="flex items-center justify-center w-full h-full rounded-full relative z-10">
+                  <Plus className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+              <p className="text-xs font-semibold text-foreground mt-1 text-center">Your Story</p>
+            </motion.div>
+
+            {/* Story Bubbles */}
+            {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+              <motion.div
+                key={i}
+                className="flex-shrink-0 flex flex-col items-center"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.05 }}
+              >
+                <div className="relative group cursor-pointer">
+                  {/* Circular Story Bubble */}
+                  <div className={`w-20 h-20 rounded-full overflow-hidden border-2 transition-all group-hover:shadow-lg flex items-center justify-center relative ${
+                    i % 2 === 0 
+                      ? 'border-primary/70 shadow-lg shadow-primary/20 bg-gradient-to-br from-primary/30 to-primary/10' 
+                      : 'border-border/60 group-hover:border-primary/70 bg-gradient-to-br from-secondary/30 to-accent/10'
+                  }`}>
+                    {/* Story Content */}
+                    <div className="text-2xl">✨</div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
+                  </div>
+
+                  {/* Creator Avatar - Ring Style */}
+                  <div className="absolute -bottom-1 -right-1 z-20">
+                    <Avatar className="h-5 w-5 border-2 border-primary/60 ring-2 ring-background">
+                      <AvatarFallback className="text-[8px] font-bold">U{i}</AvatarFallback>
+                    </Avatar>
+                  </div>
+                </div>
+                <p className="text-xs font-medium text-muted-foreground mt-2 text-center">Creator {i}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Create Post Bar */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8 sticky top-4 z-30">
+          <Button
+            onClick={() => setCreatePostOpen(true)}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 w-full"
+          >
+            <Plus className="h-4 w-4" />
+            Create Post
+          </Button>
+        </motion.div>
+
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-4 bg-destructive/10 border border-destructive/30 rounded-lg flex items-center gap-3"
+          >
+            <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+            <p className="text-destructive text-sm font-medium">{error}</p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => fetchFeed(1, true)}
+              className="ml-auto"
+            >
+              Retry
+            </Button>
+          </motion.div>
+        )}
+
+        {/* Feed Grid */}
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <div className="space-y-6">
+              {[1, 2, 3].map((i) => (
+                <FeedItemSkeleton key={i} />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {feedContent.length > 0 ? (
+                <>
+                  {feedContent.map((item, index) => (
+                    <div key={item.id ?? index}>
+                      {item.type === 'post' ? (
+                        <PostCard post={item as Post} />
+                      ) : (
+                        <ItemCard item={item as FeedItem} />
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Load More Trigger */}
+                  {hasMore && (
+                    <div ref={loadMoreRef} className="py-8">
+                      {loadingMore ? (
+                        <div className="space-y-6">
+                          <FeedItemSkeleton />
+                          <FeedItemSkeleton />
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <p className="text-muted-foreground">Scroll for more content</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {!hasMore && feedContent.length > 0 && (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <p>You've reached the end of the feed</p>
+                      <Button
+                        variant="outline"
+                        className="mt-4 border-border/50"
+                        onClick={() => {
+                          setPage(1)
+                          setFeedContent([])
+                          fetchFeed(1, true)
+                        }}
+                      >
+                        Start over
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground mb-4">No content found</p>
+                  <Button variant="outline" onClick={() => {
+                    setPage(1)
+                    setFeedContent([])
+                    fetchFeed(1, true)
+                  }}>
+                    Reload
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Create Post Modal */}
+      <Dialog open={createPostOpen} onOpenChange={setCreatePostOpen}>
+        <DialogContent className="bg-card border border-border max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Create Post</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Content Textarea */}
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-2 block">
+                What's on your mind?
+              </label>
+              <Textarea
+                placeholder="Share your thoughts..."
+                value={postDescription}
+                onChange={(e) => setPostDescription(e.target.value)}
+                onPaste={handlePaste}
+                className="bg-background border-border/50 focus-visible:ring-primary min-h-32 resize-none"
+              />
+            </div>
+
+            {/* Image Preview Grid */}
+            {postImages.length > 0 && (
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-2 block">Attached Images</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {postImages.map((img, idx) => (
+                    <div key={idx} className="relative group rounded-lg overflow-hidden border border-border/50">
+                      <Image
+                        src={img}
+                        alt={`Preview ${idx}`}
+                        width={100}
+                        height={100}
+                        className="w-full h-24 object-cover"
+                      />
+                      <button
+                        onClick={() => removeImage(idx)}
+                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                      >
+                        <X className="h-5 w-5 text-white" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Image Upload */}
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-2 block">Add Images</label>
+              <div className="flex gap-2">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 border-border/50 hover:border-primary/50 gap-2"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                  Attach Images
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Supported formats: JPG, PNG, GIF (max 5 images)
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-4 border-t border-border/30">
+              <Button
+                variant="outline"
+                onClick={() => setCreatePostOpen(false)}
+                disabled={submittingPost}
+                className="flex-1 border-border/50"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreatePost}
+                disabled={!postDescription.trim() || submittingPost}
+                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {submittingPost ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Posting...
+                  </>
+                ) : (
+                  'Post'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </AuthenticatedLayout>
   )
 }

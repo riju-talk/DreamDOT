@@ -1,4 +1,4 @@
-import { uploadImageToImageKit } from '@/lib/imagekitupload'
+import { uploadFileToCloudinary } from '@/lib/cloudinaryUpload'
 
 export interface MediaUploadResult {
   success: boolean
@@ -281,14 +281,13 @@ export async function uploadMediaFile(file: File, folder: string = 'media'): Pro
       }
     }
 
-    // Use ImageKit for all supported media types
-    // Note: ImageKit supports images, videos, and files
-    const uploadUrl = await uploadImageToImageKit(file, folder)
-    
+    // Use Cloudinary for all supported media types
+    const uploadUrl = await uploadFileToCloudinary(file, folder)
+
     if (!uploadUrl) {
       return {
         success: false,
-        error: `Failed to upload ${validation.type} to ImageKit`
+        error: `Failed to upload ${validation.type} to Cloudinary`
       }
     }
 

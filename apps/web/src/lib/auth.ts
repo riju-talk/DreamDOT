@@ -1,6 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
-import { prismaUser } from "./prisma_user"
+import { prismaUser } from "./prisma/user"
+import { sendNotification } from "./notifications"
 import { getServerSession } from "next-auth"
 import type { NextAuthOptions } from "next-auth"
 import jwt from "jsonwebtoken"
@@ -19,23 +20,34 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        const user = await prismaUser.users.findUnique({
-          where: { email: credentials.email },
-          include: { user_profile: true },
-        })
+        try {
+          const user = await prismaUser.users.findUnique({
+            where: { email: credentials.email },
+            include: { user_profile: true },
+          })
 
-        if (!user || !user.password_hash) return null
+          if (!user || !user.password_hash) return null
 
-        const isValid = await bcrypt.compare(credentials.password, user.password_hash)
-        if (!isValid) return null
+          // Skip password check for OAuth users
+          if (user.password_hash.startsWith("OAUTH_LOGIN_")) return null
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.user_profile?.display_name ?? "",
-          avatar: user.user_profile?.avatar_url ?? "/placeholder.svg",
-          username: user.user_profile?.username ?? "",
-          verified: user.is_verified,
+          const isValid = await bcrypt.compare(credentials.password, user.password_hash)
+          if (!isValid) return null
+
+          // Security notice in the notification feed (fire-and-forget, never blocks login).
+          await sendNotification(user.id, "login", "New sign-in to your DreamDOT account")
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.user_profile?.display_name ?? "",
+            avatar: user.user_profile?.avatar_url ?? "/placeholder.svg",
+            username: user.user_profile?.username ?? "",
+            verified: user.is_verified,
+          }
+        } catch (error) {
+          console.error("Credentials auth error:", error)
+          return null
         }
       },
     }),
@@ -43,103 +55,169 @@ export const authOptions: NextAuthOptions = {
       ? [GoogleProvider({
           clientId: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          allowDangerousEmailAccountLinking: true,
         })]
       : []),
     ...(process.env.NEXT_PUBLIC_GITHUB_OAUTH_ENABLED === "true" && process.env.GITHUB_ID && process.env.GITHUB_SECRET
       ? [GitHubProvider({
           clientId: process.env.GITHUB_ID,
           clientSecret: process.env.GITHUB_SECRET,
+          allowDangerousEmailAccountLinking: true,
         })]
       : []),
     ...(process.env.NEXT_PUBLIC_DISCORD_OAUTH_ENABLED === "true" && process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET
       ? [DiscordProvider({
           clientId: process.env.DISCORD_CLIENT_ID,
           clientSecret: process.env.DISCORD_CLIENT_SECRET,
+          allowDangerousEmailAccountLinking: true,
         })]
       : []),
   ],
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       if (account?.provider === "google" || account?.provider === "github" || account?.provider === "discord") {
         if (!user.email) return false;
-        
+
+        // Normalize casing to match /api/auth/signup — GitHub/Discord emails
+        // (unlike Gmail addresses) are frequently mixed-case, so an exact-case
+        // lookup can miss an existing account and then crash on the `email`
+        // unique constraint when trying to "create" a duplicate.
+        const normalizedEmail = user.email.trim().toLowerCase();
+        user.email = normalizedEmail;
+
         try {
           let dbUser = await prismaUser.users.findUnique({
-            where: { email: user.email },
+            where: { email: normalizedEmail },
             include: { user_profile: true }
           });
 
           if (!dbUser) {
-            const tempUsername = user.email.split('@')[0] + Math.random().toString(36).substring(7);
+            // Generate unique username
+            const baseUsername = normalizedEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_-]/g, '');
+            let username = baseUsername;
+            let counter = 1;
+            
+            // Ensure username is unique
+            while (await prismaUser.user_profile.findUnique({ where: { username } }).catch(() => null)) {
+              username = `${baseUsername}${counter}`;
+              counter++;
+            }
+
+            // Create new user with OAuth
             dbUser = await prismaUser.users.create({
               data: {
-                 email: user.email,
-                 password_hash: "OAUTH_LOGIN_" + account.provider.toUpperCase(),
-                 is_verified: true,
-                 user_profile: {
-                    create: {
-                      username: tempUsername,
-                      display_name: user.name || tempUsername,
-                      avatar_url: user.image
-                    }
-                 }
+                email: user.email,
+                password_hash: `OAUTH_LOGIN_${account.provider.toUpperCase()}`,
+                is_verified: true,
+                // Demo credit economy: every account starts with 100 credits.
+                initial_balance: 100,
+                user_profile: {
+                  create: {
+                    username,
+                    display_name: user.name || username,
+                    avatar_url: user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+                    bio: "",
+                    banner_url: "https://www.mcentre.lk/frontend/assets/images/default-banner.png",
+                  }
+                }
               },
               include: { user_profile: true }
             });
+          } else {
+            // Update existing user if OAuth provider is new or profile incomplete.
+            // Use upsert (not update) since a user row can exist without a
+            // user_profile row — a plain update would throw in that case.
+            if (!dbUser.user_profile?.avatar_url && user.image) {
+              const baseUsername = normalizedEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_-]/g, '')
+              await prismaUser.user_profile.upsert({
+                where: { user_id: dbUser.id },
+                update: { avatar_url: user.image },
+                create: {
+                  user_id: dbUser.id,
+                  username: `${baseUsername}_${dbUser.id.slice(0, 8)}`,
+                  display_name: user.name || baseUsername,
+                  avatar_url: user.image,
+                  bio: "",
+                  banner_url: "https://www.mcentre.lk/frontend/assets/images/default-banner.png",
+                },
+              });
+              dbUser = await prismaUser.users.findUnique({
+                where: { id: dbUser.id },
+                include: { user_profile: true },
+              }) ?? dbUser;
+            }
           }
 
-          // Map the database user object to the next-auth user object for the jwt token
+          // Update user object with database info
           user.id = dbUser.id;
           user.username = dbUser.user_profile?.username ?? undefined;
           user.avatar = dbUser.user_profile?.avatar_url ?? undefined;
-          user.verified = dbUser.is_verified ?? undefined;
+          user.verified = dbUser.is_verified;
 
           return true;
         } catch (error) {
-          console.error("OAuth SignIn Error:", error);
+          console.error(`OAuth SignIn Error (${account?.provider}):`, error);
           return false;
         }
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
-        token.user = user
+        token.id = user.id;
+        token.username = user.username;
+        token.avatar = user.avatar;
+        token.verified = user.verified;
+        token.provider = account?.provider;
+        
         if (process.env.JWT_SECRET) {
           token.chatToken = jwt.sign(
             { 
               sub: user.id, 
-              email: user.email 
+              email: user.email,
+              username: user.username 
             },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
-          )
+          );
         }
       }
-      return token
+      return token;
     },
     async session({ session, token }) {
-      if (token.user) {
-        session.user = {
-          ...token.user,
-          username: token.user.username,
-          name: token.user.name,
-          email: token.user.email,
-          image: token.user.avatar,
-        }
-        session.chatToken = token.chatToken
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.username = token.username as string | undefined;
+        session.user.image = token.avatar as string | null | undefined;
+        session.user.verified = token.verified as boolean | null | undefined;
       }
-      return session
+      session.chatToken = token.chatToken;
+      return session;
     },
+    async redirect({ url, baseUrl }) {
+      // Allowed redirect URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return baseUrl + "/feed";
+    }
+  },
+  events: {
+    async signIn({ user, account, profile, isNewUser }) {
+      if (isNewUser && account?.provider) {
+        console.log(`New ${account.provider} user created:`, user.email);
+      }
+    },
+    async signOut({ token }) {
+      console.log("User signed out:", token?.email);
+    }
   },
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
     signIn: "/auth/signin",
-    signOut: "/auth/signout",
     error: "/auth/error",
-    newUser: "/auth/register",
   },
   secret: process.env.NEXTAUTH_SECRET,
 }

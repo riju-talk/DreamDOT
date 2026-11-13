@@ -1,5 +1,9 @@
-// src/lib/search.ts — server-only Fuse.js search over Prisma results
-import { prismaUser, prismaItem } from "@/lib/db";
+// src/lib/search.ts — server-only Fuse.js search over Prisma results.
+// Plain server module (no "use server"): imported by the server action boundary
+// in src/app/actions/search.ts, which must only export async functions.
+
+import { prismaUser } from "@/lib/prisma/user";
+import { prismaItems } from "@/lib/prisma/items";
 import Fuse, { type IFuseOptions } from "fuse.js";
 
 export type SearchResult = {
@@ -132,8 +136,8 @@ export async function unifiedSearch(query: string, limit = 10): Promise<SearchRe
   const userFuse = createSearchInstance(users, profileSearchOptions);
   const userResults = userFuse.search(query).slice(0, limit * 2);
 
-  // --- Fetch marketplace items (prismaItem.items — not market_place)
-  const items = await prismaItem.items.findMany({
+  // --- Fetch marketplace items (prismaItems.items — not market_place)
+  const items = await prismaItems.items.findMany({
     select: {
       item_id: true,
       title: true,

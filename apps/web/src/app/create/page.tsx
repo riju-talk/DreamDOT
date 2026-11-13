@@ -1,315 +1,432 @@
-"use client"
+'use client'
 
-import { Button } from "@/components/ui/button"
-import { useState, useEffect } from "react"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { RichTextEditor } from "@/components/rich-text-editor"
-import { Switch } from "@/components/ui/switch"
-import { Upload, ImageIcon, FileText, Music, X, Loader2, Sparkles, Plus } from "lucide-react"
-import { ProtectedRoute } from "../../../components/protected-route"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { AppSidebar } from "../../../components/app-sidebar"
-import { TopNav } from "../../../components/top-nav"
-import { MobileNav } from "../../../components/mobile-nav"
-import { createItem } from "@/app/actions"
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { cn } from "@/lib/utils"
+import { useCreatorStudioStore } from '@/lib/store/useCreatorStudioStore'
+import { WriterPart } from './components/WriterPart'
+import { MediaPart } from './components/MediaPart'
+import { BundlePart } from './components/BundlePart'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { AuthenticatedLayout } from '@/components/authenticated-layout'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { 
+  Loader2, 
+  CheckCircle2, 
+  AlertCircle,
+  PenTool,
+  Image as ImageIcon,
+  Package,
+  Sparkles,
+  Zap,
+  Target,
+} from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
+import { getVisibleTextLength } from '@/lib/utils'
 
 export default function CreatePage() {
   const router = useRouter()
-  const [writeContent, setWriteContent] = useState<string>("")
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [activeTab, setActiveTab] = useState("upload")
+  const { step, setStep, draft, isValid, validateDraft, publishDraft } = useCreatorStudioStore()
+  const [publishing, setPublishing] = useState(false)
+  const [publishError, setPublishError] = useState('')
+  const [publishSuccess, setPublishSuccess] = useState(false)
+  const [showGuide, setShowGuide] = useState(false)
 
-  // Form states
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [category, setCategory] = useState("")
-  const [price, setPrice] = useState("")
+  const assetTypes = [
+    { id: 'writer', label: 'Writer', icon: PenTool, desc: 'Create your content', subtitle: 'Write engaging stories, articles, and descriptions' },
+    { id: 'media', label: 'Media', icon: ImageIcon, desc: 'Upload assets', subtitle: 'Add images, videos, audio, and 3D files' },
+    { id: 'bundle', label: 'Bundle', icon: Package, desc: 'Group items', subtitle: 'Package assets for better monetization' },
+  ]
 
-  useEffect(() => {
-    return () => {
-      if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview)
-    }
-  }, [thumbnailPreview])
+  const currentAsset = assetTypes.find((t) => t.id === step)
 
   const handlePublish = async () => {
-    if (!title || !description) {
-      toast.error("Please fill in title and description")
+    if (!validateDraft()) {
+      setPublishError('Please fill in all required fields')
       return
     }
 
-    setIsSubmitting(true)
+    setPublishing(true)
+    setPublishError('')
 
-    try {
-      const formData = new FormData()
-      formData.append("title", title)
-      formData.append("description", description)
-      formData.append("category", category)
-      formData.append("price", price)
-      if (writeContent) formData.append("content", writeContent)
-      if (thumbnailFile) formData.append("thumbnail", thumbnailFile)
+    const result = await publishDraft()
+    setPublishing(false)
 
-      const result = await createItem(formData)
-
-      if (result.success) {
-        toast.success("Dream published successfully!")
-        router.push("/marketplace")
-      } else {
-        toast.error(result.error || "Failed to publish")
+    if (result.success) {
+      if (!result.itemId) {
+        console.error('❌ BUG: Success but no itemId returned:', result)
+        setPublishError('Published successfully but no item ID returned. Redirecting to profile...')
+        setTimeout(() => {
+          router.push('/profile')
+        }, 2000)
+        return
       }
-    } catch (error) {
-      toast.error("Something went wrong")
-    } finally {
-      setIsSubmitting(false)
+      
+      console.log('✅ Publishing successful! Redirecting to:', `/items/${result.itemId}`)
+      setPublishSuccess(true)
+      setTimeout(() => {
+        router.push(`/items/${result.itemId}`)
+      }, 2000)
+    } else {
+      setPublishError(result.error || 'Failed to publish')
     }
   }
 
   return (
-    <ProtectedRoute>
-      <SidebarProvider defaultOpen>
-        <div className="flex w-full h-screen overflow-hidden bg-background">
-          <AppSidebar />
-          <SidebarInset className="flex-1 overflow-auto relative">
-            <TopNav />
-            
-            <main className="p-8 md:p-16 max-w-[1400px] mx-auto space-y-16 pb-32">
-              {/* Header Section */}
-              <header className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary shadow-glow" />
-                  <span className="text-[10px] font-mono text-primary uppercase tracking-[0.4em]">Node: Synthesis Engine</span>
-                </div>
-                <h1 className="text-5xl md:text-7xl font-serif italic tracking-tighter text-foreground">
-                  Craft <span className="text-foreground/30 not-italic">Artifact.</span>
-                </h1>
-                <p className="text-lg text-foreground/40 font-light max-w-xl">
-                  Transform your ephemeral visions into persistent digital artifacts. 
-                  Select your modality of creation below.
-                </p>
-              </header>
-
-              <Tabs defaultValue="upload" className="w-full space-y-12" onValueChange={setActiveTab}>
-                <TabsList className="inline-flex h-14 items-center justify-center rounded-[20px] bg-foreground/[0.03] p-1.5 backdrop-blur-3xl border border-foreground/[0.05]">
-                  {[
-                    { value: "upload", label: "Materialize", icon: Upload },
-                    { value: "write", label: "Inscribe", icon: FileText },
-                    { value: "bundle", label: "Coalesce", icon: Sparkles }
-                  ].map((tab) => (
-                    <TabsTrigger 
-                      key={tab.value}
-                      value={tab.value} 
-                      className={cn(
-                        "inline-flex items-center justify-center whitespace-nowrap rounded-[14px] px-8 py-2.5 text-[10px] font-mono uppercase tracking-[0.2em] transition-all duration-500",
-                        "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-glow",
-                        "text-foreground/40 hover:text-foreground/60"
-                      )}
-                    >
-                      <tab.icon className="mr-2 h-3.5 w-3.5" />
-                      {tab.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeTab}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <TabsContent value="upload" className="mt-0 focus-visible:outline-none">
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                        {/* Main Interaction Area */}
-                        <div className="lg:col-span-2 space-y-10">
-                          <div className="space-y-8">
-                            <div className="grid gap-4">
-                              <Label className="text-[10px] font-mono uppercase tracking-widest text-foreground/30 ml-1">Artifact Designation</Label>
-                              <Input
-                                placeholder="Whispers of the Eternal Grid..."
-                                className="h-20 text-2xl font-serif bg-foreground/[0.01] border-foreground/5 rounded-[24px] px-8 focus:border-primary/50 focus:ring-0 transition-all placeholder:text-foreground/10"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                              />
-                            </div>
-
-                            <div className="grid gap-4">
-                              <Label className="text-[10px] font-mono uppercase tracking-widest text-foreground/30 ml-1">Contextual Description</Label>
-                              <Textarea
-                                placeholder="Detail the essence of this synthesis..."
-                                className="min-h-[160px] text-lg font-light bg-foreground/[0.01] border-foreground/5 rounded-[32px] p-8 resize-none focus:border-primary/50 focus:ring-0 transition-all placeholder:text-foreground/10"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                              />
-                            </div>
-
-                            <div className="grid gap-4">
-                              <Label className="text-[10px] font-mono uppercase tracking-widest text-foreground/30 ml-1">Material Feed</Label>
-                              <div className="group relative border-2 border-dashed border-foreground/5 rounded-[48px] p-24 text-center bg-foreground/[0.01] hover:bg-foreground/[0.02] hover:border-primary/20 transition-all duration-1000 cursor-pointer overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                                <div className="relative z-10 space-y-6">
-                                  <div className="w-20 h-20 rounded-[32px] bg-foreground/[0.03] border border-white/5 mx-auto flex items-center justify-center transition-transform duration-700 group-hover:scale-110 group-hover:rotate-6">
-                                    <Upload className="h-8 w-8 text-primary/60" />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <h3 className="text-xl font-serif text-foreground/80">Inject Material.</h3>
-                                    <p className="text-xs font-mono text-foreground/20 uppercase tracking-[0.2em]">
-                                      MP4, MOV, WAV, FLAC, PNG, JPG (MAX 500MB)
-                                    </p>
-                                  </div>
-                                  <Button variant="outline" className="h-12 px-8 rounded-full border-foreground/10 text-[10px] font-mono uppercase tracking-widest transition-all group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary">
-                                    Select Source
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Metadata / Configuration */}
-                        <aside className="space-y-10">
-                          <div className="bg-foreground/[0.02] border border-foreground/[0.03] rounded-[48px] p-10 space-y-10">
-                            <div className="space-y-8">
-                              <div className="grid gap-4">
-                                <Label className="text-[10px] font-mono uppercase tracking-widest text-foreground/30 ml-1">Resonance Cover</Label>
-                                <div className="relative aspect-square rounded-[36px] overflow-hidden border border-foreground/5 bg-foreground/[0.01] active:scale-[0.98] transition-all cursor-pointer group">
-                                  {thumbnailPreview ? (
-                                    <>
-                                      <img src={thumbnailPreview} alt="Preview" className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110" />
-                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                                        <X className="h-10 w-10 text-white cursor-pointer" onClick={(e) => {
-                                          e.stopPropagation()
-                                          setThumbnailFile(null)
-                                          setThumbnailPreview(null)
-                                        }} />
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer">
-                                      <ImageIcon className="h-12 w-12 text-foreground/10 mb-4 group-hover:text-primary/40 transition-colors" />
-                                      <span className="text-[10px] font-mono uppercase tracking-widest text-foreground/20">Set Iconography</span>
-                                      <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                                        const file = e.target.files?.[0]
-                                        if (file) {
-                                          setThumbnailFile(file)
-                                          setThumbnailPreview(URL.createObjectURL(file))
-                                        }
-                                      }}/>
-                                    </label>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="grid gap-4">
-                                <Label className="text-[10px] font-mono uppercase tracking-widest text-foreground/30 ml-1">Ecosystem Sphere</Label>
-                                <Select value={category} onValueChange={setCategory}>
-                                  <SelectTrigger className="h-14 bg-foreground/[0.01] border-foreground/5 rounded-2xl px-6 font-serif text-lg focus:ring-0">
-                                    <SelectValue placeholder="Select Modality" />
-                                  </SelectTrigger>
-                                  <SelectContent className="bg-background/80 backdrop-blur-3xl border-foreground/5 rounded-2xl">
-                                    <SelectItem value="art">Fine Art</SelectItem>
-                                    <SelectItem value="photography">Light Capture</SelectItem>
-                                    <SelectItem value="music">Sonic Waves</SelectItem>
-                                    <SelectItem value="video">Temporal Motion</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-
-                              <div className="grid gap-4">
-                                <Label className="text-[10px] font-mono uppercase tracking-widest text-foreground/30 ml-1">Monetization Node</Label>
-                                <div className="relative">
-                                  <span className="absolute left-6 top-1/2 -translate-y-1/2 text-foreground/20 font-serif text-xl">$</span>
-                                  <Input
-                                    type="number"
-                                    placeholder="0.00"
-                                    className="h-14 pl-12 bg-foreground/[0.01] border-foreground/5 rounded-2xl font-serif text-xl focus:ring-0"
-                                    value={price}
-                                    onChange={(e) => setPrice(e.target.value)}
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="flex items-center justify-between p-4 rounded-3xl bg-foreground/[0.02] border border-foreground/5">
-                                <Label className="text-xs text-foreground/40 font-light">Encrypted (Private)</Label>
-                                <Switch className="data-[state=checked]:bg-primary" />
-                              </div>
-                            </div>
-                          </div>
-                        </aside>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="write" className="mt-0 focus-visible:outline-none">
-                      <div className="max-w-4xl mx-auto space-y-12">
-                        <div className="space-y-8">
-                          <Input
-                            placeholder="A New Philosophy of Digital Dreams..."
-                            className="h-24 text-4xl md:text-6xl font-serif italic text-center bg-transparent border-none rounded-none focus:ring-0 transition-all placeholder:text-foreground/5 p-0"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                          />
-                          <div className="h-[1px] w-40 bg-primary/20 mx-auto" />
-                          <RichTextEditor
-                            value={writeContent}
-                            onChange={setWriteContent}
-                            placeholder="Inscribe the vision..."
-                          />
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="bundle" className="mt-0 focus-visible:outline-none">
-                       <div className="min-h-[400px] flex flex-col items-center justify-center space-y-8 bg-foreground/[0.01] border border-foreground/[0.03] rounded-[64px] p-24 text-center">
-                         <div className="w-24 h-24 rounded-[40px] bg-primary/10 border border-primary/20 flex items-center justify-center animate-pulse">
-                           <Sparkles className="h-10 w-10 text-primary" />
-                         </div>
-                         <div className="space-y-4 max-w-md">
-                           <h3 className="text-3xl font-serif italic">Coalescence Logic.</h3>
-                           <p className="text-foreground/40 font-light leading-relaxed">
-                             Neural networks are currently calibrating for the multi-modality bundling engine.
-                             Expected activation: Phase 4.
-                           </p>
-                         </div>
-                         <Button variant="outline" className="h-12 px-10 rounded-full border-foreground/10 text-[10px] font-mono uppercase tracking-[0.2em] opacity-40 hover:opacity-100 transition-opacity">Return to Hub</Button>
-                       </div>
-                    </TabsContent>
-                  </motion.div>
-                </AnimatePresence>
-              </Tabs>
-            </main>
-
-            {/* Sticky Actions Bar */}
-            <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-50 overflow-hidden">
-               <div className="absolute inset-x-0 bottom-0 p-8 flex justify-center pointer-events-auto">
-                 <div className="flex items-center gap-4 bg-foreground/[0.02] backdrop-blur-3xl border border-white/5 rounded-full p-2 pr-2 shadow-glow-strong">
-                   <Button variant="ghost" className="h-14 px-8 rounded-full text-[10px] font-mono uppercase tracking-widest text-foreground/40 hover:text-foreground hover:bg-white/5 transition-all">
-                     Snapshot
-                   </Button>
-                   <Button 
-                     onClick={handlePublish}
-                     disabled={isSubmitting}
-                     className="h-14 px-12 rounded-full bg-primary text-primary-foreground font-serif text-xl italic tracking-tighter shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
-                   >
-                     {isSubmitting ? <Loader2 className="animate-spin" /> : <><Plus className="w-5 h-5" /> Manifest Dream</>}
-                   </Button>
-                 </div>
-               </div>
+    <AuthenticatedLayout>
+      <div className="w-full h-full flex flex-col gap-8 min-h-screen">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+              {currentAsset && <currentAsset.icon className="h-6 w-6 text-primary" />}
             </div>
-            
-            <MobileNav />
-          </SidebarInset>
+            <div>
+              <h1 className="text-4xl font-bold text-foreground">Creator Studio</h1>
+              <p className="text-muted-foreground">{currentAsset?.desc}</p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Title & Description - Mandatory Fields */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Zap className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Essential Details</h2>
+            <Badge className="ml-auto bg-primary/20 text-primary border-primary/30">Required</Badge>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Title Input */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-foreground flex items-center gap-1">
+                Title <span className="text-destructive">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Give your asset a compelling title..."
+                value={draft.title || ''}
+                onChange={(e) => {
+                  // Update store
+                  const store = useCreatorStudioStore.getState()
+                  store.updateDraft({ title: e.target.value })
+                }}
+                maxLength={100}
+                className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none transition-colors"
+              />
+              <p className="text-xs text-muted-foreground">{(draft.title || '').length}/100 characters</p>
+            </div>
+
+            {/* Category Select */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-foreground flex items-center gap-1">
+                Category <span className="text-destructive">*</span>
+              </label>
+              <select
+                value={draft.category || ''}
+                onChange={(e) => {
+                  // Update store
+                  const store = useCreatorStudioStore.getState()
+                  store.updateDraft({ category: e.target.value })
+                }}
+                className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:border-primary focus:outline-none transition-colors"
+              >
+                <option value="">Select a category...</option>
+                <option value="art">Digital Art</option>
+                <option value="design">Design</option>
+                <option value="photography">Photography</option>
+                <option value="animation">Animation</option>
+                <option value="music">Music</option>
+                <option value="3d">3D Assets</option>
+                <option value="code">Code</option>
+                <option value="writing">Writing</option>
+                <option value="education">Education</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Description Input */}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-foreground flex items-center gap-1">
+              Description <span className="text-destructive">*</span>
+            </label>
+            <textarea
+              placeholder="Describe your asset in detail. What makes it unique? Who is it for? Include relevant details about the content..."
+              value={draft.description || ''}
+              onChange={(e) => {
+                // Update store
+                const store = useCreatorStudioStore.getState()
+                store.updateDraft({ description: e.target.value })
+              }}
+              maxLength={500}
+              rows={4}
+              className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none transition-colors resize-none"
+            />
+            <p className="text-xs text-muted-foreground">{(draft.description || '').length}/500 characters</p>
+          </div>
+        </motion.div>
+
+        {/* Asset Type Selection Grid */}
+        <div className="relative">
+          <div className="grid grid-cols-3 gap-4">
+            {assetTypes.map((assetType) => {
+              const AssetIcon = assetType.icon
+              const isActive = step === assetType.id
+              
+              return (
+                <motion.button
+                  key={assetType.id}
+                  onClick={() => setStep(assetType.id as any)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Card 
+                    className={`h-full transition-all duration-200 cursor-pointer ${
+                      isActive 
+                        ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20' 
+                        : 'border-border hover:border-primary/30 hover:bg-card/50'
+                    }`}
+                  >
+                    <CardContent className="p-6 text-center space-y-3">
+                      <div className={`p-3 rounded-lg w-fit mx-auto ${
+                        isActive 
+                          ? 'bg-primary/20' 
+                          : 'bg-muted'
+                      }`}>
+                        <AssetIcon className={`h-6 w-6 ${
+                          isActive 
+                            ? 'text-primary' 
+                            : 'text-muted-foreground'
+                        }`} />
+                      </div>
+                      <div>
+                        <h3 className={`font-semibold ${
+                          isActive 
+                            ? 'text-primary' 
+                            : 'text-foreground'
+                        }`}>
+                          {assetType.label}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {assetType.subtitle}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.button>
+              )
+            })}
+          </div>
         </div>
-      </SidebarProvider>
-    </ProtectedRoute>
+
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1">
+          {/* Editor Panel */}
+          <motion.div 
+            key={step}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="lg:col-span-2"
+          >
+            {step === 'writer' && <WriterPart />}
+            {step === 'media' && <MediaPart />}
+            {step === 'bundle' && <BundlePart />}
+          </motion.div>
+
+          {/* Preview Panel - Sticky */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            <Card className="sticky top-24 bg-card border-border/50 shadow-lg">
+              <CardContent className="pt-6">
+                <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                  Preview & Status
+                </h3>
+
+                {/* Draft Info Grid */}
+                <div className="space-y-4 mb-6">
+                  <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Title</p>
+                    <p className="text-foreground font-semibold mt-1">{draft.title || '—'}</p>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Category</p>
+                    <p className="text-foreground font-semibold mt-1">{draft.category || '—'}</p>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Pricing</p>
+                    <p className="text-foreground font-semibold mt-1 capitalize">{draft.pricingModel}</p>
+                  </div>
+
+                  {draft.pricingModel === 'paid' && (
+                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                      <p className="text-xs font-semibold text-primary uppercase tracking-wide">Price</p>
+                      <p className="text-primary font-bold text-lg mt-1">${(draft.priceCredits * 0.01).toFixed(2)}</p>
+                    </div>
+                  )}
+
+                  {draft.pricingModel === 'subscription' && (
+                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                      <p className="text-xs font-semibold text-primary uppercase tracking-wide">Subscription</p>
+                      <p className="text-primary font-bold text-lg mt-1 capitalize">
+                        {draft.subscriptionBillingCycle === 'monthly' ? 'Monthly' : 'Annually'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">Price set in Settings</p>
+                    </div>
+                  )}
+
+                  <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Media Files</p>
+                    <p className="text-foreground font-semibold mt-1">{draft.mediaFiles.length}</p>
+                  </div>
+
+                  {step === 'bundle' && (
+                    <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Bundle Items</p>
+                      <p className="text-foreground font-semibold mt-1">{draft.bundleItemIds.length}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Validation Status */}
+                <div className={`p-4 rounded-lg border-2 ${
+                  isValid 
+                    ? 'bg-primary/5 border-primary/30' 
+                    : 'bg-destructive/5 border-destructive/30'
+                }`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    {isValid ? (
+                      <>
+                        <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+                        <span className="text-primary font-bold">Ready to publish</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+                        <span className="text-destructive font-bold">Incomplete</span>
+                      </>
+                    )}
+                  </div>
+                  
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <span className={`text-lg ${draft.title ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {draft.title ? '✓' : '○'}
+                      </span>
+                      <span className={draft.title ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                        Title
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className={`text-lg ${getVisibleTextLength(draft.script || draft.description || '') >= 10 ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {getVisibleTextLength(draft.script || draft.description || '') >= 10 ? '✓' : '○'}
+                      </span>
+                      <span className={getVisibleTextLength(draft.script || draft.description || '') >= 10 ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                        Content
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className={`text-lg ${getVisibleTextLength(draft.description || '') >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {getVisibleTextLength(draft.description || '') >= 1 ? '✓' : '○'}
+                      </span>
+                      <span className={getVisibleTextLength(draft.description || '') >= 1 ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                        Description
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className={`text-lg ${draft.thumbnailUrl ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {draft.thumbnailUrl ? '✓' : '○'}
+                      </span>
+                      <span className={draft.thumbnailUrl ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                        Thumbnail
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className={`text-lg ${draft.category ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {draft.category ? '✓' : '○'}
+                      </span>
+                      <span className={draft.category ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                        Category
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className={`text-lg ${draft.pricingModel ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {draft.pricingModel ? '✓' : '○'}
+                      </span>
+                      <span className={draft.pricingModel ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                        Price status
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Actions Footer */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="flex gap-4 justify-end pt-4 border-t border-border/30"
+        >
+          <Button
+            onClick={handlePublish}
+            disabled={!isValid || publishing}
+            className="gap-2"
+          >
+            {publishing ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Publishing...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="h-4 w-4" />
+                Publish
+              </>
+            )}
+          </Button>
+        </motion.div>
+
+        {/* Status Messages */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: publishError || publishSuccess ? 1 : 0, y: publishError || publishSuccess ? 0 : 10 }}
+          transition={{ duration: 0.3 }}
+        >
+          {publishError && (
+            <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+              <span className="text-destructive text-sm font-medium">{publishError}</span>
+            </div>
+          )}
+
+          {publishSuccess && (
+            <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+              <span className="text-primary text-sm font-medium">✓ Published successfully! Redirecting...</span>
+            </div>
+          )}
+        </motion.div>
+      </div>
+    </AuthenticatedLayout>
   )
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import jwt from "jsonwebtoken"
 
-const CHAT_API_URL = process.env.CHAT_API_URL || "http://localhost:5050"
+const CHAT_API_URL = process.env.CHAT_API_URL || "http://localhost:3001"
 const JWT_SECRET = process.env.NEXTAUTH_SECRET || "your-secret"
 
 export async function POST(req) {

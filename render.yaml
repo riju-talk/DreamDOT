@@ -1,0 +1,82 @@
+# Render Blueprint — the three backend services on Render's FREE plan.
+# The web app (apps/web) is NOT here: it deploys to Vercel (see DEPLOYMENT.md).
+#
+# Use:  Render dashboard -> New -> Blueprint -> pick this repo. Render asks once for every
+#       `sync: false` value below (secrets are never committed).
+#
+# Free-plan facts to know: a service sleeps after ~15 min without traffic and takes ~30-60s
+# to wake (the keepalive workflow in .github/workflows/keepalive.yml pings them), and there
+# is no disk (none of these services needs one: all state lives in Postgres/Mongo).
+# Build context for every Dockerfile is the repo root, hence `dockerContext: .`.
+
+envVarGroups:
+  # Enter these once; every service below reads them. They MUST equal the values set in Vercel.
+  - name: dreamdot-shared
+    envVars:
+      - key: JWT_SECRET        # web mints the chat token, chat + notifications verify it
+        sync: false
+      - key: SERVICE_SECRET    # service-to-service `x-service-secret` header
+        sync: false
+      - key: MONGODB_URI       # MongoDB Atlas M0 (free) connection string
+        sync: false
+      - key: CORS_ORIGIN       # your Vercel URL, e.g. https://dreamdot.vercel.app (no trailing /)
+        sync: false
+
+services:
+  - type: web
+    name: dreamdot-chat
+    runtime: docker
+    plan: free
+    dockerfilePath: ./apps/chat/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - fromGroup: dreamdot-shared
+      - key: NODE_ENV
+        value: production
+      - key: SOCKET_PATH
+        value: /socket.io
+      - key: POSTGRESS_DB_COMMUNITY  # Neon URL ending in ?schema=community
+        sync: false
+      - key: NOTIFICATIONS_SERVICE_URL  # https://dreamdot-notifications.onrender.com
+        sync: false
+
+  - type: web
+    name: dreamdot-notifications
+    runtime: docker
+    plan: free
+    dockerfilePath: ./apps/notifications/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - fromGroup: dreamdot-shared
+      - key: NODE_ENV
+        value: production
+      - key: SOCKET_PATH
+        value: /socket.io
+      - key: POSTGRESS_DB_SOCIAL  # Neon URL ending in ?schema=social
+        sync: false
+
+  - type: web
+    name: dreamdot-web3
+    runtime: docker
+    plan: free
+    dockerfilePath: ./apps/web3/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - fromGroup: dreamdot-shared
+      - key: NODE_ENV
+        value: production
+      # Free public testnet. Without WEB3_PRIVATE_KEY the service runs in local-only mode
+      # (ledger rows in Mongo, no on-chain tx), which is a fine demo default.
+      - key: CHAIN_ID
+        value: "80002"
+      - key: CHAIN_NAME
+        value: polygon-amoy
+      - key: RPC_URL
+        value: https://rpc-amoy.polygon.technology
+      - key: EXPLORER_BASE
+        value: https://amoy.polygonscan.com
+      - key: WEB3_PRIVATE_KEY   # optional: burner wallet funded from the Amoy faucet
+        sync: false

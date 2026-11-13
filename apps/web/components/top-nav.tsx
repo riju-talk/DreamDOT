@@ -10,11 +10,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Search, User, X, ShoppingBag, Sparkles } from "lucide-react"
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
-import { quickSearch } from "@/lib/search"
+import { quickSearch } from "@/app/actions/search"
 import Link from "next/link"
 
 interface SearchResult {
@@ -108,10 +107,10 @@ function GlobalSearch() {
   }
 
   return (
-    <div ref={searchRef} className="relative w-full max-w-sm">
+    <div ref={searchRef} className="relative w-full max-w-lg">
       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
-        type="search"
+        type="text"
         placeholder="Search profiles or marketplace..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
@@ -192,10 +191,12 @@ export function TopNav() {
   const { data: session } = useSession()
 
   return (
-    <header className="sticky top-0 z-40 flex h-20 items-center gap-6 bg-background/40 backdrop-blur-3xl px-8 md:px-12 border-b-0">
-      {session ? (
-        <SidebarTrigger className="-ml-2 hover:bg-foreground/5 transition-colors" />
-      ) : (
+    <header 
+      className="flex h-16 sm:h-20 items-center gap-4 sm:gap-6 bg-background/40 backdrop-blur-3xl px-4 sm:px-8 md:px-12 border-b border-border/50"
+      role="banner"
+    >
+      {/* Logo - Only show on non-authenticated or landing */}
+      {!session && (
         <Link href="/" className="flex items-center gap-3 mr-4 group">
           <div className="relative overflow-hidden rounded-xl p-2 bg-primary shadow-glow transition-transform duration-500 group-hover:scale-110">
             <Sparkles className="h-5 w-5 text-primary-foreground" />
@@ -206,12 +207,14 @@ export function TopNav() {
         </Link>
       )}
       
+      {/* Navigation Links */}
       <div className="hidden md:flex md:flex-1">
         <nav className="flex items-center space-x-10">
           {[
-            { name: "Live Stream", href: "/feed" },
+            { name: "Home Feed", href: "/feed" },
             { name: "Discover", href: "/discover" },
-            { name: "Marketplace", href: "/marketplace" }
+            { name: "Marketplace", href: "/marketplace" },
+            { name: "About", href: "/about" }
           ].map((link) => (
             <Link
               key={link.href}
@@ -234,11 +237,12 @@ export function TopNav() {
         </nav>
       </div>
 
-      <div className="flex flex-1 items-center justify-end space-x-6">
-        <div className="hidden md:flex w-full max-w-[300px]">
+      {/* Right side actions - ml-auto ensures it pushes to the right */}
+      <div className="ml-auto flex items-center justify-end space-x-3 sm:space-x-6">
+        <div className="hidden md:flex">
           <GlobalSearch />
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <ModeToggle />
           <UserNav />
         </div>

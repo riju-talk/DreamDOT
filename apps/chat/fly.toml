@@ -1,0 +1,35 @@
+# fly.toml — apps/chat (Socket.IO messaging service)
+# Deploy from the repo root:  fly deploy -c apps/chat/fly.toml --dockerfile apps/chat/Dockerfile
+# First time:                 fly launch --no-deploy -c apps/chat/fly.toml
+# Secrets (never commit):     fly secrets set JWT_SECRET=... SERVICE_SECRET=... MONGODB_URI=... \
+#                                 POSTGRESS_DB_COMMUNITY=... NOTIFICATIONS_SERVICE_URL=... -c apps/chat/fly.toml
+
+app = "dreamdot-chat"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3001"
+  HOST = "0.0.0.0"
+  NODE_ENV = "production"
+  SOCKET_PATH = "/socket.io"
+
+[http_service]
+  internal_port = 3001
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "3s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

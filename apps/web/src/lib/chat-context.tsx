@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useSession } from "next-auth/react"
-import { useSocket } from "./socket"
+import { useSocket } from "./useSocketHook"
 import type { ChatConversation, ChatMessage, GroupChat, DirectMessage } from "./chat"
 
 interface ChatContextType {
@@ -32,30 +32,32 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [conversations, setConversations] = useState<ChatConversation[]>([])
   const [activeConversation, setActiveConversation] = useState<ChatConversation | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
+  const sessionUser = (session as any)?.user
   const [isLoading, setIsLoading] = useState(false)
 
   // Load conversations on mount
   useEffect(() => {
-    if (session?.user?.name && (session as any)?.accessToken) {
+    if (session?.user?.id && (session as any)?.chatToken) {
       loadConversations()
     }
-  }, [session?.user?.name, (session as any)?.accessToken])
+  }, [session?.user?.id, (session as any)?.chatToken])
 
   // Listen for incoming messages
   useEffect(() => {
     if (!socket) return
 
     const handleNewMessage = (data: any) => {
+      const isOwn = data.senderId === sessionUser?.id
       const newMessage: ChatMessage = {
         id: data._id || data.id,
         content: data.content || '',
         senderId: data.senderId,
-        senderName: data.sender?.name || 'Unknown',
-        senderAvatar: data.sender?.avatar || '',
+        senderName: isOwn ? (sessionUser?.name || 'You') : (data.senderName || 'Unknown'),
+        senderAvatar: isOwn ? (sessionUser?.image || '') : (data.senderAvatar || ''),
         timestamp: data.timestamp || new Date().toISOString(),
         type: data.type || 'text',
         attachments: data.attachments || [],
-        isRead: data.readBy?.includes((session as any)?.user?.id) || false
+        isRead: data.readBy?.includes(sessionUser?.id) || false
       }
 
       setMessages(prev => {
@@ -103,7 +105,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       socket.off('message:typing', handleTyping)
       socket.off('presence:join', handleUserJoined)
     }
-  }, [socket, activeConversation, session])
+  }, [socket, activeConversation, session, sessionUser])
 
   const loadConversations = async () => {
     if (!session?.user) return
@@ -132,15 +134,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const data = await response.json()
         const loadedMessages = (data.messages || []).map((msg: any) => ({
-          id: msg._id,
+          id: msg._id || msg.id,
           content: msg.content || '',
           senderId: msg.senderId,
-          senderName: msg.sender?.name || 'Unknown',
-          senderAvatar: msg.sender?.avatar || '',
+          senderName: msg.senderName || 'Unknown',
+          senderAvatar: msg.senderAvatar || '',
           timestamp: msg.timestamp,
           type: msg.type || 'text',
           attachments: msg.attachments || [],
-          isRead: msg.readBy?.includes((session as any).user.name) || false
+          isRead: msg.readBy?.includes(sessionUser?.id) || false
         }))
 
         setMessages(loadedMessages)
@@ -151,9 +153,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }
 
   const joinConversation = (conversationId: string) => {
+    loadMessages(conversationId)
     if (socket && isConnected) {
       joinRoom(conversationId)
-      loadMessages(conversationId)
+    }
+  }
+
+  const selectConversation = (conversation: ChatConversation | null) => {
+    setActiveConversation(conversation)
+    if (conversation) {
+      joinConversation(conversation.id)
     }
   }
 
@@ -173,7 +182,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     const message = {
       conversationId,
       content,
-      senderId: (session as any).user.name,
+      senderId: (session as any).user.id,
       timestamp: new Date().toISOString(),
       type: messageType,
       attachments: attachments || []
@@ -278,7 +287,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     joinConversation,
     leaveConversation,
     sendMessage,
-    setActiveConversation,
+    setActiveConversation: selectConversation,
     createDirectMessage,
     createGroupChat,
     searchConversations,

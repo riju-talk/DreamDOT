@@ -1,0 +1,6 @@
+-- Create schemas within the dreamdot database
+CREATE SCHEMA IF NOT EXISTS user_d;
+CREATE SCHEMA IF NOT EXISTS social;
+CREATE SCHEMA IF NOT EXISTS items_d;
+CREATE SCHEMA IF NOT EXISTS community;
+CREATE SCHEMA IF NOT EXISTS audit;

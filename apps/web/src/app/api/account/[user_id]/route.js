@@ -34,7 +34,7 @@ export async function GET(req, { params }) {
       prismaUser.user_profile.findUnique({ where: { user_id } }),
       prismaSocial.following.findMany({ where: { followee_id: user_id } }),
       prismaSocial.following.findMany({ where: { follower_id: user_id } }),
-      prismaSocial.posts_metadata.findMany({
+      prismaSocial.posts.findMany({
         where: { user_id },
         orderBy: { created_at: "desc" },
         take: 10,

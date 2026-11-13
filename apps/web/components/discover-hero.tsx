@@ -28,7 +28,7 @@ export function DiscoverHero() {
               <Input
                 type="search"
                 placeholder="Search for dreams, creators, or collections..."
-                className="pl-12 pr-4 py-3 text-lg rounded-full border-none bg-background/80 backdrop-blur"
+                className="pl-12 pr-32 py-3 text-lg rounded-full border-none bg-background/80 backdrop-blur dark:bg-background/80 dark:text-foreground light:bg-white/90 light:text-slate-900 light:placeholder:text-slate-500"
               />
               <Button className="absolute right-2 top-1/2 transform -translate-y-1/2 dream-button text-primary-foreground rounded-full">
                 Search

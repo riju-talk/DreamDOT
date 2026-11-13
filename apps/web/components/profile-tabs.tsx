@@ -1,3 +1,5 @@
+"use client"
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { SocialPost } from "./social-post"
@@ -83,7 +85,7 @@ const subscriptionTiers = [
   },
 ]
 
-export function ProfileTabs() {
+export function ProfileTabs({ userId = "" }: { isOwnProfile?: boolean; userId?: string }) {
   return (
     <Tabs defaultValue="posts" className="w-full">
       <TabsList className="grid w-full grid-cols-4 rounded-xl">
@@ -150,7 +152,7 @@ export function ProfileTabs() {
       <TabsContent value="about" className="mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <UserAbout />
+            <UserAbout userId={userId} />
           </div>
 
           <div className="space-y-6">

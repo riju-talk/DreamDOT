@@ -5,12 +5,15 @@ import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { FaGithub, FaGoogle, FaDiscord } from "react-icons/fa";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface OAuthButtonsProps {
   isLoading?: boolean;
   googleEnabled?: boolean;
   githubEnabled?: boolean;
   discordEnabled?: boolean;
+  callbackUrl?: string;
+  mode?: "signin" | "signup";
 }
 
 export function OAuthButtons({ 
@@ -18,11 +21,13 @@ export function OAuthButtons({
   googleEnabled = false,
   githubEnabled = false,
   discordEnabled = false,
+  callbackUrl = "/feed",
+  mode = "signin",
 }: OAuthButtonsProps) {
   const handleOAuthSignIn = async (provider: "google" | "github" | "discord") => {
     try {
       await signIn(provider, {
-        callbackUrl: "/feed",
+        callbackUrl,
       });
     } catch (error) {
       console.error(`${provider} sign-in error:`, error);
@@ -37,51 +42,55 @@ export function OAuthButtons({
     return null;
   }
 
+  const modeLabel = mode === "signup" ? "Create account with" : "Continue with";
+
   return (
     <>
       <div className="flex items-center justify-center gap-2">
-        <span className="h-px bg-border flex-1" />
-        <span className="text-sm text-muted-foreground">or sign in with</span>
-        <span className="h-px bg-border flex-1" />
+        <span className="h-px flex-1 bg-[#101611]/10 dark:bg-[#f5f2e8]/10" />
+        <span className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-[#63725f] dark:text-[#8fa088]">
+          {modeLabel}
+        </span>
+        <span className="h-px flex-1 bg-[#101611]/10 dark:bg-[#f5f2e8]/10" />
       </div>
 
       <div className="flex flex-col space-y-2">
         {googleEnabled && (
           <Button
             variant="outline"
-            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-muted/50 transition-colors"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border-[#101611]/12 bg-white/72 text-[#101611] transition-colors hover:bg-[#101611]/5 dark:border-[#f5f2e8]/12 dark:bg-[#060907]/65 dark:text-[#f5f2e8] dark:hover:bg-[#f5f2e8]/10 dark:hover:text-white"
             onClick={() => handleOAuthSignIn("google")}
             disabled={isLoading}
             type="button"
           >
-            <FaGoogle className="h-4 w-4 text-red-500" />
-            Sign in with Google
+            {isLoading ? <Loader2 className="size-4 animate-spin" /> : <FaGoogle className="size-4 text-red-400" />}
+            Google
           </Button>
         )}
         
         {githubEnabled && (
           <Button
             variant="outline"
-            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-muted/50 transition-colors"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border-[#101611]/12 bg-white/72 text-[#101611] transition-colors hover:bg-[#101611]/5 dark:border-[#f5f2e8]/12 dark:bg-[#060907]/65 dark:text-[#f5f2e8] dark:hover:bg-[#f5f2e8]/10 dark:hover:text-white"
             onClick={() => handleOAuthSignIn("github")}
             disabled={isLoading}
             type="button"
           >
-            <FaGithub className="h-4 w-4" />
-            Sign in with GitHub
+            {isLoading ? <Loader2 className="size-4 animate-spin" /> : <FaGithub className="size-4" />}
+            GitHub
           </Button>
         )}
 
         {discordEnabled && (
           <Button
             variant="outline"
-            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-muted/50 transition-colors"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border-[#101611]/12 bg-white/72 text-[#101611] transition-colors hover:bg-[#101611]/5 dark:border-[#f5f2e8]/12 dark:bg-[#060907]/65 dark:text-[#f5f2e8] dark:hover:bg-[#f5f2e8]/10 dark:hover:text-white"
             onClick={() => handleOAuthSignIn("discord")}
             disabled={isLoading}
             type="button"
           >
-            <FaDiscord className="h-4 w-4 text-[#5865F2]" />
-            Sign in with Discord
+            {isLoading ? <Loader2 className="size-4 animate-spin" /> : <FaDiscord className="size-4 text-[#8ea1ff]" />}
+            Discord
           </Button>
         )}
       </div>

@@ -7,3 +7,4 @@ export * from './models/Attachment';
 export * from './models/Post';
 export * from './models/Item';
 export * from './models/Transaction';
+export * from './models/LedgerEntry';

@@ -1,0 +1,33 @@
+# fly.toml — apps/notifications (NestJS notification service)
+# Deploy from the repo root:  fly deploy -c apps/notifications/fly.toml --dockerfile apps/notifications/Dockerfile
+# Secrets:  fly secrets set JWT_SECRET=... SERVICE_SECRET=... POSTGRESS_DB_SOCIAL=... MONGODB_URI=... -c apps/notifications/fly.toml
+
+app = "dreamdot-notifications"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3003"
+  HOST = "0.0.0.0"
+  NODE_ENV = "production"
+  SOCKET_PATH = "/socket.io"
+
+[http_service]
+  internal_port = 3003
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "3s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
