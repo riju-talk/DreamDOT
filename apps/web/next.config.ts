@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "canbind.ca" },
       { protocol: "https", hostname: "i.pravatar.cc" },
+      { protocol: "https", hostname: "picsum.photos" },
+      { protocol: "https", hostname: "fastly.picsum.photos" },
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "www.mcentre.lk" },
       { protocol: "https", hostname: "ik.imagekit.io" },
